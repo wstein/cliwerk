@@ -66,7 +66,7 @@ public class AutoComplete {
     private AutoComplete() { }
 
     /**
-     * Generates a bash completion script for the specified command class.
+     * Generates a bash/zsh or fish completion script for the specified command class.
      * @param args command line options. Specify at least the {@code commandLineFQCN} mandatory parameter, which is
      *      the fully qualified class name of the annotated {@code @Command} class to generate a completion script for.
      *      Other parameters are optional. Specify {@code -h} to see details on the available options.
@@ -105,7 +105,7 @@ public class AutoComplete {
      */
     @Command(name = "picocli.AutoComplete", mixinStandardHelpOptions = true, showAtFileInUsageHelp = true,
             version = "picocli.AutoComplete " + CommandLine.VERSION, sortOptions = false,
-            description = "Generates a bash completion script for the specified command class.",
+            description = "Generates a bash/zsh or fish completion script for the specified command class.",
             footerHeading = "%n@|bold System Properties:|@%n",
             footer = {"Set the following system properties to control the exit code of this program:",
                     "",
@@ -150,8 +150,8 @@ public class AutoComplete {
 
         @Option(names = {"-o", "--completionScript"},
                 description = "Optionally specify the path of the completion script file to generate. " +
-                        "When omitted, a file named '<commandName>_completion' " +
-                        "is generated in the current directory.")
+                        "When omitted, a file named '<commandName>_completion' (or '<commandName>.fish' " +
+                        "when --shell=fish) is generated in the current directory.")
         File autoCompleteScript;
 
         @Option(names = {"-w", "--writeCommandScript"},
@@ -161,6 +161,10 @@ public class AutoComplete {
 
         @Option(names = {"-f", "--force"}, description = "Overwrite existing script files.")
         boolean overwriteIfExists;
+
+        @Option(names = "--shell", description = "The shell to generate a completion script for: ${COMPLETION-CANDIDATES}.",
+                defaultValue = "bash")
+        GenerateCompletion.Shell shell;
 
         @Spec CommandSpec spec;
 
@@ -179,8 +183,9 @@ public class AutoComplete {
                     commandName = cls.getSimpleName().toLowerCase();
                 }
             }
+            boolean isFish = shell == GenerateCompletion.Shell.fish;
             if (autoCompleteScript == null) {
-                autoCompleteScript = new File(commandName + "_completion");
+                autoCompleteScript = new File(isFish ? commandName + ".fish" : commandName + "_completion");
             }
             File commandScript = null;
             if (writeCommandScript) {
@@ -193,7 +198,11 @@ public class AutoComplete {
                 return EXIT_CODE_COMPLETION_SCRIPT_EXISTS;
             }
 
-            AutoComplete.bash(commandName, autoCompleteScript, commandScript, commandLine);
+            if (isFish) {
+                AutoComplete.fish(commandName, autoCompleteScript, commandScript, commandLine);
+            } else {
+                AutoComplete.bash(commandName, autoCompleteScript, commandScript, commandLine);
+            }
             return EXIT_CODE_SUCCESS;
         }
 
@@ -583,6 +592,40 @@ public class AutoComplete {
         result.append("complete -c '").append(fishQuote(scriptName)).append("' -e\n");
         generateFishCompletions(scriptName, "", commandLine, result);
         return result.toString();
+    }
+
+    /**
+     * Generates source code for a fish completion script for the specified picocli-based application,
+     * and writes this script to the specified {@code out} file, and optionally writes an invocation script
+     * to the specified {@code command} file.
+     * @param scriptName the name of the command to generate a fish completion script for
+     * @param commandLine the {@code CommandLine} instance for the command line application
+     * @param out the file to write the fish completion script source code to
+     * @param command the file to write a helper script to that invokes the command, or {@code null} if no helper script file should be written
+     * @throws IOException if a problem occurred writing to the specified files
+     * @since 4.8
+     */
+    public static void fish(String scriptName, File out, File command, CommandLine commandLine) throws IOException {
+        String autoCompleteScript = fish(scriptName, commandLine);
+        Writer completionWriter = null;
+        Writer scriptWriter = null;
+        try {
+            completionWriter = new FileWriter(out);
+            completionWriter.write(autoCompleteScript);
+
+            if (command != null) {
+                scriptWriter = new FileWriter(command);
+                scriptWriter.write("" +
+                        "#!/usr/bin/env bash\n" +
+                        "\n" +
+                        "LIBS=path/to/libs\n" +
+                        "CP=\"${LIBS}/myApp.jar\"\n" +
+                        "java -cp \"${CP}\" '" + ((Object) commandLine.getCommand()).getClass().getName() + "' $@");
+            }
+        } finally {
+            if (completionWriter != null) { completionWriter.close(); }
+            if (scriptWriter != null)     { scriptWriter.close(); }
+        }
     }
 
     /**
