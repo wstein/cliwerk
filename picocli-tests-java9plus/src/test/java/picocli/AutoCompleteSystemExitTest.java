@@ -255,7 +255,8 @@ public class AutoCompleteSystemExitTest {
                 "\n" +
                 "  local commands=\"\"\n" +
                 "  local flag_opts=\"'-w' '--writeCommandScript' '-f' '--force' '-h' '--help' '-V' '--version'\"\n" +
-                "  local arg_opts=\"'-c' '--factory' '-n' '--name' '-o' '--completionScript'\"\n" +
+                "  local arg_opts=\"'-c' '--factory' '-n' '--name' '-o' '--completionScript' '--shell'\"\n" +
+                "  local shell_shell_option_args=(\"bash\" \"fish\") # --shell values\n" +
                 "\n" +
                 "  type compopt &>/dev/null && compopt +o default\n" +
                 "\n" +
@@ -270,6 +271,11 @@ public class AutoCompleteSystemExitTest {
                 "      local IFS=$'\\n'\n" +
                 "      type compopt &>/dev/null && compopt -o filenames\n" +
                 "      COMPREPLY=( $( compgen -f -- \"${curr_word}\" ) ) # files\n" +
+                "      return $?\n" +
+                "      ;;\n" +
+                "    '--shell')\n" +
+                "      local IFS=$'\\n'\n" +
+                "      COMPREPLY=( $( compReplyArray \"${shell_shell_option_args[@]}\" ) )\n" +
                 "      return $?\n" +
                 "      ;;\n" +
                 "  esac\n" +
