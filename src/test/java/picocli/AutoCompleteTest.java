@@ -91,6 +91,13 @@ public class AutoCompleteTest {
         assertEquals(expected, script);
     }
 
+    @Test
+    public void basicFish() throws Exception {
+        String script = AutoComplete.fish("basicExample", new CommandLine(new BasicExample()));
+        String expected = format(loadTextFromClasspath("/basic.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
     public static class TopLevel {
         @Option(names = {"-V", "--version"}, help = true) boolean versionRequested;
         @Option(names = {"-h", "--help"}, help = true) boolean helpRequested;
@@ -189,6 +196,20 @@ public class AutoCompleteTest {
     }
 
     @Test
+    public void nestedSubcommandsFish() throws Exception {
+        CommandLine hierarchy = new CommandLine(new TopLevel())
+                .addSubcommand("sub1", new Sub1())
+                .addSubcommand("sub2", new CommandLine(new Sub2())
+                        .addSubcommand("subsub1", new Sub2Child1())
+                        .addSubcommand("subsub2", new Sub2Child2())
+                        .addSubcommand("subsub3", new Sub2Child3())
+                );
+        String script = AutoComplete.fish("picocompletion-demo", hierarchy);
+        String expected = format(loadTextFromClasspath("/picocompletion-demo_completion.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Test
     public void helpCommand() {
         CommandLine hierarchy = new CommandLine(new AutoCompleteTest.TopLevel())
                 .addSubcommand("sub1", new AutoCompleteTest.Sub1())
@@ -272,6 +293,26 @@ public class AutoCompleteTest {
     public void testBashRejectsNullCommandLine() {
         try {
             AutoComplete.bash("script", null);
+            fail("Expected NPE");
+        } catch (NullPointerException ok) {
+            assertEquals("commandLine", ok.getMessage());
+        }
+    }
+
+    @Test
+    public void testFishRejectsNullScript() {
+        try {
+            AutoComplete.fish(null, new CommandLine(new TopLevel()));
+            fail("Expected NPE");
+        } catch (NullPointerException ok) {
+            assertEquals("scriptName", ok.getMessage());
+        }
+    }
+
+    @Test
+    public void testFishRejectsNullCommandLine() {
+        try {
+            AutoComplete.fish("script", null);
             fail("Expected NPE");
         } catch (NullPointerException ok) {
             assertEquals("commandLine", ok.getMessage());
@@ -628,6 +669,16 @@ public class AutoCompleteTest {
         cmd.setOut(new PrintWriter(sw));
         String expected = getCompletionScriptText("myapp");
         cmd.execute("generate-completion");
+        assertEquals(expected, sw.toString());
+    }
+
+    @Test
+    public void testGenerateCompletionScriptFish() {
+        CommandLine cmd = new CommandLine(new MyApp());
+        StringWriter sw = new StringWriter();
+        cmd.setOut(new PrintWriter(sw));
+        String expected = AutoComplete.fish("myapp", cmd) + "\n";
+        cmd.execute("generate-completion", "--shell=fish");
         assertEquals(expected, sw.toString());
     }
 
