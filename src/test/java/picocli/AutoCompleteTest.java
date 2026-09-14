@@ -343,6 +343,29 @@ public class AutoCompleteTest {
     }
 
     @Test
+    public void testFishAcceptsNullCommand() throws Exception {
+        File temp = File.createTempFile("abc", "b");
+        temp.deleteOnExit();
+        AutoComplete.fish("script", temp, null, new CommandLine(new TopLevel()));
+        assertTrue(temp.length() > 0);
+    }
+
+    @Test
+    public void testFishRejectsNullOut() throws Exception {
+        File commandFile = File.createTempFile("abc", "b");
+        commandFile.deleteOnExit();
+        try {
+            AutoComplete.fish("script", null, commandFile,  new CommandLine(new TopLevel()));
+            fail("Expected NPE");
+        } catch (NullPointerException ok) {
+            //Cannot invoke
+            String actual = ok.getMessage();
+            assertTrue(actual, actual == null
+                    || "Cannot invoke \"java.io.File.isInvalid()\" because \"file\" is null".equals(actual));
+        }
+    }
+
+    @Test
     public void testComplete() {
         CommandLine hierarchy = new CommandLine(new TopLevel())
                 .addSubcommand("sub1", new Sub1())

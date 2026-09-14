@@ -36,9 +36,9 @@ public class AutoCompleteSystemExitTest {
 
     private static final String AUTO_COMPLETE_APP_USAGE = String.format("" +
         "Usage: picocli.AutoComplete [-fhVw] [-c=<factoryClass>] [-n=<commandName>]%n" +
-        "                            [-o=<autoCompleteScript>] [@<filename>...]%n" +
-        "                            <commandLineFQCN>%n" +
-        "Generates a bash completion script for the specified command class.%n" +
+        "                            [-o=<autoCompleteScript>] [--shell=<shell>]%n" +
+        "                            [@<filename>...] <commandLineFQCN>%n" +
+        "Generates a bash/zsh or fish completion script for the specified command class.%n" +
         "      [@<filename>...]       One or more argument files containing options.%n" +
         "      <commandLineFQCN>      Fully qualified class name of the annotated%n" +
         "                               `@Command` class to generate a completion script%n" +
@@ -57,11 +57,14 @@ public class AutoCompleteSystemExitTest {
         "  -o, --completionScript=<autoCompleteScript>%n" +
         "                             Optionally specify the path of the completion%n" +
         "                               script file to generate. When omitted, a file%n" +
-        "                               named '<commandName>_completion' is generated in%n" +
-        "                               the current directory.%n" +
+        "                               named '<commandName>_completion' (or%n" +
+        "                               '<commandName>.fish' when --shell=fish) is%n" +
+        "                               generated in the current directory.%n" +
         "  -w, --writeCommandScript   Write a '<commandName>' sample command script to%n" +
         "                               the same directory as the completion script.%n" +
         "  -f, --force                Overwrite existing script files.%n" +
+        "      --shell=<shell>        The shell to generate a completion script for:%n" +
+        "                               bash, fish.%n" +
         "  -h, --help                 Show this help message and exit.%n" +
         "  -V, --version              Print version information and exit.%n" +
         "%n" +
