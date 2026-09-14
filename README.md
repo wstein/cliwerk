@@ -55,7 +55,7 @@ Requires at minimum Java 5, but is designed to facilitate the use of Java 8 lamb
 Picocli-based command line applications can have [TAB autocompletion](https://picocli.info/autocomplete.html),
 interactively showing users what options and subcommands are available.
 When an option has [`completionCandidates`](https://picocli.info/#_completion_candidates_variable) or has an `enum` type, autocompletion can also suggest option values.
-Picocli can generate completion scripts for bash and zsh, and offers [`picocli-shell-jline2`](picocli-shell-jline2/README.md) and [`picocli-shell-jline3`](picocli-shell-jline3/README.md) modules with JLine `Completer` implementations for building interactive shell applications.
+Picocli can generate completion scripts for bash, zsh and fish, and offers [`picocli-shell-jline2`](picocli-shell-jline2/README.md) and [`picocli-shell-jline3`](picocli-shell-jline3/README.md) modules with JLine `Completer` implementations for building interactive shell applications.
 
 Unique features in picocli include support for [negatable options](https://picocli.info/#_negatable_options),
 advanced [quoted values](https://picocli.info/#_quoted_values),

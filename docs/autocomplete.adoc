@@ -22,6 +22,7 @@ Every main method deserves picocli!
 
 == Command Line Completion
 Starting from version 1.0.0, picocli-based applications can have command line completion in Bash or ZSH Unix shells.
+From version 4.8, picocli can also generate a completion script for the fish shell.
 Picocli can generate an autocompletion script tailored to your application.
 
 With this script installed, users can type the first few letters of a subcommand or an option,
@@ -118,13 +119,20 @@ but an alternative is to give your application the ability to generate its own c
 That allows end users to install completion for your application with a single command.
 For example, if your utility is called `mycommand`, users can install completion for it by running the following command:
 
-.Bash
+.Bash/ZSH
 [source,bash]
 ----
 $ source <(mycommand generate-completion)
 ----
 
+.Fish
+[source,fish]
+----
+$ mycommand generate-completion --shell=fish | source
+----
+
 This can be accomplished by registering the built-in `picocli.AutoComplete.GenerateCompletion` class as a subcommand of the top-level command.
+The `--shell` option defaults to `bash` and also accepts `fish`.
 
 For example:
 
@@ -332,11 +340,21 @@ CommandLine hierarchy = new CommandLine(new TopLevel())
 * Pass this `CommandLine` instance and the name of the script to the `picocli.AutoComplete::bash` method. The method will return the source code of a completion script. Save the source code to a file and install it.
 
 
-== Installing Completion Scripts Permanently in Bash/ZSH
+== Installing Completion Scripts Permanently in Bash/ZSH/Fish
 This section describes installing completion scripts in more depth than the <<Quick Start Tutorial>>.
 
 
 http://tldp.org/HOWTO/Bash-Prompt-HOWTO/x237.html[Source] the generated completion script to install it in your current bash or zsh session.
+
+=== Fish
+Fish looks for completion scripts in `~/.config/fish/completions/`, so the simplest way to install a fish completion script permanently is to save it there under the name of the command it completes:
+
+[source,fish]
+----
+$ mycommand generate-completion --shell=fish > ~/.config/fish/completions/mycommand.fish
+----
+
+Fish loads scripts from this directory automatically for every new shell; there is no need to separately `source` the file, and no `bashcompinit`-style shim is needed (fish's `complete` builtin is native, not a bash emulation).
 
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.
@@ -374,6 +392,11 @@ Source the generated completion script or launch a new terminal to start using t
 
 It may be useful to generate your completion scripts automatically during the build.
 Below is an example Maven snippet that demonstrates how to achieve this.
+
+NOTE: The `picocli.AutoComplete` build-time tool shown below only generates bash/zsh scripts.
+To generate a fish script during the build, call `picocli.AutoComplete.fish(String, CommandLine)`
+from your own build step, or generate it at runtime with `generate-completion --shell=fish`
+as described above.
 
 === Maven Example
 TIP: Setting system property `picocli.autocomplete.systemExitOnError` ensures the build fails if there is any problem generating the completion script (requires picocli v3.9.1).
