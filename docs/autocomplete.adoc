@@ -393,10 +393,8 @@ Source the generated completion script or launch a new terminal to start using t
 It may be useful to generate your completion scripts automatically during the build.
 Below is an example Maven snippet that demonstrates how to achieve this.
 
-NOTE: The `picocli.AutoComplete` build-time tool shown below only generates bash/zsh scripts.
-To generate a fish script during the build, call `picocli.AutoComplete.fish(String, CommandLine)`
-from your own build step, or generate it at runtime with `generate-completion --shell=fish`
-as described above.
+TIP: Pass `--shell=fish` to the `picocli.AutoComplete` build-time tool to generate a fish script instead of bash/zsh.
+When `--completionScript`/`-o` is omitted, the generated file is named `<commandName>.fish` rather than `<commandName>_completion`.
 
 === Maven Example
 TIP: Setting system property `picocli.autocomplete.systemExitOnError` ensures the build fails if there is any problem generating the completion script (requires picocli v3.9.1).
