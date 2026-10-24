@@ -1,0 +1,57 @@
+= cliwerk and upstream picocli
+:toc: preamble
+
+cliwerk is an independent, long-lived fork of https://github.com/remkop/picocli[picocli] by Remko Popma,
+maintained by https://github.com/wstein[wstein] at https://github.com/wstein/cliwerk.
+This page describes how the fork relates to upstream, how its branches are used, and the rules for its name.
+
+== Relationship to upstream
+
+* cliwerk started as a fork of picocli and keeps picocli's code, history and license
+  (Apache License 2.0, see `LICENSE` and `NOTICE`).
+* cliwerk is *not affiliated with or endorsed by the picocli project*.
+  Problems found in cliwerk should not be reported to the picocli project unless they are
+  reproducible with an upstream picocli release.
+* The library API is still picocli's: the Java package is `picocli` and the upstream user manual at
+  https://picocli.info applies to everything cliwerk has not changed.
+* cliwerk adds features on top of picocli (fish shell completion, `picocli-spec`, `picocli-spec-tool`,
+  on-demand help sections; see the `README.md` and `CHANGELOG.md`).
+  Some of them are proposed upstream as well (fish completion: https://github.com/remkop/picocli/pull/2463[remkop/picocli#2463]);
+  whether upstream accepts them does not affect their availability in cliwerk.
+
+== Branch model
+
+`develop`::
+  The default and active branch. All cliwerk development is merged here, and releases are tagged from it.
+`main`::
+  An upstream-near staging branch for work that is meant to be proposed to upstream picocli.
+  It currently carries the fish completion work of remkop/picocli#2463, which is being brought into `develop`.
+
+== Upstream syncs
+
+Upstream changes are currently brought into cliwerk manually by the maintainer.
+There is no automated upstream sync on `develop` yet.
+
+== Naming and identity rules
+
+* The project name is *cliwerk* (lowercase in repository, artifact and file names).
+* Do not use the name "picocli" for cliwerk releases, release titles, announcements or distributions.
+  "picocli" refers to the upstream project only.
+* Do not use the picocli logo for cliwerk.
+* Keep upstream copyright and attribution notices intact (see `NOTICE`).
+* Transition: the Java package `picocli`, the module names (`picocli-spec`, `picocli-spec-tool`, ...),
+  the published Maven coordinates (`io.github.wstein:picocli`, ...) and the GitHub Pages URLs
+  (`wstein.github.io/picocli`) still carry the upstream name.
+  Changing them is a separate migration that has not been scheduled yet.
+
+== Decision log
+
+[cols="1,3",options="header"]
+|===
+| Decision | Notes
+
+| Name: cliwerk (decided 2026-10-24)
+| The fork gets its own project name to make clear that it is independent of, and not endorsed by, the picocli project.
+  The GitHub repository moves from `wstein/picocli` to `wstein/cliwerk`; GitHub redirects the old URLs.
+  Package and Maven coordinates are not part of this decision.
+|===
