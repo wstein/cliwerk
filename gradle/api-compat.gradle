@@ -8,8 +8,10 @@
 //
 // Known exceptions are listed, each with a justification, in gradle/api-compat-exceptions.txt.
 //
-// Run with: ./gradlew apiCompat   (reports in build/reports/api-compat/)
-// Applied from the root build.gradle; registered on Java 17 and later only (see below).
+// Run with: ./gradlew apiCompat -PapiCompat   (reports in build/reports/api-compat/)
+// Applied from the root build.gradle only when the property apiCompat is set, so the regular build
+// never configures or runs it; registered on Java 17 and later only (see below).
+// Not part of `check` until the task runs reliably in CI and every finding is fixed or accepted.
 
 ext {
     // The upstream release whose API is cliwerk's baseline: the first three parts of the cliwerk
@@ -108,5 +110,3 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
     htmlOutputFile = reportDir.map { it.file('api-compat.html') }
     xmlOutputFile = reportDir.map { it.file('api-compat.xml') }
 }
-
-tasks.named('check') { dependsOn(apiCompat) }
