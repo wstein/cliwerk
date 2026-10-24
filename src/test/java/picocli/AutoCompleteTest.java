@@ -251,9 +251,9 @@ public class AutoCompleteTest {
     public void fishOffersNegatedOptions() {
         String script = AutoComplete.fish("fishneg", new CommandLine(new FishNegatable()));
         assertThat(script, containsString("complete -c 'fishneg' -s 'c' -l 'color' -d 'Use colors'\n"));
-        assertThat(script, containsString("complete -c 'fishneg' -l 'no-color' -d 'Negates: Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-color' -d 'Negates --color: Use colors'\n"));
         assertThat(script, containsString("complete -c 'fishneg' -l 'no-plain' -d 'Negates --plain'\n"));
-        assertThat(script, containsString("complete -c 'fishneg' -o 'XX:-Inline' -d 'Negates: Inline it'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -o 'XX:-Inline' -d 'Negates -XX:+Inline: Inline it'\n"));
         assertThat(script, not(containsString("no-other")));
     }
 

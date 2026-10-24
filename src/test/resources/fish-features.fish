@@ -4,7 +4,7 @@
 #   fishfeatures generate-completion --shell=fish | source
 complete -c 'fishfeatures' -e
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'color' -d 'Use colors'
-complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'no-color' -d 'Negates: Use colors'
+complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'no-color' -d 'Negates --color: Use colors'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'shared' -d 'inherited by subcommands'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'pick' -x -a 'plain with\\ space it\\\'s \\$\\(touch\\ picocli-fish-pwned\\) a\\(b\\)' -d 'awkward candidates'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'required' -r -d 'value required'
