@@ -240,5 +240,8 @@ apply from: "${rootProject.projectDir}/gradle/publish-fork-repo.gradle"
 // release-related custom gradle tasks and release procedure steps
 apply from: "${rootProject.projectDir}/gradle/release-tasks.gradle"
 
-// API compatibility check against upstream picocli (task apiCompat, part of check)
-apply from: "${rootProject.projectDir}/gradle/api-compat.gradle"
+// API compatibility check against upstream picocli (task apiCompat). Opt-in and not part of check:
+// applied only with -PapiCompat, so the regular build never configures or runs it.
+if (project.hasProperty('apiCompat')) {
+    apply from: "${rootProject.projectDir}/gradle/api-compat.gradle"
+}
