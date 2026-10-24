@@ -94,7 +94,7 @@ Decided 2026-10-24, *not yet implemented*:
 
 == Versioning
 
-Decided 2026-10-24, not yet applied to the version files:
+Decided 2026-10-24, applied with version `4.7.7.1`:
 
 * cliwerk versions have four numeric parts: `<upstream x.y.z>.<fork revision>`.
   The first three parts are the upstream picocli release whose API is the baseline;
@@ -109,14 +109,20 @@ Decided 2026-10-24, not yet applied to the version files:
   A purely numeric fourth part is ordered the same way by both (`4.7.7.10` after `4.7.7.9`).
 * Caveat for OSGi consumers: in an OSGi `Bundle-Version` the fourth part is the qualifier and is compared as a string,
   so `4.7.7.10` sorts before `4.7.7.9` there.
-* Current state: `projectVersion` in `dependencies.gradle` is `4.9.3` (the release workflow sets the version from the tag);
-  it is to be changed when the scheme is first applied. This decision record does not change any version file.
+* *Current version: `4.7.7.1`.* It is set in two places that must be raised together:
+  `projectVersion` in `dependencies.gradle` (the jar, OSGi `Bundle-Version` and published version derive from it)
+  and `CommandLine.VERSION` in `src/main/java/picocli/CommandLine.java` (checked by `CommandLineTest.testVersion`).
+* Release procedure: raise both to the version to release, then push the tag `v<version>`, for example `v4.7.7.1`.
+  The release workflow only starts for four-part tags and fails if the tag and `CommandLine.VERSION` differ.
+  The next cliwerk revision is `4.7.7.2`; after an upstream release 4.7.8 is merged (if upstream ever publishes it),
+  the next version is `4.7.8.1`.
 
 === Legacy releases 4.7.8 to 4.9.4
 
 Before this decision, cliwerk published its own releases under upstream-looking version numbers:
-tags `v4.7.8`, `v4.7.9`, `v4.8.0` and `v4.9.0` to `v4.9.4` (GitHub Releases titled "picocli 4.7.8" ... "picocli 4.9.4",
-and `io.github.wstein:picocli` 4.7.8 to 4.9.4 in the GitHub Pages Maven repository).
+`io.github.wstein:picocli` 4.7.8, 4.7.9, 4.8.0 and 4.9.0 to 4.9.4 in the GitHub Pages Maven repository
+(formerly also as tags `v4.7.8` ... `v4.9.4` and GitHub Releases titled "picocli 4.7.8" ... "picocli 4.9.4";
+the owner has deleted those tags and GitHub Releases).
 These were *cliwerk's own releases, not upstream picocli releases*; they are legacy lines of this fork.
 Consequences:
 
@@ -125,12 +131,13 @@ Consequences:
   Consumers must pin the cliwerk version explicitly.
   Once the new coordinates `io.github.wstein:cliwerk` are in use (see <<Coordinates and distribution>>),
   the legacy versions stay under the old artifactId `io.github.wstein:picocli` and no longer compete with the new ones.
-* Open owner action, *not done*: decide whether the legacy releases are withdrawn or marked as deprecated
-  (GitHub Releases and the GitHub Pages Maven repository).
-* Collision risk: if upstream publishes 4.7.8, 4.7.9, 4.8.0 or 4.9.0 to 4.9.4, that number is a real upstream release
-  but the tag `v<x.y.z>` already exists in this repository as a legacy cliwerk release.
-  The upstream sync must check for such a collision before merging an upstream tag (see <<Upstream syncs>>).
-  cliwerk's own versions always have four parts, so `4.7.8.1` itself cannot collide with a legacy tag.
+* The legacy artifacts are still in the GitHub Pages Maven repository (`maven/io/github/wstein/picocli/`).
+  Open owner action, *not done*: decide whether they are removed there or kept as deprecated.
+* Number overlap: if upstream publishes 4.7.8, 4.7.9, 4.8.0 or 4.9.0 to 4.9.4, that number is a real upstream release
+  (`info.picocli:picocli`) and also a legacy cliwerk version (`io.github.wstein:picocli`).
+  Since the legacy tags have been deleted, an upstream tag `v<x.y.z>` no longer collides with a tag in this repository.
+  cliwerk's own versions always have four parts, so `4.7.8.1` cannot be confused with a legacy version,
+  and the release workflow ignores three-part tags.
 
 == Branch model
 
@@ -149,8 +156,9 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * When upstream picocli publishes a release, its tag is merged into `develop` with a merge commit,
   through a draft pull request in which the conflicts are resolved and the base version
   (the first three parts, see <<Versioning>>) is raised to that release.
-* Before merging, the sync checks whether the upstream tag name `v<x.y.z>` already exists in this repository
-  as a legacy cliwerk release (`v4.7.8` to `v4.9.4`, see <<Legacy releases 4.7.8 to 4.9.4>>) and resolves the collision first.
+* The legacy tags `v4.7.8` to `v4.9.4` have been deleted (see <<Legacy releases 4.7.8 to 4.9.4>>),
+  so fetching an upstream tag with the same name no longer collides with a cliwerk tag.
+  Upstream tags are three-part and do not trigger the cliwerk release workflow.
 * Target: an API compatibility check as part of the build verification, *not implemented yet*:
 ** Reference: the last merged upstream release, currently `info.picocli:picocli:4.7.7` from Maven Central,
    pinned explicitly (for example as `upstreamBaseVersion` in `dependencies.gradle`)
@@ -206,8 +214,9 @@ Decided 2026-10-24: upstream is synced *release by release*.
 | Four numeric parts; the base is upstream picocli 4.7.7, so the first cliwerk version is `4.7.7.1`.
   No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
   The earlier cliwerk releases 4.7.8 to 4.9.4 were cliwerk's own, not upstream releases; they are legacy lines,
-  sort above `4.7.7.x`, and require consumers to pin versions. Withdrawing or deprecating them is an open owner action.
-  Version files are not changed yet. See <<Versioning>>.
+  sort above `4.7.7.x`, and require consumers to pin versions. Their tags and GitHub Releases have been deleted;
+  what to do with their artifacts in the GitHub Pages Maven repository is an open owner action.
+  Applied: the current version is `4.7.7.1`. See <<Versioning>>.
 
 | Upstream sync: release by release (decided 2026-10-24)
 | Each upstream release tag is merged (merge commit) into `develop` through a draft pull request; conflicts are resolved and the base version is raised.

@@ -99,9 +99,9 @@ java -jar picocli-spec-tool/build/libs/picocli-spec-tool-*-all.jar preview picoc
 ### Release & Publishing
 
 ```bash
-# Set version (e.g., 4.9.1) and release
-# 1. Update version in dependencies.gradle: projectVersion = "4.9.1"
-# 2. Push tag: git tag v4.9.1 && git push origin v4.9.1
+# Set version (four parts <upstream x.y.z>.<fork revision>, e.g., 4.7.7.2; see docs/FORK.adoc) and release
+# 1. Update projectVersion = "4.7.7.2" in dependencies.gradle AND CommandLine.VERSION (+ CommandLineTest.testVersion)
+# 2. Push tag: git tag v4.7.7.2 && git push origin v4.7.7.2
 # 3. CI will run release.yml → Maven artifact + Javadoc + schema to gh-pages
 ```
 
@@ -203,9 +203,9 @@ Example fixture files:
 
 ## Release Process
 
-1. **Version Bump**: Update `projectVersion` in `dependencies.gradle` (e.g., `4.9.1`)
-2. **Changelog**: Update `CHANGELOG.md` with Added/Changed/Fixed sections (semantic versioning format)
-3. **Tag & Push**: `git tag v4.9.1 && git push origin v4.9.1`
+1. **Version Bump**: Update `projectVersion` in `dependencies.gradle` and `CommandLine.VERSION` (+ `CommandLineTest.testVersion`) to the four-part version (e.g., `4.7.7.2`; scheme in `docs/FORK.adoc`)
+2. **Changelog**: Update `CHANGELOG.md` with Added/Changed/Fixed sections (Keep a Changelog format)
+3. **Tag & Push**: `git tag v4.7.7.2 && git push origin v4.7.7.2` (the release workflow only accepts four-part tags)
 4. **CI Automation** (`.github/workflows/release.yml`):
    - Runs full `./gradlew build` on Ubuntu/Java 17
    - Publishes jars to flat Maven repo (gh-pages/maven/)
