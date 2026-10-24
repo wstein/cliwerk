@@ -12,7 +12,7 @@ source $dir/picocompletion-demo_completion.fish
 # expect_has "<command line>" <candidate...>   every candidate must be offered
 function expect_has
     set -l line $argv[1]
-    set -l offered (complete -C "$line" | string split -f1 \t)
+    set -l offered (complete -C "$line" | string replace -r '\t.*' '')
     for want in $argv[2..-1]
         if not contains -- $want $offered
             echo "FAIL: '$line' should offer '$want', but offered: $offered"
@@ -24,7 +24,7 @@ end
 # expect_lacks "<command line>" <candidate...>  none of the candidates may be offered
 function expect_lacks
     set -l line $argv[1]
-    set -l offered (complete -C "$line" | string split -f1 \t)
+    set -l offered (complete -C "$line" | string replace -r '\t.*' '')
     for unwanted in $argv[2..-1]
         if contains -- $unwanted $offered
             echo "FAIL: '$line' should not offer '$unwanted', but offered: $offered"
