@@ -24,12 +24,24 @@ ext {
     apiCompatBlocking = false
 }
 
-// Only resolve `info.picocli:picocli` from Maven Central, never from another repository
-// (the fork's own Maven repository publishes under different coordinates, but this makes sure).
+// The upstream reference jar cannot be requested as `info.picocli:picocli`: those are this project's
+// own coordinates, so Gradle resolves such a dependency to the root project itself ("Could not resolve
+// info.picocli:picocli:{strictly 4.7.7} ... Unable to find a matching variant of root project : -
+// No variants exist."). It is therefore requested under the alias group `upstream.info.picocli`, which
+// only this repository serves: it maps the alias to the real path of info.picocli:picocli on Maven
+// Central and reads the jar alone (no POM, so no transitive dependencies).
+def upstreamAliasGroup = 'upstream.info.picocli'
 repositories {
     exclusiveContent {
-        forRepository { mavenCentral() }
-        filter { includeModule('info.picocli', 'picocli') }
+        forRepository {
+            ivy {
+                name = 'upstreamPicocliOnMavenCentral'
+                url = 'https://repo.maven.apache.org/maven2/'
+                patternLayout { artifact 'info/picocli/[module]/[revision]/[module]-[revision].[ext]' }
+                metadataSources { artifact() }
+            }
+        }
+        filter { includeModule(upstreamAliasGroup, 'picocli') }
     }
 }
 
@@ -43,10 +55,10 @@ apply plugin: 'me.champeau.gradle.japicmp'
 def japicmpTaskType = plugins.getPlugin('me.champeau.gradle.japicmp').getClass().classLoader
         .loadClass('me.champeau.gradle.japicmp.JapicmpTask')
 
-// Upstream reference jar: a detached configuration (no relation to this project's own coordinates),
+// Upstream reference jar: a detached configuration of the alias coordinates (see the repository above),
 // the module only, no transitive dependencies, at exactly the pinned version.
 def upstreamApi = configurations.detachedConfiguration(
-        dependencies.create("info.picocli:picocli:${upstreamBaseVersion}") {
+        dependencies.create("${upstreamAliasGroup}:picocli:${upstreamBaseVersion}") {
             transitive = false
             version { strictly upstreamBaseVersion }
         })
@@ -81,7 +93,7 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
         def artifacts = upstreamApi.incoming.artifacts.artifacts
         def ids = artifacts.collect { it.id.componentIdentifier }
         def ok = ids.size() == 1 && ids[0] instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
-                ids[0].group == 'info.picocli' && ids[0].module == 'picocli' && ids[0].version == upstreamBaseVersion
+                ids[0].group == upstreamAliasGroup && ids[0].module == 'picocli' && ids[0].version == upstreamBaseVersion
         if (!ok) {
             throw new GradleException("apiCompat: upstream reference did not resolve to exactly info.picocli:picocli:${upstreamBaseVersion}: ${ids}")
         }
