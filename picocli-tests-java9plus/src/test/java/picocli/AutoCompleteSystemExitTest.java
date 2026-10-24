@@ -890,6 +890,25 @@ public class AutoCompleteSystemExitTest {
         assertEquals(expected, new String(completion, "UTF8"));
     }
 
+    @Test
+    public void testAutoCompleteAppFishGeneratesScriptNameBasedOnCommandName_NoSystemExit() throws Exception {
+
+        final String commandName = "bestFishCommandEver";
+        final File completionScript = new File(commandName + ".fish");
+        if (completionScript.exists()) {assertTrue(completionScript.delete());}
+        completionScript.deleteOnExit();
+
+        AutoComplete.main(String.format("--name=%s", commandName), "--shell=fish", "picocli.AutoComplete$App");
+
+        byte[] completion = readBytes(completionScript);
+        assertTrue(completionScript.delete());
+
+        String script = new String(completion, "UTF8");
+        assertTrue(script.startsWith("# " + commandName + " fish shell completion\n"), script);
+        assertTrue(script.contains("complete -c '" + commandName + "' -e\n"), script);
+        assertTrue(script.contains(" -l 'shell' -x -a 'bash fish'"), script);
+    }
+
     public static class NonDefaultCommand {
         @CommandLine.Option(names = {"-t", "--timeout"}) private long timeout;
         public NonDefaultCommand(int i) {}

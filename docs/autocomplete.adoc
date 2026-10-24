@@ -134,6 +134,8 @@ $ mycommand generate-completion --shell=fish | source
 This can be accomplished by registering the built-in `picocli.AutoComplete.GenerateCompletion` class as a subcommand of the top-level command.
 The `--shell` option defaults to `bash` and also accepts `fish`.
 
+NOTE: The `generate-completion` subcommand now has a `--shell` option of its own. If your application registers `GenerateCompletion` and also has an inherited option (`scope = INHERIT`) named `--shell`, picocli will report a duplicate option name; rename one of the two options.
+
 For example:
 
 
@@ -340,6 +342,7 @@ CommandLine hierarchy = new CommandLine(new TopLevel())
 * Pass this `CommandLine` instance and the name of the script to the `picocli.AutoComplete::bash` method. The method will return the source code of a completion script. Save the source code to a file and install it.
 
 
+[#_installing_completion_scripts_permanently_in_bashzsh]
 == Installing Completion Scripts Permanently in Bash/ZSH/Fish
 This section describes installing completion scripts in more depth than the <<Quick Start Tutorial>>.
 
@@ -355,6 +358,30 @@ $ mycommand generate-completion --shell=fish > ~/.config/fish/completions/mycomm
 ----
 
 Fish loads scripts from this directory automatically for every new shell; there is no need to separately `source` the file, and no `bashcompinit`-style shim is needed (fish's `complete` builtin is native, not a bash emulation).
+
+==== Fish versions
+The generated script has been verified with fish 4.x.
+It uses a single `-n` (`--condition`) option per `complete` line, combining nested subcommand conditions with `; and`, and does not rely on options introduced in recent fish releases, so it is expected to work with fish 3.x as well.
+
+For reference, these are the fish versions shipped by common Linux distributions (as of October 2026):
+
+[cols="2,1",options="header"]
+|===
+|Distribution |fish
+
+|Ubuntu 20.04 |3.1.0
+|Ubuntu 22.04 |3.3.1
+|Ubuntu 24.04 |3.7.0
+|Ubuntu 25.10 |4.0.6
+|Debian 11 |3.1.2
+|Debian 12 |3.6.0
+|Debian 13 |4.0.2
+|RHEL 8 (EPEL 8) |3.3.1
+|RHEL 9 (EPEL 9) |3.7.1
+|RHEL 10 (EPEL 10) |4.2.0
+|===
+
+NOTE: Red Hat Enterprise Linux does not ship fish itself; it is available from EPEL.
 
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.

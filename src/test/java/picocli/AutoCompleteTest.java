@@ -209,6 +209,92 @@ public class AutoCompleteTest {
         assertEquals(expected, script);
     }
 
+    @Command(name = "fishedge", description = "it's a command")
+    static class FishEdgeCases {
+        @Option(names = "-classpath", description = "old-style long option") String classpath;
+        @Option(names = {"-v", "--verbose"}, description = "Be @|bold verbose|@ and 100%% sure.%nSecond line.") boolean verbose;
+        @Option(names = "--quote", description = "it's a 'quoted' \\ value") String quote;
+        @Option(names = "--secret", hidden = true) String secret;
+        @Option(names = "/win", description = "not expressible in fish") boolean win;
+    }
+
+    @Command(name = "hiddensub", hidden = true) static class HiddenSub { @Option(names = "--x") int x; }
+    @Command(name = "visiblesub") static class VisibleSub { }
+
+    @Test
+    public void fishUsesCorrectOptionFlagsAndRendersDescriptions() {
+        String script = AutoComplete.fish("fishedge", new CommandLine(new FishEdgeCases()));
+        // single-character short option uses -s, multi-character single-dash option uses -o
+        assertThat(script, containsString(" -s 'v' -l 'verbose'"));
+        assertThat(script, containsString(" -o 'classpath' -r -d 'old-style long option'"));
+        assertThat(script, not(containsString("-s 'classpath'")));
+        // markup stripped, %% resolved, only the first line is kept
+        assertThat(script, containsString("-d 'Be verbose and 100% sure.'"));
+        assertThat(script, not(containsString("Second line")));
+        assertThat(script, not(containsString("@|")));
+        // quotes and backslashes escaped for a single-quoted fish string
+        assertThat(script, containsString("-d 'it\\'s a \\'quoted\\' \\\\ value'"));
+        // hidden options and names that fish cannot express are skipped
+        assertThat(script, not(containsString("secret")));
+        assertThat(script, not(containsString("win")));
+    }
+
+    @Command(name = "fishcand")
+    static class FishCandidates {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/x)", "a(b)")); }
+        }
+        @Option(names = "--pick", completionCandidates = Candidates.class) String pick;
+        @Option(names = "-", description = "a lone dash is not an option fish can express") boolean lone;
+    }
+
+    @Test
+    public void fishEscapesCompletionCandidates() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        // each candidate is escaped as a fish token (backslash before special characters),
+        // then the whole list is quoted for the single-quoted -a argument (backslashes doubled, quotes escaped)
+        String expected = "-a 'plain with\\\\ space it\\\\\\'s \\\\$\\\\(touch\\\\ /tmp/x\\\\) a\\\\(b\\\\)'";
+        assertThat(script, containsString(expected));
+    }
+
+    @Test
+    public void fishStripsFishSuffixFromScriptName() {
+        String script = AutoComplete.fish("fishcand.fish", new CommandLine(new FishCandidates()));
+        assertThat(script, containsString("complete -c 'fishcand' -e\n"));
+        assertThat(script, not(containsString("fishcand.fish'")));
+    }
+
+    @Test
+    public void fishSkipsLoneDashOption() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        assertThat(script, not(containsString("-o ''")));
+    }
+
+    @Test
+    public void fishSkipsHiddenSubcommands() {
+        CommandLine cmd = new CommandLine(new FishEdgeCases())
+                .addSubcommand(new HiddenSub())
+                .addSubcommand(new VisibleSub());
+        String script = AutoComplete.fish("fishedge", cmd);
+        assertThat(script, containsString("visiblesub"));
+        assertThat(script, not(containsString("hiddensub")));
+    }
+
+    @Test
+    public void fishEmitsAtMostOneConditionPerLine() throws Exception {
+        CommandLine hierarchy = new CommandLine(new TopLevel())
+                .addSubcommand("sub1", new Sub1())
+                .addSubcommand("sub2", new CommandLine(new Sub2())
+                        .addSubcommand("subsub1", new Sub2Child1()));
+        String script = AutoComplete.fish("picocompletion-demo", hierarchy);
+        for (String line : script.split("\n")) {
+            int first = line.indexOf(" -n '");
+            assertTrue(line, first < 0 || line.indexOf(" -n '", first + 1) < 0);
+        }
+        // nested conditions are combined into one -n option, which is valid in every fish version
+        assertThat(script, containsString("; and __fish_seen_subcommand_from subsub1"));
+    }
+
     @Test
     public void helpCommand() {
         CommandLine hierarchy = new CommandLine(new AutoCompleteTest.TopLevel())
