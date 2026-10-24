@@ -239,6 +239,34 @@ public class AutoCompleteTest {
         assertThat(script, not(containsString("win")));
     }
 
+    @Command(name = "fishneg")
+    static class FishNegatable {
+        @Option(names = {"-c", "--color"}, negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--plain", negatable = true) boolean plain;
+        @Option(names = "-XX:+Inline", negatable = true, description = "Inline it") boolean inline;
+        @Option(names = "--other", description = "not negatable") boolean other;
+    }
+
+    @Test
+    public void fishOffersNegatedOptions() {
+        String script = AutoComplete.fish("fishneg", new CommandLine(new FishNegatable()));
+        assertThat(script, containsString("complete -c 'fishneg' -s 'c' -l 'color' -d 'Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-color' -d 'Negates: Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-plain' -d 'Negates --plain'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -o 'XX:-Inline' -d 'Negates: Inline it'\n"));
+        assertThat(script, not(containsString("no-other")));
+    }
+
+    @Test
+    public void fishNegatedOptionsFollowCustomTransformer() {
+        CommandLine cmd = new CommandLine(new FishNegatable());
+        cmd.setNegatableOptionTransformer(new CommandLine.RegexTransformer.Builder()
+                .addPattern("^--(\\w+)$", "--not-$1", "--[not-]$1").build());
+        String script = AutoComplete.fish("fishneg", cmd);
+        assertThat(script, containsString(" -l 'not-color' "));
+        assertThat(script, not(containsString("no-color")));
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {
