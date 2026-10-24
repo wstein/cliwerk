@@ -303,6 +303,28 @@ public class AutoCompleteTest {
         assertThat(script, containsString("-l 'optional' -F -d 'value optional'\n"));
         assertThat(script, containsString("-l 'mode' -f -a 'fast slow' -d 'optional enum'\n")); // no -r/-x
         assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
+        // the candidates of an optional value are also offered as a separate word right after the option
+        assertThat(script, containsString("complete -c 'fishopt' -n 'not __fish_seen_subcommand_from child; and __fish_prev_arg_in --mode' -f -a 'fast slow' -d 'optional enum'\n"));
+        assertThat(script, not(containsString("__fish_prev_arg_in --optional")));
+        assertThat(script, not(containsString("__fish_prev_arg_in --level")));
+    }
+
+    @Command(name = "fishprev")
+    static class FishOptionalValueNames {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("x", "it's y")); }
+        }
+        @Option(names = {"-m", "--mode", "-XXmode", "/mode"}, arity = "0..1", completionCandidates = Candidates.class) String mode;
+        @Option(names = "--it's", arity = "0..*", completionCandidates = Candidates.class) List<String> quoted;
+    }
+
+    @Test
+    public void fishOffersOptionalValueCandidatesAfterEveryExpressibleOptionName() {
+        String script = AutoComplete.fish("fishprev", new CommandLine(new FishOptionalValueNames()));
+        // no subcommands: the condition is just the previous-argument check; names without a leading '-' are skipped
+        assertThat(script, containsString("complete -c 'fishprev' -n '__fish_prev_arg_in -m --mode -XXmode' -f -a 'x it\\\\\\'s\\\\ y'\n"));
+        // each name is escaped as a fish token, then the condition is quoted as a whole
+        assertThat(script, containsString("-n '__fish_prev_arg_in --it\\\\\\'s' -f -a "));
     }
 
     @Command(name = "fishfeatures", subcommands = FishFeaturesSub.class)
