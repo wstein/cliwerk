@@ -20,8 +20,9 @@ The project name changed to cliwerk, but the code did not (yet):
 
 - The Java package is still `picocli` (`picocli.CommandLine`, `@Command`, `@Option`, ...);
   the library API described in the upstream documentation applies unchanged.
-- Artifacts are still published as `io.github.wstein:picocli`, `io.github.wstein:picocli-spec`, ...
-  (artifactId `picocli`, under this fork's own groupId — distinct from upstream's `info.picocli`).
+- One artifact is published, `io.github.wstein:picocli` (artifactId `picocli`, under this fork's own groupId —
+  distinct from upstream's `info.picocli`). There is no separate `picocli-spec` artifact:
+  the `picocli-spec` classes are bundled into this artifact.
 - The repository has been renamed from `wstein/picocli` to `wstein/cliwerk` (GitHub redirects the old repository URLs),
   but the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) still use `wstein.github.io/picocli`
   and will be updated in a separate change.
@@ -31,7 +32,9 @@ The project name changed to cliwerk, but the code did not (yet):
 The Java package stays `picocli`: cliwerk is meant as a drop-in replacement for upstream picocli,
 so it cannot be on the same classpath as `info.picocli:picocli`.
 The new Maven coordinates (`io.github.wstein:cliwerk`) and the versioning scheme are decided but not yet implemented;
-see the decisions in [docs/FORK.adoc](docs/FORK.adoc). No date has been decided. Until then, existing
+see the decisions in [docs/FORK.adoc](docs/FORK.adoc). No date has been decided.
+The releases 4.7.8 to 4.9.4 were cliwerk's own releases, not upstream picocli releases. Future versions will be
+based on upstream 4.7.7 (`4.7.7.1`, ...), which Maven and Gradle sort below 4.9.4, so pin the cliwerk version explicitly. Until then, existing
 coordinates and imports keep working; any change will be described in the [CHANGELOG](CHANGELOG.md)
 before it is released.
 
