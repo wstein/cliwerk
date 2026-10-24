@@ -10,14 +10,22 @@ source $dir/basic.fish
 source $dir/picocompletion-demo_completion.fish
 source $dir/fish-features.fish
 
+# fail "<message>"   reports a failed check; on GitHub Actions also as an annotation, so it is visible without the log
+function fail
+    echo "FAIL: $argv[1]"
+    if set -q GITHUB_ACTIONS
+        echo "::error title=fish $version::"(string replace -a '%' '%25' -- $argv[1] | string replace -a \n '%0A')
+    end
+    set -g failures (math $failures + 1)
+end
+
 # expect_has "<command line>" <candidate...>   every candidate must be offered
 function expect_has
     set -l line $argv[1]
     set -l offered (complete -C "$line" | string replace -r '\t.*' '')
     for want in $argv[2..-1]
         if not contains -- $want $offered
-            echo "FAIL: '$line' should offer '$want', but offered: $offered"
-            set -g failures (math $failures + 1)
+            fail "'$line' should offer '$want', but offered: $offered"
         end
     end
 end
@@ -28,8 +36,7 @@ function expect_lacks
     set -l offered (complete -C "$line" | string replace -r '\t.*' '')
     for unwanted in $argv[2..-1]
         if contains -- $unwanted $offered
-            echo "FAIL: '$line' should not offer '$unwanted', but offered: $offered"
-            set -g failures (math $failures + 1)
+            fail "'$line' should not offer '$unwanted', but offered: $offered"
         end
     end
 end
@@ -66,8 +73,7 @@ expect_lacks "fishfeatures child --" --color --pick
 expect_has   "fishfeatures --pick " plain "with space" "it's" 'a(b)' '$(touch picocli-fish-pwned)'
 expect_lacks "fishfeatures --pick " with space "it's\\" '$(touch'
 if test -e picocli-fish-pwned
-    echo "FAIL: a completion candidate was executed as a command"
-    set -g failures (math $failures + 1)
+    fail "a completion candidate was executed as a command"
 end
 # required value (-r): the value follows, so subcommands are not suggested
 expect_lacks "fishfeatures --required " child
