@@ -1,29 +1,55 @@
-<p align="center"><img src="docs/images/logo/horizontal-400x150.png" alt="picocli" height="150px"></p>
+# cliwerk
 
-[![This fork's CI](https://github.com/wstein/picocli/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/picocli/actions/workflows/ci.yml)
-[![GitHub Release](https://img.shields.io/github/release/wstein/picocli.svg)](https://github.com/wstein/picocli/releases)
+[![CI](https://github.com/wstein/cliwerk/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/cliwerk/actions/workflows/ci.yml)
+[![GitHub Release](https://img.shields.io/github/release/wstein/cliwerk.svg)](https://github.com/wstein/cliwerk/releases)
 
-> **This is [wstein](https://github.com/wstein)'s fork of [remkop/picocli](https://github.com/remkop/picocli).**
-> It is used to prototype additions before (or while) they are proposed upstream.
+**cliwerk** is an independent, long-lived fork of [picocli](https://github.com/remkop/picocli)
+by Remko Popma, maintained by [wstein](https://github.com/wstein) under the
+[Apache License 2.0](LICENSE) (see also [NOTICE](NOTICE)).
+
+> **cliwerk is not affiliated with or endorsed by the picocli project.**
+> "picocli" refers to the upstream project; cliwerk releases are not picocli releases.
 > **For everything about picocli itself** — features, user manual, examples, articles —
-> see the [upstream README](https://github.com/remkop/picocli#readme).
+> see the [upstream README](https://github.com/remkop/picocli#readme) and [picocli.info](https://picocli.info).
+
+Relationship to upstream, branch model and naming rules: [docs/FORK.adoc](docs/FORK.adoc).
+
+### Transition note: package and coordinates are unchanged for now
+
+The project name changed to cliwerk, but the code did not (yet):
+
+- The Java package is still `picocli` (`picocli.CommandLine`, `@Command`, `@Option`, ...);
+  the library API described in the upstream documentation applies unchanged.
+- Artifacts are still published as `io.github.wstein:picocli`, `io.github.wstein:picocli-spec`, ...
+  (artifactId `picocli`, under this fork's own groupId — distinct from upstream's `info.picocli`).
+- The GitHub Pages site (Maven repo, Javadoc, JSON Schema) is still served from `wstein.github.io/picocli`.
+
+### Migration outlook
+
+Moving the Maven coordinates (and possibly the Java package) to the cliwerk name is planned as a
+separate, explicitly announced migration. No date has been decided. Until then, existing
+coordinates and imports keep working; any change will be described in the [CHANGELOG](CHANGELOG.md)
+before it is released.
 
 ---
 
-## What this fork adds
+## What cliwerk adds on top of upstream picocli
 
 | Feature | Status | Upstream PR |
 | --- | --- | --- |
-| **Fish shell completion** — `AutoComplete.fish()` generates declarative `complete -c` scripts | ✅ In this fork | [remkop/picocli#2463](https://github.com/remkop/picocli/pull/2463) |
-| **`picocli-spec`** — build a `CommandSpec` from a DSL or JSON without any annotated Java class | ✅ In this fork | Not yet proposed |
-| **`picocli-spec-tool`** — CLI tool to preview, validate, convert, and generate completions/man pages for spec files | ✅ In this fork | Not yet proposed |
-| **`helpSection` on `@Option` / `@ArgGroup`** — on-demand help sections (e.g. `--Xhelp` shows experimental flags) | ✅ In this fork | Not yet proposed |
+| **Fish shell completion** — `AutoComplete.fish()` generates declarative `complete -c` scripts (further fixes and feature parity in progress) | ✅ In cliwerk | [remkop/picocli#2463](https://github.com/remkop/picocli/pull/2463) |
+| **`picocli-spec`** — build a `CommandSpec` from a DSL or JSON without any annotated Java class | ✅ In cliwerk | Not yet proposed |
+| **`picocli-spec-tool`** — CLI tool to preview, validate, convert, and generate completions/man pages for spec files | ✅ In cliwerk | Not yet proposed |
+| **`helpSection` on `@Option` / `@ArgGroup`** — on-demand help sections (e.g. `--Xhelp` shows experimental flags) | ✅ In cliwerk | Not yet proposed |
 
 ---
 
-## Download (this fork)
+## Download
 
-This fork publishes under `io.github.wstein:picocli` (distinct from upstream's `info.picocli:picocli`).
+cliwerk currently publishes under `io.github.wstein:picocli` (distinct from upstream's `info.picocli:picocli`;
+see the transition note above). Releases are cut by pushing a `v<version>` tag: the
+[release workflow](.github/workflows/release.yml) builds the jars, creates a GitHub Release and
+publishes the flat Maven repository, Javadoc and JSON Schema to GitHub Pages.
 
 ### Gradle
 
@@ -41,7 +67,7 @@ dependencies {
 ```xml
 <repositories>
   <repository>
-    <id>wstein-picocli</id>
+    <id>wstein-cliwerk</id>
     <url>https://wstein.github.io/picocli/maven</url>
   </repository>
 </repositories>
@@ -52,7 +78,7 @@ dependencies {
 </dependency>
 ```
 
-Jars are also attached directly to [GitHub Releases](https://github.com/wstein/picocli/releases).
+Jars are also attached directly to [GitHub Releases](https://github.com/wstein/cliwerk/releases).
 
 **Javadoc and JSON Schema** are hosted on GitHub Pages —
 see the [landing page](https://wstein.github.io/picocli/) for all links.
@@ -129,7 +155,7 @@ Spring/Micronaut/Quarkus integration, community articles — see:
 **[picocli.info](https://picocli.info)** (user manual)
 **[Quick Guide](https://picocli.info/quick-guide.html)**
 
-To use the latest **upstream** release (not this fork):
+To use the latest **upstream** picocli release instead of cliwerk:
 
 ```groovy
 // Gradle
