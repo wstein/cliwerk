@@ -302,6 +302,14 @@ public class CompletionModelTest {
     }
 
     @Test
+    public void longestName() {
+        CommandNode root = CompletionModel.build(new CommandLine(new Negatable()));
+        assertEquals("--no-verbose", option(root, "-v").longestName());
+        assertEquals("-XX:+Inline", option(root, "-XX:+Inline").longestName());
+        assertEquals("--verbose", option(model(), "-v").longestName());
+    }
+
+    @Test
     public void negatedNamesMatchWhatTheParserAccepts() {
         CommandLine cmd = new CommandLine(new Negatable());
         CommandNode root = CompletionModel.build(cmd);
