@@ -149,13 +149,19 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * When upstream picocli publishes a release, its tag is merged into `develop` with a merge commit,
   through a draft pull request in which the conflicts are resolved and the base version
   (the first three parts, see <<Versioning>>) is raised to that release.
-* Target: an API compatibility check against the last upstream release as part of the build verification,
-  failing on removed or incompatibly changed public API of `picocli.*` and allowing additions
-  (see <<Compatibility with upstream picocli>>). *Not implemented yet.*
-  The bnd `baseline` setup inherited from upstream in `build.gradle` is not such a check:
-  it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
-  bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
-  and it is not known to run in CI.
+* Before merging, the sync checks whether the upstream tag name `v<x.y.z>` already exists in this repository
+  as a legacy cliwerk release (`v4.7.8` to `v4.9.4`, see <<Legacy releases 4.7.8 to 4.9.4>>) and resolves the collision first.
+* Target: an API compatibility check as part of the build verification, *not implemented yet*:
+** Reference: the last merged upstream release, currently `info.picocli:picocli:4.7.7` from Maven Central,
+   pinned explicitly (for example as `upstreamBaseVersion` in `dependencies.gradle`)
+   rather than derived from the project's own group, artifactId or version.
+** Tool: japicmp (Gradle plugin `me.champeau.gradle.japicmp`), comparing package `picocli`,
+   failing on removed or binary-incompatibly changed public API and allowing additions
+   (see <<Compatibility with upstream picocli>>).
+** The bnd `baseline` setup inherited from upstream in `build.gradle` is not such a check:
+   it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
+   bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
+   and it is not known to run in CI.
 * Until then, upstream changes are brought into cliwerk manually by the maintainer.
   The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
   to detect merge conflicts early; it never commits or pushes anything.
