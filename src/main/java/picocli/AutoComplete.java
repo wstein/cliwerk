@@ -657,6 +657,7 @@ public class AutoComplete {
         for (OptionSpec option : spec.options()) {
             if (option.hidden()) { continue; } // skip hidden options
             appendFishArgCompletion(scriptName, ownCondition, option, out);
+            appendFishNegatedOption(scriptName, ownCondition, option, spec, out);
         }
         for (PositionalParamSpec positional : spec.positionalParameters()) {
             if (positional.hidden()) { continue; } // skip hidden positional parameters
@@ -720,6 +721,28 @@ public class AutoComplete {
         }
         appendFishDescription(arg.description(), out);
         out.append('\n');
+    }
+
+    /**
+     * For a {@code negatable} option, emits one more {@code complete} line offering its negative name(s), like
+     * {@code --no-verbose}. Picocli's (possibly customized) negatable option transformer decides the names. Negated
+     * options never take a value, so the line has no {@code -r}.
+     */
+    private static void appendFishNegatedOption(String scriptName, String condition, OptionSpec option, CommandSpec spec, StringBuilder out) {
+        if (!option.negatable()) { return; }
+        StringBuilder flags = new StringBuilder();
+        for (String name : option.names()) {
+            String negated = spec.negatableOptionTransformer().makeNegative(name, spec);
+            if (negated.equals(name)) { continue; } // no negative form
+            if (negated.startsWith("--"))                             { flags.append(" -l '").append(fishQuote(negated.substring(2))).append('\''); }
+            else if (negated.length() == 2 && negated.startsWith("-")) { flags.append(" -s '").append(fishQuote(negated.substring(1))).append('\''); }
+            else if (negated.startsWith("-") && negated.length() > 2)  { flags.append(" -o '").append(fishQuote(negated.substring(1))).append('\''); }
+        }
+        if (flags.length() == 0) { return; }
+        out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition)).append(flags);
+        String[] description = option.description();
+        String text = description.length == 0 ? "" : renderFishDescription(description[0]);
+        out.append(" -d '").append(fishQuote(text.length() == 0 ? "Negates " + option.longestName() : "Negates: " + text)).append("'\n");
     }
 
     /** Returns completion candidates for the given option/positional, or {@code null} if none are known. */
