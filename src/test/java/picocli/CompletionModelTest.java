@@ -31,6 +31,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -278,6 +279,70 @@ public class CompletionModelTest {
         assertUnmodifiable(root.subcommands().get(0).names());
         assertUnmodifiable(option(root, "-v").names());
         assertUnmodifiable(option(root, "--unit").candidates().values());
+    }
+
+    @Command(name = "neg")
+    static class Negatable {
+        @Option(names = {"-v", "--no-verbose"}, negatable = true) boolean verbose;
+        @Option(names = "-c", negatable = true) boolean c;
+        @Option(names = "-XX:+Inline", negatable = true) boolean inline;
+        @Option(names = "--plain") boolean plain;
+        @Option(names = "--hidden-neg", negatable = true, hidden = true) boolean hiddenNeg;
+    }
+
+    @Test
+    public void negatedNamesUseTheDefaultTransformer() {
+        CommandNode root = CompletionModel.build(new CommandLine(new Negatable()));
+        assertEquals(Arrays.asList("--verbose"), option(root, "-v").negatedNames()); // -v has no negative form
+        assertEquals(Collections.<String>emptyList(), option(root, "-c").negatedNames());
+        assertEquals(Arrays.asList("-XX:-Inline"), option(root, "-XX:+Inline").negatedNames());
+        assertEquals(Collections.<String>emptyList(), option(root, "--plain").negatedNames()); // not negatable
+        assertNull(option(root, "--hidden-neg")); // hidden negatable options are filtered as before
+        assertUnmodifiable(option(root, "-v").negatedNames());
+    }
+
+    @Test
+    public void negatedNamesMatchWhatTheParserAccepts() {
+        CommandLine cmd = new CommandLine(new Negatable());
+        CommandNode root = CompletionModel.build(cmd);
+        List<String> modelNames = new ArrayList<String>();
+        for (OptionNode option : root.options()) { modelNames.addAll(option.negatedNames()); }
+        List<String> specNames = new ArrayList<String>(cmd.getCommandSpec().negatedOptionsMap().keySet());
+        specNames.remove("--hidden-neg".replace("--", "--no-")); // hidden options are not in the model
+        Collections.sort(modelNames);
+        Collections.sort(specNames);
+        assertEquals(specNames, modelNames);
+    }
+
+    @Test
+    public void negatedNamesUseACustomTransformer() {
+        CommandLine cmd = new CommandLine(new Negatable());
+        cmd.setNegatableOptionTransformer(new CommandLine.INegatableOptionTransformer() {
+            public String makeNegative(String optionName, CommandSpec spec) {
+                return optionName.startsWith("--") ? "--not-" + optionName.substring(2) : optionName;
+            }
+            public String makeSynopsis(String optionName, CommandSpec spec) { return optionName; }
+        });
+        CommandNode root = CompletionModel.build(cmd);
+        assertEquals(Arrays.asList("--not-no-verbose"), option(root, "-v").negatedNames());
+        assertEquals(Collections.<String>emptyList(), option(root, "-c").negatedNames());
+        assertEquals(Collections.<String>emptyList(), option(root, "-XX:+Inline").negatedNames());
+    }
+
+    @Test
+    public void valueOptionalOnlyForArityWithZeroMinimumAndPositiveMaximum() {
+        CommandSpec spec = CommandSpec.create();
+        spec.addOption(OptionSpec.builder("--a0").arity("0").build());
+        spec.addOption(OptionSpec.builder("--a1").arity("1").type(String.class).build());
+        spec.addOption(OptionSpec.builder("--a01").arity("0..1").type(String.class).build());
+        spec.addOption(OptionSpec.builder("--a0n").arity("0..*").type(String[].class).build());
+        spec.addPositional(PositionalParamSpec.builder().arity("0..1").type(String.class).build());
+        CommandNode root = CompletionModel.build(new CommandLine(spec));
+        assertFalse(option(root, "--a0").valueOptional());
+        assertFalse(option(root, "--a1").valueOptional());
+        assertTrue(option(root, "--a01").valueOptional());
+        assertTrue(option(root, "--a0n").valueOptional());
+        assertTrue(root.positionals().get(0).valueOptional());
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

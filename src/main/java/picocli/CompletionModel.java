@@ -63,7 +63,7 @@ final class CompletionModel {
         List<OptionNode> options = new ArrayList<OptionNode>();
         for (OptionSpec option : spec.options()) {
             if (option.hidden()) { continue; }
-            options.add(new OptionNode(option));
+            options.add(new OptionNode(option, spec));
         }
         List<PositionalNode> positionals = new ArrayList<PositionalNode>();
         for (PositionalParamSpec positional : spec.positionalParameters()) {
@@ -157,6 +157,9 @@ final class CompletionModel {
         /** Whether this option or positional parameter consumes at least one value. */
         boolean takesValue() { return spec.arity().max() > 0; }
 
+        /** Whether this option or positional parameter can take a value, but does not require one (like arity {@code 0..1}). */
+        boolean valueOptional() { return spec.arity().min() == 0 && spec.arity().max() > 0; }
+
         /** The completion candidates for the value(s), or {@code null} if none are known. */
         Candidates candidates() { return candidates; }
 
@@ -167,10 +170,27 @@ final class CompletionModel {
     /** A visible option. */
     static final class OptionNode extends ArgNode {
         private final List<String> names;
+        private final List<String> negatedNames;
 
-        OptionNode(OptionSpec spec) {
+        OptionNode(OptionSpec spec, CommandSpec command) {
             super(spec);
             this.names = Collections.unmodifiableList(Arrays.asList(spec.names()));
+            this.negatedNames = Collections.unmodifiableList(negatedNames(spec, command));
+        }
+
+        /**
+         * Derives the negative forms of a negatable option the same way {@code CommandSpec} registers them: each
+         * name is passed to the command's {@code negatableOptionTransformer}, and a result equal to the name itself
+         * means that name has no negative form. A {@code null} result is not a valid option name and is skipped too.
+         */
+        private static List<String> negatedNames(OptionSpec option, CommandSpec command) {
+            List<String> result = new ArrayList<String>();
+            if (!option.negatable()) { return result; }
+            for (String name : option.names()) {
+                String negated = command.negatableOptionTransformer().makeNegative(name, command);
+                if (negated != null && !name.equals(negated)) { result.add(negated); }
+            }
+            return result;
         }
 
         boolean isOption() { return true; }
@@ -182,6 +202,13 @@ final class CompletionModel {
          * particular shell cannot express (like {@code /?} or {@code +v}); it is up to each generator to skip those.
          */
         List<String> names() { return names; }
+
+        /**
+         * The negative names of this option (like {@code --no-verbose} for {@code --verbose}), in the order of
+         * {@link #names()}; empty if the option is not negatable. Like {@code names()}, these are not filtered for
+         * what a particular shell can express.
+         */
+        List<String> negatedNames() { return negatedNames; }
     }
 
     /** A visible positional parameter. */
