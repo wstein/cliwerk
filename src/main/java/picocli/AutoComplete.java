@@ -740,7 +740,8 @@ public class AutoComplete {
     /**
      * For a {@code negatable} option, emits one more {@code complete} line offering its negative name(s), like
      * {@code --no-verbose}. Picocli's (possibly customized) negatable option transformer decides the names. Negated
-     * options never take a value, so the line has no {@code -r}.
+     * options never take a value, so the line has no {@code -r}. The description is {@code Negates <longest name>},
+     * followed by {@code : <description>} if the option has one.
      */
     private static void appendFishNegatedOption(String scriptName, String condition, CompletionModel.OptionNode option, StringBuilder out) {
         StringBuilder flags = new StringBuilder();
@@ -748,11 +749,14 @@ public class AutoComplete {
             if (negated.startsWith("--"))                             { flags.append(" -l '").append(fishQuote(negated.substring(2))).append('\''); }
             else if (negated.length() == 2 && negated.startsWith("-")) { flags.append(" -s '").append(fishQuote(negated.substring(1))).append('\''); }
             else if (negated.startsWith("-") && negated.length() > 2)  { flags.append(" -o '").append(fishQuote(negated.substring(1))).append('\''); }
+            // negative names that do not start with '-' (like +x from a custom transformer), or a lone '-',
+            // cannot be expressed in fish's complete builtin and are dropped
         }
         if (flags.length() == 0) { return; }
         out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition)).append(flags);
         String text = option.plainDescription();
-        out.append(" -d '").append(fishQuote(text.length() == 0 ? "Negates " + option.longestName() : "Negates: " + text)).append("'\n");
+        String negates = "Negates " + option.longestName() + (text.length() == 0 ? "" : ": " + text);
+        out.append(" -d '").append(fishQuote(negates)).append("'\n");
     }
 
     /**
