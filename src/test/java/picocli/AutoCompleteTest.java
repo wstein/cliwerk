@@ -267,6 +267,25 @@ public class AutoCompleteTest {
         assertThat(script, not(containsString("no-color")));
     }
 
+    @Command(name = "fishinh", subcommands = FishInheritedSub.class)
+    static class FishInherited {
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--rootonly", description = "root only") boolean rootonly;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishInheritedSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishOffersInheritedOptionsInSubcommands() {
+        String script = AutoComplete.fish("fishinh", new CommandLine(new FishInherited()));
+        // picocli copies inherited options into the subcommand's spec, so they are emitted for the subcommand too
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'own' -d 'child option'\n"));
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'shared' -d 'inherited by subcommands'\n"));
+        assertThat(script, not(containsString("-n '__fish_seen_subcommand_from child' -l 'rootonly'")));
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {
