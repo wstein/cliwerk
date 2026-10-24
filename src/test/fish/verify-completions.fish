@@ -78,7 +78,13 @@ end
 # required value (-r): the value follows, so subcommands are not suggested
 expect_lacks "fishfeatures --required " child
 # optional value (arity 0..1): the value may be omitted, so subcommands are still suggested ...
-expect_has   "fishfeatures --optional " child
+# (except in fish 3.1, where the -F of an optional value without candidates also acts as -r: a fish 3.1 bug,
+# fixed in 3.2, so fish 3.1 offers file names there instead, as it did for every value before optional values)
+if string match -qr '^3\.1\.' -- $version
+    expect_has   "fishfeatures --optional " picocli-fish-file.txt
+else
+    expect_has   "fishfeatures --optional " child
+end
 expect_has   "fishfeatures --mode " child
 # ... and the candidates are offered after --mode=
 expect_has   "fishfeatures --mode=" --mode=plain "--mode=with space"
@@ -89,7 +95,6 @@ expect_lacks "fishfeatures --mode plain " plain "with space"
 # an optional value without candidates still completes file names after --optional=, although the command has
 # subcommands (whose -f line switches off file completion)
 expect_has   "fishfeatures --optional=" --optional=picocli-fish-file.txt
-expect_has   "fishfeatures --optional " child
 cd $olddir
 rm -rf $workdir
 
