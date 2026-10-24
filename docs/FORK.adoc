@@ -24,8 +24,9 @@ This page describes how the fork relates to upstream, how its branches are used,
 `develop`::
   The default and active branch. All cliwerk development is merged here, and releases are tagged from it.
 `main`::
-  An upstream-near staging branch for work that is meant to be proposed to upstream picocli.
-  It currently carries the fish completion work of remkop/picocli#2463, which is being brought into `develop`.
+  An upstream-near staging branch. It has been used for work proposed to upstream picocli
+  (the fish completion of remkop/picocli#2463), which is being brought into `develop`.
+  Planned: `main` may be reset to the upstream commit; after that, `develop` is the only line carrying fork changes.
 
 == Upstream syncs
 
