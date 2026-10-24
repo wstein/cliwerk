@@ -41,7 +41,7 @@ There is no automated upstream sync on `develop` yet.
 * Keep upstream copyright and attribution notices intact (see `NOTICE`).
 * Transition: the Java package `picocli`, the module names (`picocli-spec`, `picocli-spec-tool`, ...),
   the published Maven coordinates (`io.github.wstein:picocli`, ...) and the GitHub Pages URLs
-  (`wstein.github.io/picocli`) still carry the upstream name.
+  referenced in the documentation (`wstein.github.io/picocli`) still carry the upstream name.
   Changing them is a separate migration that has not been scheduled yet.
 
 == Decision log
@@ -52,6 +52,6 @@ There is no automated upstream sync on `develop` yet.
 
 | Name: cliwerk (decided 2026-10-24)
 | The fork gets its own project name to make clear that it is independent of, and not endorsed by, the picocli project.
-  The GitHub repository moves from `wstein/picocli` to `wstein/cliwerk`; GitHub redirects the old URLs.
+  The GitHub repository has been renamed from `wstein/picocli` to `wstein/cliwerk`; GitHub redirects the old repository URLs.
   Package and Maven coordinates are not part of this decision.
 |===
