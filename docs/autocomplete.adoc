@@ -383,6 +383,18 @@ For reference, these are the fish versions shipped by common Linux distributions
 
 NOTE: Red Hat Enterprise Linux does not ship fish itself; it is available from EPEL.
 
+==== What the fish script completes
+* *Subcommands and their aliases*, scoped with `__fish_seen_subcommand_from`: once a subcommand has been typed, only that subcommand's options, positional parameters and subcommands are offered. Hidden subcommands, options and positional parameters are left out. Inherited options (`scope = INHERIT`) are offered in the subcommands as well.
+* *Option names*: `--name` becomes `-l`, a single-character `-x` becomes `-s` and a longer single-dash name such as `-classpath` becomes `-o`. Fish's `complete` builtin cannot express names that do not start with `-` (like `/?` or `+v`); they are not offered.
+* *Negated names* of `negatable` options (like `--no-verbose`) are offered on a line of their own, described as `Negates <option>`, followed by the option's description if it has one. The names come from the command's `INegatableOptionTransformer`, so a custom transformer is honored. Negative names that do not start with `-` are not offered.
+* *Option values*: an option that requires a value offers its completion candidates only (enum constants, `completionCandidates`, or host names for `InetAddress`), or files if it has no candidates.
+* *Optional values* (arity such as `0..1` or `0..*`): the value may be omitted, so after `--option ` fish still offers the subcommands and positional parameters. Candidates are also offered there, as a separate word (`--mode plain`), and after `--mode=`. An optional value without candidates completes file names after `--option=`.
++
+Known limitation: candidates for an optional value are only offered right after the option name itself. They are not offered for a value attached to a short option (`-mplain`) or after clustered short options (`-vm`).
+* *Positional parameters* offer their candidates, and otherwise fall back to fish's default (file) completion.
+
+The script relies on `-F` (force files) and `__fish_prev_arg_in`, which are available in fish 3.1 and later.
+
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.
 
