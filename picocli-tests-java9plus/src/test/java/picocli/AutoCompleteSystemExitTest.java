@@ -904,9 +904,9 @@ public class AutoCompleteSystemExitTest {
         assertTrue(completionScript.delete());
 
         String script = new String(completion, "UTF8");
-        assertTrue(script, script.startsWith("# " + commandName + " fish shell completion\n"));
-        assertTrue(script, script.contains("complete -c '" + commandName + "' -e\n"));
-        assertTrue(script, script.contains(" -l 'shell' -x -a 'bash fish'"));
+        assertTrue(script.startsWith("# " + commandName + " fish shell completion\n"), script);
+        assertTrue(script.contains("complete -c '" + commandName + "' -e\n"), script);
+        assertTrue(script.contains(" -l 'shell' -x -a 'bash fish'"), script);
     }
 
     public static class NonDefaultCommand {
