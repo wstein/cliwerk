@@ -281,6 +281,21 @@ public class AutoCompleteTest {
     }
 
     @Test
+    public void fishEmitsAtMostOneConditionPerLine() throws Exception {
+        CommandLine hierarchy = new CommandLine(new TopLevel())
+                .addSubcommand("sub1", new Sub1())
+                .addSubcommand("sub2", new CommandLine(new Sub2())
+                        .addSubcommand("subsub1", new Sub2Child1()));
+        String script = AutoComplete.fish("picocompletion-demo", hierarchy);
+        for (String line : script.split("\n")) {
+            int first = line.indexOf(" -n '");
+            assertTrue(line, first < 0 || line.indexOf(" -n '", first + 1) < 0);
+        }
+        // nested conditions are combined into one -n option, which is valid in every fish version
+        assertThat(script, containsString("; and __fish_seen_subcommand_from subsub1"));
+    }
+
+    @Test
     public void helpCommand() {
         CommandLine hierarchy = new CommandLine(new AutoCompleteTest.TopLevel())
                 .addSubcommand("sub1", new AutoCompleteTest.Sub1())

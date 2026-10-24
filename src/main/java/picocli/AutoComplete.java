@@ -651,8 +651,8 @@ public class AutoComplete {
 
         // this command's own options/positionals stop being suggested once the user has drilled into a subcommand
         String notDrilledDown = allChildNames.isEmpty() ? "" :
-                " -n '" + fishQuote("not __fish_seen_subcommand_from " + concat(" ", allChildNames)) + "'";
-        String ownCondition = condition + notDrilledDown;
+                "not __fish_seen_subcommand_from " + concat(" ", allChildNames);
+        String ownCondition = fishAnd(condition, notDrilledDown);
 
         for (OptionSpec option : spec.options()) {
             if (option.hidden()) { continue; } // skip hidden options
@@ -666,14 +666,30 @@ public class AutoComplete {
             CommandLine child = entry.getKey();
             String namesJoined = concat(" ", entry.getValue());
 
-            out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(ownCondition)
+            out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(ownCondition))
                     .append(" -f -a '").append(fishQuote(namesJoined)).append('\'');
             appendFishDescription(child.getCommandSpec().usageMessage().description(), out);
             out.append('\n');
 
-            String childCondition = condition + " -n '" + fishQuote("__fish_seen_subcommand_from " + namesJoined) + "'";
+            String childCondition = fishAnd(condition, "__fish_seen_subcommand_from " + namesJoined);
             generateFishCompletions(scriptName, childCondition, child, out);
         }
+    }
+
+    /**
+     * Combines two fish conditions (shell commands, either may be empty) into one.
+     * All conditions of a {@code complete} line are emitted as a <em>single</em> {@code -n} option, because
+     * older fish versions do not document passing {@code -n} more than once.
+     */
+    private static String fishAnd(String first, String second) {
+        if (first.length() == 0)  { return second; }
+        if (second.length() == 0) { return first; }
+        return first + "; and " + second;
+    }
+
+    /** Renders a (possibly empty) fish condition as a {@code -n '...'} option, including a leading space. */
+    private static String fishCondition(String condition) {
+        return condition.length() == 0 ? "" : " -n '" + fishQuote(condition) + "'";
     }
 
     private static void appendFishArgCompletion(String scriptName, String condition, ArgSpec arg, StringBuilder out) {
@@ -683,7 +699,7 @@ public class AutoComplete {
             return; // no useful completion to add for this positional parameter; fall back to fish's default (file) completion
         }
 
-        out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(condition);
+        out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition));
         if (isOption) {
             for (String name : ((OptionSpec) arg).names()) {
                 if (name.startsWith("--"))          { out.append(" -l '").append(fishQuote(name.substring(2))).append('\''); }
