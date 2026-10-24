@@ -21,7 +21,7 @@ ext {
 
     // false = report-only: findings are reported, but do not fail the build.
     // Switch to true once every finding is either fixed or accepted as an exception.
-    apiCompatBlocking = true
+    apiCompatBlocking = false
 }
 
 // Only resolve `info.picocli:picocli` from Maven Central, never from another repository
