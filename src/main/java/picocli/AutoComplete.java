@@ -715,8 +715,8 @@ public class AutoComplete {
         if (candidates != null) {
             // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
             // notion of argument position and -f would also switch off file completion for sibling positionals
-            out.append(isOption ? " -x" : "").append(" -a '").append(fishQuote(fishCandidateList(arg, candidates))).append('\'');
-        } else if (arg.arity().max() > 0) {
+            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(arg, candidates))).append('\'');
+        } else if (arg.arity().max() > 0 && !fishOptionalValue(arg)) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
         appendFishDescription(arg.description(), out);
@@ -743,6 +743,18 @@ public class AutoComplete {
         String[] description = option.description();
         String text = description.length == 0 ? "" : renderFishDescription(description[0]);
         out.append(" -d '").append(fishQuote(text.length() == 0 ? "Negates " + option.longestName() : "Negates: " + text)).append("'\n");
+    }
+
+    /**
+     * Returns {@code true} for an option whose value is optional (arity {@code 0..1}, {@code 0..*}, ...).
+     * Verified with fish 3.7: {@code -r} (and therefore {@code -x}) makes fish treat the next word as the value, so it
+     * stops suggesting subcommands and positional parameters right after the option, which is wrong when the value may
+     * be omitted. Such options get no {@code -r}; their candidates get {@code -f} (no file names) and are offered by
+     * fish after {@code --option=}, the unambiguous way to pass an optional value. Fish still offers file names for
+     * an optional value without candidates, because it falls back to its default completion.
+     */
+    private static boolean fishOptionalValue(ArgSpec arg) {
+        return arg instanceof OptionSpec && arg.arity().min() == 0 && arg.arity().max() > 0;
     }
 
     /** Returns completion candidates for the given option/positional, or {@code null} if none are known. */

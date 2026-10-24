@@ -286,6 +286,24 @@ public class AutoCompleteTest {
         assertThat(script, not(containsString("-n '__fish_seen_subcommand_from child' -l 'rootonly'")));
     }
 
+    @Command(name = "fishopt", subcommands = FishInheritedSub.class)
+    static class FishOptionalValues {
+        enum Mode { fast, slow }
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", description = "optional enum") Mode mode;
+        @Option(names = "--level", description = "required enum") Mode level;
+    }
+
+    @Test
+    public void fishDoesNotRequireValueForOptionalValueOptions() {
+        String script = AutoComplete.fish("fishopt", new CommandLine(new FishOptionalValues()));
+        assertThat(script, containsString("-l 'required' -r -d 'value required'\n"));
+        assertThat(script, containsString("-l 'optional' -d 'value optional'\n")); // no -r: the value may be omitted
+        assertThat(script, containsString("-l 'mode' -f -a 'fast slow' -d 'optional enum'\n")); // no -r/-x
+        assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {
