@@ -340,6 +340,7 @@ CommandLine hierarchy = new CommandLine(new TopLevel())
 * Pass this `CommandLine` instance and the name of the script to the `picocli.AutoComplete::bash` method. The method will return the source code of a completion script. Save the source code to a file and install it.
 
 
+[#_installing_completion_scripts_permanently_in_bashzsh]
 == Installing Completion Scripts Permanently in Bash/ZSH/Fish
 This section describes installing completion scripts in more depth than the <<Quick Start Tutorial>>.
 
