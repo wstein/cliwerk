@@ -209,6 +209,181 @@ public class AutoCompleteTest {
         assertEquals(expected, script);
     }
 
+    @Command(name = "fishedge", description = "it's a command")
+    static class FishEdgeCases {
+        @Option(names = "-classpath", description = "old-style long option") String classpath;
+        @Option(names = {"-v", "--verbose"}, description = "Be @|bold verbose|@ and 100%% sure.%nSecond line.") boolean verbose;
+        @Option(names = "--quote", description = "it's a 'quoted' \\ value") String quote;
+        @Option(names = "--secret", hidden = true) String secret;
+        @Option(names = "/win", description = "not expressible in fish") boolean win;
+    }
+
+    @Command(name = "hiddensub", hidden = true) static class HiddenSub { @Option(names = "--x") int x; }
+    @Command(name = "visiblesub") static class VisibleSub { }
+
+    @Test
+    public void fishUsesCorrectOptionFlagsAndRendersDescriptions() {
+        String script = AutoComplete.fish("fishedge", new CommandLine(new FishEdgeCases()));
+        // single-character short option uses -s, multi-character single-dash option uses -o
+        assertThat(script, containsString(" -s 'v' -l 'verbose'"));
+        assertThat(script, containsString(" -o 'classpath' -r -d 'old-style long option'"));
+        assertThat(script, not(containsString("-s 'classpath'")));
+        // markup stripped, %% resolved, only the first line is kept
+        assertThat(script, containsString("-d 'Be verbose and 100% sure.'"));
+        assertThat(script, not(containsString("Second line")));
+        assertThat(script, not(containsString("@|")));
+        // quotes and backslashes escaped for a single-quoted fish string
+        assertThat(script, containsString("-d 'it\\'s a \\'quoted\\' \\\\ value'"));
+        // hidden options and names that fish cannot express are skipped
+        assertThat(script, not(containsString("secret")));
+        assertThat(script, not(containsString("win")));
+    }
+
+    @Command(name = "fishneg")
+    static class FishNegatable {
+        @Option(names = {"-c", "--color"}, negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--plain", negatable = true) boolean plain;
+        @Option(names = "-XX:+Inline", negatable = true, description = "Inline it") boolean inline;
+        @Option(names = "--other", description = "not negatable") boolean other;
+    }
+
+    @Test
+    public void fishOffersNegatedOptions() {
+        String script = AutoComplete.fish("fishneg", new CommandLine(new FishNegatable()));
+        assertThat(script, containsString("complete -c 'fishneg' -s 'c' -l 'color' -d 'Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-color' -d 'Negates: Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-plain' -d 'Negates --plain'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -o 'XX:-Inline' -d 'Negates: Inline it'\n"));
+        assertThat(script, not(containsString("no-other")));
+    }
+
+    @Test
+    public void fishNegatedOptionsFollowCustomTransformer() {
+        CommandLine cmd = new CommandLine(new FishNegatable());
+        cmd.setNegatableOptionTransformer(new CommandLine.RegexTransformer.Builder()
+                .addPattern("^--(\\w+)$", "--not-$1", "--[not-]$1").build());
+        String script = AutoComplete.fish("fishneg", cmd);
+        assertThat(script, containsString(" -l 'not-color' "));
+        assertThat(script, not(containsString("no-color")));
+    }
+
+    @Command(name = "fishinh", subcommands = FishInheritedSub.class)
+    static class FishInherited {
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--rootonly", description = "root only") boolean rootonly;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishInheritedSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishOffersInheritedOptionsInSubcommands() {
+        String script = AutoComplete.fish("fishinh", new CommandLine(new FishInherited()));
+        // picocli copies inherited options into the subcommand's spec, so they are emitted for the subcommand too
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'own' -d 'child option'\n"));
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'shared' -d 'inherited by subcommands'\n"));
+        assertThat(script, not(containsString("-n '__fish_seen_subcommand_from child' -l 'rootonly'")));
+    }
+
+    @Command(name = "fishopt", subcommands = FishInheritedSub.class)
+    static class FishOptionalValues {
+        enum Mode { fast, slow }
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", description = "optional enum") Mode mode;
+        @Option(names = "--level", description = "required enum") Mode level;
+    }
+
+    @Test
+    public void fishDoesNotRequireValueForOptionalValueOptions() {
+        String script = AutoComplete.fish("fishopt", new CommandLine(new FishOptionalValues()));
+        assertThat(script, containsString("-l 'required' -r -d 'value required'\n"));
+        assertThat(script, containsString("-l 'optional' -d 'value optional'\n")); // no -r: the value may be omitted
+        assertThat(script, containsString("-l 'mode' -f -a 'fast slow' -d 'optional enum'\n")); // no -r/-x
+        assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
+    }
+
+    @Command(name = "fishfeatures", subcommands = FishFeaturesSub.class)
+    static class FishFeatures {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/picocli-fish-pwned)", "a(b)")); }
+        }
+        @Option(names = "--color", negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--pick", completionCandidates = Candidates.class, description = "awkward candidates") String pick;
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", completionCandidates = Candidates.class, description = "optional with candidates") String mode;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishFeaturesSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishFeaturesGolden() {
+        String script = AutoComplete.fish("fishfeatures", new CommandLine(new FishFeatures()));
+        String expected = format(loadTextFromClasspath("/fish-features.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Command(name = "fishcand")
+    static class FishCandidates {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/x)", "a(b)")); }
+        }
+        @Option(names = "--pick", completionCandidates = Candidates.class) String pick;
+        @Option(names = "-", description = "a lone dash is not an option fish can express") boolean lone;
+    }
+
+    @Test
+    public void fishEscapesCompletionCandidates() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        // each candidate is escaped as a fish token (backslash before special characters),
+        // then the whole list is quoted for the single-quoted -a argument (backslashes doubled, quotes escaped)
+        String expected = "-a 'plain with\\\\ space it\\\\\\'s \\\\$\\\\(touch\\\\ /tmp/x\\\\) a\\\\(b\\\\)'";
+        assertThat(script, containsString(expected));
+    }
+
+    @Test
+    public void fishStripsFishSuffixFromScriptName() {
+        String script = AutoComplete.fish("fishcand.fish", new CommandLine(new FishCandidates()));
+        assertThat(script, containsString("complete -c 'fishcand' -e\n"));
+        assertThat(script, not(containsString("fishcand.fish'")));
+    }
+
+    @Test
+    public void fishSkipsLoneDashOption() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        assertThat(script, not(containsString("-o ''")));
+    }
+
+    @Test
+    public void fishSkipsHiddenSubcommands() {
+        CommandLine cmd = new CommandLine(new FishEdgeCases())
+                .addSubcommand(new HiddenSub())
+                .addSubcommand(new VisibleSub());
+        String script = AutoComplete.fish("fishedge", cmd);
+        assertThat(script, containsString("visiblesub"));
+        assertThat(script, not(containsString("hiddensub")));
+    }
+
+    @Test
+    public void fishEmitsAtMostOneConditionPerLine() throws Exception {
+        CommandLine hierarchy = new CommandLine(new TopLevel())
+                .addSubcommand("sub1", new Sub1())
+                .addSubcommand("sub2", new CommandLine(new Sub2())
+                        .addSubcommand("subsub1", new Sub2Child1()));
+        String script = AutoComplete.fish("picocompletion-demo", hierarchy);
+        for (String line : script.split("\n")) {
+            int first = line.indexOf(" -n '");
+            assertTrue(line, first < 0 || line.indexOf(" -n '", first + 1) < 0);
+        }
+        // nested conditions are combined into one -n option, which is valid in every fish version
+        assertThat(script, containsString("; and __fish_seen_subcommand_from subsub1"));
+    }
+
     @Test
     public void helpCommand() {
         CommandLine hierarchy = new CommandLine(new AutoCompleteTest.TopLevel())
