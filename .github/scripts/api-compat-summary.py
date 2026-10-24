@@ -81,7 +81,7 @@ def main(xml_path, txt_path, summary_path):
     rows = None
     if os.path.exists(xml_path):
         rows = findings(ET.parse(xml_path).getroot())
-        lines.append("Findings (binary-incompatible changes of package `picocli`): **%d**" % len(rows))
+        lines.append("Findings (binary- or source-incompatible changes of package `picocli`): **%d**" % len(rows))
         lines.append("")
         if rows:
             lines.append("| # | Class | Member | Status | Change | Binary | Source |")

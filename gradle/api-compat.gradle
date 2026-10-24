@@ -3,8 +3,9 @@
 //
 // Task `apiCompat` compares package `picocli` of the jar built by this project with the upstream
 // reference jar `info.picocli:picocli:<upstreamBaseVersion>` from Maven Central, using japicmp
-// (Gradle plugin `me.champeau.gradle.japicmp`). Removed or binary-incompatibly changed public API
-// is reported (and fails the task in blocking mode); additions are allowed.
+// (Gradle plugin `me.champeau.gradle.japicmp`). Removed, binary-incompatibly or source-incompatibly
+// changed public API is reported (binary-incompatible changes fail the task in blocking mode);
+// compatible additions are allowed.
 //
 // Known exceptions are listed, each with a justification, in gradle/api-compat-exceptions.txt.
 //
@@ -114,7 +115,11 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
     methodExcludes = apiExceptions['method']
     fieldExcludes = apiExceptions['field']
 
-    onlyBinaryIncompatibleModified = true
+    // report every modification, so source-incompatible changes (e.g. a method added to an interface,
+    // which existing implementations must then provide) are listed too; the summary
+    // (.github/scripts/api-compat-summary.py) keeps only binary- or source-incompatible ones
+    onlyModified = true
+    onlyBinaryIncompatibleModified = false
     failOnModification = apiCompatBlocking
     ignoreMissingClasses = true
 
