@@ -702,7 +702,10 @@ public class AutoComplete {
             // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
             // notion of argument position and -f would also switch off file completion for sibling positionals
             out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
-        } else if (arg.takesValue() && !fishOptionalValue(arg)) {
+        } else if (fishOptionalValue(arg)) {
+            // -F (force files): file names stay available after --option=, even if a subcommand line's -f switched them off
+            out.append(" -F");
+        } else if (arg.takesValue()) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
         appendFishDescription(arg.plainDescription(), out);
@@ -732,8 +735,10 @@ public class AutoComplete {
      * Verified with fish 3.7: {@code -r} (and therefore {@code -x}) makes fish treat the next word as the value, so it
      * stops suggesting subcommands and positional parameters right after the option, which is wrong when the value may
      * be omitted. Such options get no {@code -r}; their candidates get {@code -f} (no file names) and are offered by
-     * fish after {@code --option=}, the unambiguous way to pass an optional value. Fish still offers file names for
-     * an optional value without candidates, because it falls back to its default completion.
+     * fish after {@code --option=}, the unambiguous way to pass an optional value. An optional value without
+     * candidates gets {@code -F} (force files): without it, fish would offer nothing after {@code --option=} once the
+     * {@code -f} of a subcommand line has switched off file completion for the command. {@code -F} does not make fish
+     * offer file names instead of subcommands after {@code --option }.
      */
     private static boolean fishOptionalValue(CompletionModel.ArgNode arg) {
         return arg.isOption() && arg.valueOptional();
