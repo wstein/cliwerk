@@ -586,6 +586,7 @@ public class AutoComplete {
         if (scriptName == null)  { throw new NullPointerException("scriptName"); }
         if (commandLine == null) { throw new NullPointerException("commandLine"); }
         scriptName = sanitizeScriptName(scriptName);
+        if (scriptName.endsWith(".fish")) { scriptName = scriptName.substring(0, scriptName.length() - ".fish".length()); }
         StringBuilder result = new StringBuilder();
         result.append(format(FISH_HEADER, scriptName, CommandLine.VERSION));
         // erase any completions registered earlier for this command, so re-sourcing the script is idempotent
