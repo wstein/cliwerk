@@ -1,11 +1,13 @@
 name: Release
 on:
   push:
-    tags: [ 'v*.*.*' ]
+    # cliwerk versions have four numeric parts, <upstream x.y.z>.<fork revision> (docs/FORK.adoc, Versioning),
+    # so upstream three-part tags such as v4.7.8 never trigger a cliwerk release.
+    tags: [ 'v[0-9]+.[0-9]+.[0-9]+.[0-9]+' ]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g. 1.2.3, without a leading "v")'
+        description: 'Version to release (four parts, e.g. 4.7.7.1, without a leading "v")'
         required: true
 
 permissions:
@@ -37,6 +39,19 @@ jobs:
           fi
           echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
           echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+      - name: Validate version
+        env:
+          VERSION: ${{ steps.vars.outputs.version }}
+        run: |
+          if ! printf '%s\n' "$VERSION" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::Version '$VERSION' is not <upstream x.y.z>.<fork revision> (four numeric parts, e.g. 4.7.7.1)"
+            exit 1
+          fi
+          if ! grep -Fq "public static final String VERSION = \"${VERSION}\";" src/main/java/picocli/CommandLine.java; then
+            echo "::error::CommandLine.VERSION does not match ${VERSION}; update it (and CommandLineTest.testVersion) before releasing"
+            exit 1
+          fi
 
       - name: Create and push tag
         if: ${{ github.event_name == 'workflow_dispatch' }}
