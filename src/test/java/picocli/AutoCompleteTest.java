@@ -304,6 +304,30 @@ public class AutoCompleteTest {
         assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
     }
 
+    @Command(name = "fishfeatures", subcommands = FishFeaturesSub.class)
+    static class FishFeatures {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/picocli-fish-pwned)", "a(b)")); }
+        }
+        @Option(names = "--color", negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--pick", completionCandidates = Candidates.class, description = "awkward candidates") String pick;
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", completionCandidates = Candidates.class, description = "optional with candidates") String mode;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishFeaturesSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishFeaturesGolden() {
+        String script = AutoComplete.fish("fishfeatures", new CommandLine(new FishFeatures()));
+        String expected = format(loadTextFromClasspath("/fish-features.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {

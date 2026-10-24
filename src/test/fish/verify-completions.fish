@@ -8,6 +8,7 @@ set -g failures 0
 
 source $dir/basic.fish
 source $dir/picocompletion-demo_completion.fish
+source $dir/fish-features.fish
 
 # expect_has "<command line>" <candidate...>   every candidate must be offered
 function expect_has
@@ -49,6 +50,28 @@ expect_lacks "picocompletion-demo sub1 --candidates " sub2 --num
 expect_has   "picocompletion-demo sub2 --thread-state " NEW RUNNABLE TIMED_WAITING
 # a second command, loaded from another file
 expect_has   "basicExample --timeUnit " NANOSECONDS DAYS
+
+# negatable options: the negative name is offered too
+expect_has   "fishfeatures --" --color --no-color
+# inherited options (scope = INHERIT) show up in the subcommand, the parent's own options do not
+expect_has   "fishfeatures child --" --own --shared
+expect_lacks "fishfeatures child --" --color --pick
+# candidates with spaces, quotes and parentheses are each offered as ONE completion, and nothing is executed
+rm -f /tmp/picocli-fish-pwned
+expect_has   "fishfeatures --pick " plain "with space" "it's" 'a(b)' '$(touch /tmp/picocli-fish-pwned)'
+expect_lacks "fishfeatures --pick " with space "it's\\" '$(touch'
+if test -e /tmp/picocli-fish-pwned
+    echo "FAIL: a completion candidate was executed as a command"
+    rm -f /tmp/picocli-fish-pwned
+    set -g failures (math $failures + 1)
+end
+# required value (-r): the value follows, so subcommands are not suggested
+expect_lacks "fishfeatures --required " child
+# optional value (arity 0..1): the value may be omitted, so subcommands are still suggested ...
+expect_has   "fishfeatures --optional " child
+expect_has   "fishfeatures --mode " child
+# ... and the candidates are offered after --mode=
+expect_has   "fishfeatures --mode=" --mode=plain "--mode=with space"
 
 if test $failures -gt 0
     echo "$failures check(s) failed"
