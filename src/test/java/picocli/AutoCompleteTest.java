@@ -239,6 +239,95 @@ public class AutoCompleteTest {
         assertThat(script, not(containsString("win")));
     }
 
+    @Command(name = "fishneg")
+    static class FishNegatable {
+        @Option(names = {"-c", "--color"}, negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--plain", negatable = true) boolean plain;
+        @Option(names = "-XX:+Inline", negatable = true, description = "Inline it") boolean inline;
+        @Option(names = "--other", description = "not negatable") boolean other;
+    }
+
+    @Test
+    public void fishOffersNegatedOptions() {
+        String script = AutoComplete.fish("fishneg", new CommandLine(new FishNegatable()));
+        assertThat(script, containsString("complete -c 'fishneg' -s 'c' -l 'color' -d 'Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-color' -d 'Negates: Use colors'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -l 'no-plain' -d 'Negates --plain'\n"));
+        assertThat(script, containsString("complete -c 'fishneg' -o 'XX:-Inline' -d 'Negates: Inline it'\n"));
+        assertThat(script, not(containsString("no-other")));
+    }
+
+    @Test
+    public void fishNegatedOptionsFollowCustomTransformer() {
+        CommandLine cmd = new CommandLine(new FishNegatable());
+        cmd.setNegatableOptionTransformer(new CommandLine.RegexTransformer.Builder()
+                .addPattern("^--(\\w+)$", "--not-$1", "--[not-]$1").build());
+        String script = AutoComplete.fish("fishneg", cmd);
+        assertThat(script, containsString(" -l 'not-color' "));
+        assertThat(script, not(containsString("no-color")));
+    }
+
+    @Command(name = "fishinh", subcommands = FishInheritedSub.class)
+    static class FishInherited {
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--rootonly", description = "root only") boolean rootonly;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishInheritedSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishOffersInheritedOptionsInSubcommands() {
+        String script = AutoComplete.fish("fishinh", new CommandLine(new FishInherited()));
+        // picocli copies inherited options into the subcommand's spec, so they are emitted for the subcommand too
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'own' -d 'child option'\n"));
+        assertThat(script, containsString("complete -c 'fishinh' -n '__fish_seen_subcommand_from child' -l 'shared' -d 'inherited by subcommands'\n"));
+        assertThat(script, not(containsString("-n '__fish_seen_subcommand_from child' -l 'rootonly'")));
+    }
+
+    @Command(name = "fishopt", subcommands = FishInheritedSub.class)
+    static class FishOptionalValues {
+        enum Mode { fast, slow }
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", description = "optional enum") Mode mode;
+        @Option(names = "--level", description = "required enum") Mode level;
+    }
+
+    @Test
+    public void fishDoesNotRequireValueForOptionalValueOptions() {
+        String script = AutoComplete.fish("fishopt", new CommandLine(new FishOptionalValues()));
+        assertThat(script, containsString("-l 'required' -r -d 'value required'\n"));
+        assertThat(script, containsString("-l 'optional' -d 'value optional'\n")); // no -r: the value may be omitted
+        assertThat(script, containsString("-l 'mode' -f -a 'fast slow' -d 'optional enum'\n")); // no -r/-x
+        assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
+    }
+
+    @Command(name = "fishfeatures", subcommands = FishFeaturesSub.class)
+    static class FishFeatures {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/picocli-fish-pwned)", "a(b)")); }
+        }
+        @Option(names = "--color", negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--pick", completionCandidates = Candidates.class, description = "awkward candidates") String pick;
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", completionCandidates = Candidates.class, description = "optional with candidates") String mode;
+    }
+    @Command(name = "child", description = "a child")
+    static class FishFeaturesSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void fishFeaturesGolden() {
+        String script = AutoComplete.fish("fishfeatures", new CommandLine(new FishFeatures()));
+        String expected = format(loadTextFromClasspath("/fish-features.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {

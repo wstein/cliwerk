@@ -1,0 +1,15 @@
+cliwerk
+Copyright 2026 Werner Stein (wstein)
+
+cliwerk is a fork of picocli (https://github.com/remkop/picocli).
+It retains the copyright and attribution notices of the original work:
+
+   Copyright 2017 Remko Popma
+   Copyright 2017 Robert 'Bobby' Zenz
+
+The original work and the modifications made in this fork are licensed
+under the Apache License, Version 2.0 (see the LICENSE file).
+Modifications made in this fork are Copyright 2026 Werner Stein (wstein).
+
+Some documentation files are licensed under different terms;
+see NOTICE-DOCS.

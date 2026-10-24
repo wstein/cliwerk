@@ -182,7 +182,10 @@ public class PreviewTest {
                 "  command build \"Builds the thing.\" {}\n" +
                 "}");
 
-        String printed = render(spec, Collections.<String>emptyList(), null, PreviewCommand.Format.markdown);
+        // Normalize CRLF to LF: the fences, prompt lines and usage() output are written with
+        // println / %n, i.e. platform line endings ("\r\n" on Windows), not the literal "\n" checked here.
+        String printed = render(spec, Collections.<String>emptyList(), null, PreviewCommand.Format.markdown)
+                .replace("\r\n", "\n");
 
         assertTrue("root command's block should be prefixed with its qualified name",
                 printed.contains("```\n$ demo --help\n"));

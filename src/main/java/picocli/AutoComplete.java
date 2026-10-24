@@ -645,6 +645,7 @@ public class AutoComplete {
 
         for (CompletionModel.OptionNode option : command.options()) {
             appendFishArgCompletion(scriptName, ownCondition, option, out);
+            appendFishNegatedOption(scriptName, ownCondition, option, out);
         }
         for (CompletionModel.PositionalNode positional : command.positionals()) {
             appendFishArgCompletion(scriptName, ownCondition, positional, out);
@@ -700,12 +701,42 @@ public class AutoComplete {
         if (candidates != null) {
             // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
             // notion of argument position and -f would also switch off file completion for sibling positionals
-            out.append(isOption ? " -x" : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
-        } else if (arg.takesValue()) {
+            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
+        } else if (arg.takesValue() && !fishOptionalValue(arg)) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
         appendFishDescription(arg.plainDescription(), out);
         out.append('\n');
+    }
+
+    /**
+     * For a {@code negatable} option, emits one more {@code complete} line offering its negative name(s), like
+     * {@code --no-verbose}. Picocli's (possibly customized) negatable option transformer decides the names. Negated
+     * options never take a value, so the line has no {@code -r}.
+     */
+    private static void appendFishNegatedOption(String scriptName, String condition, CompletionModel.OptionNode option, StringBuilder out) {
+        StringBuilder flags = new StringBuilder();
+        for (String negated : option.negatedNames()) { // empty if the option is not negatable
+            if (negated.startsWith("--"))                             { flags.append(" -l '").append(fishQuote(negated.substring(2))).append('\''); }
+            else if (negated.length() == 2 && negated.startsWith("-")) { flags.append(" -s '").append(fishQuote(negated.substring(1))).append('\''); }
+            else if (negated.startsWith("-") && negated.length() > 2)  { flags.append(" -o '").append(fishQuote(negated.substring(1))).append('\''); }
+        }
+        if (flags.length() == 0) { return; }
+        out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition)).append(flags);
+        String text = option.plainDescription();
+        out.append(" -d '").append(fishQuote(text.length() == 0 ? "Negates " + option.longestName() : "Negates: " + text)).append("'\n");
+    }
+
+    /**
+     * Returns {@code true} for an option whose value is optional (arity {@code 0..1}, {@code 0..*}, ...).
+     * Verified with fish 3.7: {@code -r} (and therefore {@code -x}) makes fish treat the next word as the value, so it
+     * stops suggesting subcommands and positional parameters right after the option, which is wrong when the value may
+     * be omitted. Such options get no {@code -r}; their candidates get {@code -f} (no file names) and are offered by
+     * fish after {@code --option=}, the unambiguous way to pass an optional value. Fish still offers file names for
+     * an optional value without candidates, because it falls back to its default completion.
+     */
+    private static boolean fishOptionalValue(CompletionModel.ArgNode arg) {
+        return arg.isOption() && arg.valueOptional();
     }
 
     /**

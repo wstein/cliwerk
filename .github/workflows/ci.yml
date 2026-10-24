@@ -14,6 +14,8 @@ concurrency:
 jobs:
   build-java-8-plus:
     strategy:
+      # one red leg (e.g. a Windows-only test failure) must not cancel the others and hide their results
+      fail-fast: false
       max-parallel: 10 # this fork runs on a personal account's concurrency limits (20 jobs / 5 macOS); a larger matrix gets mass-cancelled otherwise
       matrix:
         java-version: [ 8, 11, 17, 21 ]
