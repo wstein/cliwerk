@@ -4,12 +4,14 @@
 
 The following is a set of guidelines for contributing to [cliwerk](https://github.com/wstein/cliwerk), an independent fork of [picocli](https://github.com/remkop/picocli) (see [docs/FORK.adoc](docs/FORK.adoc)). Contributions to upstream picocli itself go to [remkop/picocli](https://github.com/remkop/picocli). These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-## <a name="questions"></a> It is okay to raise an issue to ask a question
-If you have a question about cliwerk, feel free to raise an issue for it.
+## <a name="questions"></a> Questions and problem reports
+GitHub Issues and Discussions are currently not enabled for this repository.
+Questions, problem reports and changes all go through [pull requests](https://github.com/wstein/cliwerk/pulls).
+Please do not report security vulnerabilities in a pull request; see [SECURITY.md](SECURITY.md) instead.
 
 ## <a name="helpful"></a> Helpful problem reports look like this
-A helpful issue (problem report) is one that saves the maintainer time.
-Try to include these elements:
+A helpful problem report saves the maintainer time.
+Try to include these elements in the pull request description:
 
 * How to reproduce the problem
 * What is the expected behaviour
@@ -18,19 +20,15 @@ Try to include these elements:
 If you can provide code that reproduces the problem, great!
 If this code is in the form of a failing unit test, even better!
 
-## <a name="issue_or_pr"></a> Issues or pull requests?
-As a rule of thumb, it may be good to raise an issue first before providing a pull request.
+## <a name="issue_or_pr"></a> Small or large pull requests?
+For bugfixes and documentation fixes, a pull request that describes the problem and fixes it is perfectly fine.
 
-It is a good idea to check we all have the same understanding that there actually is a problem to solve, and for complex pull requests it may save time when we discuss in advance what shape the solution should take.
-
-That said, for bugfixes and documentation fixes, reporting the issue and providing a pull request to fix it in one PR is perfectly fine.
-When in doubt, maybe raise an issue first.
+For complex changes, it may save time to open a draft pull request early that describes the problem
+and the intended shape of the solution, so we can agree on it before the implementation is finished.
 
 
 ## <a name="pr_conventions"></a> Conventions for pull requests
-If there is a corresponding GitHub issue, please mention the issue number in the pull request title.
-
-Ideally prefix commit comments with either the pull request number, or the associated GitHub issue number.
+Use [Conventional Commits](https://www.conventionalcommits.org/) (`feat:`, `fix:`, `docs:`, `test:`, `chore:`, ...) for commit messages, as in the existing history.
 
 
 ## <a name="java_version"></a> Java version
