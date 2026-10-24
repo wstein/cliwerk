@@ -258,6 +258,13 @@ public class AutoCompleteTest {
     }
 
     @Test
+    public void fishStripsFishSuffixFromScriptName() {
+        String script = AutoComplete.fish("fishcand.fish", new CommandLine(new FishCandidates()));
+        assertThat(script, containsString("complete -c 'fishcand' -e\n"));
+        assertThat(script, not(containsString("fishcand.fish'")));
+    }
+
+    @Test
     public void fishSkipsLoneDashOption() {
         String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
         assertThat(script, not(containsString("-o ''")));
