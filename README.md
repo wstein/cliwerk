@@ -22,7 +22,9 @@ The project name changed to cliwerk, but the code did not (yet):
   the library API described in the upstream documentation applies unchanged.
 - Artifacts are still published as `io.github.wstein:picocli`, `io.github.wstein:picocli-spec`, ...
   (artifactId `picocli`, under this fork's own groupId — distinct from upstream's `info.picocli`).
-- The GitHub Pages site (Maven repo, Javadoc, JSON Schema) is still served from `wstein.github.io/picocli`.
+- The repository has been renamed from `wstein/picocli` to `wstein/cliwerk` (GitHub redirects the old repository URLs),
+  but the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) still use `wstein.github.io/picocli`
+  and will be updated in a separate change.
 
 ### Migration outlook
 
