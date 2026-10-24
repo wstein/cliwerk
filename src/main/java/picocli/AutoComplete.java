@@ -695,7 +695,9 @@ public class AutoComplete {
             }
         }
         if (candidates != null) {
-            out.append(isOption ? " -x" : " -f").append(" -a '").append(fishQuote(fishCandidateList(arg, candidates))).append('\'');
+            // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
+            // notion of argument position and -f would also switch off file completion for sibling positionals
+            out.append(isOption ? " -x" : "").append(" -a '").append(fishQuote(fishCandidateList(arg, candidates))).append('\'');
         } else if (arg.arity().max() > 0) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
