@@ -710,6 +710,31 @@ public class AutoComplete {
         }
         appendFishDescription(arg.plainDescription(), out);
         out.append('\n');
+        if (candidates != null && fishOptionalValue(arg)) {
+            appendFishSeparateOptionalValue(scriptName, condition, (CompletionModel.OptionNode) arg, candidates, out);
+        }
+    }
+
+    /**
+     * For an option with an optional value and candidates, emits one more {@code complete} line that offers the
+     * candidates as a separate word right after the option (like {@code --mode plain}, which picocli accepts), in
+     * addition to the subcommands and positional parameters that fish offers there anyway. The option line itself
+     * cannot do this: it has no {@code -r}, so fish only offers its candidates after {@code --mode=}.
+     * Only names that fish can complete as an option (starting with {@code -}) are matched, literally; a value
+     * attached to a short option ({@code -mplain}) or following clustered short options is not completed.
+     */
+    private static void appendFishSeparateOptionalValue(String scriptName, String condition, CompletionModel.OptionNode option,
+                                                        CompletionModel.Candidates candidates, StringBuilder out) {
+        List<String> tokens = new ArrayList<String>();
+        for (String name : option.names()) {
+            if (name.startsWith("-") && name.length() > 1) { tokens.add(fishEscapeToken(name)); }
+        }
+        if (tokens.isEmpty()) { return; }
+        String afterOption = fishAnd(condition, "__fish_prev_arg_in " + concat(" ", tokens));
+        out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(afterOption))
+                .append(" -f -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
+        appendFishDescription(option.plainDescription(), out);
+        out.append('\n');
     }
 
     /**
