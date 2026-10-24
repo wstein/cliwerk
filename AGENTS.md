@@ -10,7 +10,7 @@ It replaces project-specific conventions that would otherwise live in CLAUDE.md,
 
 ## Overview
 
-This is [wstein](https://github.com/wstein)'s fork of [remkop/picocli](https://github.com/remkop/picocli), used to prototype enhancements before proposing upstream. The fork adds:
+This is **cliwerk** ([wstein/cliwerk](https://github.com/wstein/cliwerk)), an independent fork of [remkop/picocli](https://github.com/remkop/picocli) maintained by [wstein](https://github.com/wstein); it is not affiliated with or endorsed by the picocli project. Some enhancements are also proposed upstream. See [docs/FORK.adoc](docs/FORK.adoc) for branch model and naming rules (never call cliwerk releases "picocli"). The Java package `picocli` and the module/artifact names are unchanged during the transition. cliwerk adds:
 
 - **Fish shell completion** via `AutoComplete.fish()` 
 - **picocli-spec**: Build `CommandSpec` from DSL (`.picocli`) or JSON (`.json`) without annotated Java classes
@@ -280,4 +280,4 @@ Example fixture files:
 
 - **Upstream**: [remkop/picocli](https://github.com/remkop/picocli) — features, user manual, examples
 - **Published Artifacts**: [Maven](https://wstein.github.io/picocli/maven) · [Javadoc](https://wstein.github.io/picocli/apidocs/) · [JSON Schema](https://wstein.github.io/picocli/spec/schema/command-spec.schema.json)
-- **Discussion**: GitHub Issues on this fork for feature-specific questions
+- **Repository**: [wstein/cliwerk](https://github.com/wstein/cliwerk) (formerly `wstein/picocli`; GitHub redirects old URLs)
