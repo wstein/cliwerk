@@ -30,16 +30,23 @@ import picocli.CommandLine.Model.PositionalParamSpec;
 import picocli.CommandLine.Range;
 
 /**
- * Internal, shell-independent snapshot of what a shell completion script generator needs to know about a
+ * Internal, shell-independent view of what a shell completion script generator needs to know about a
  * picocli command hierarchy. {@link AutoComplete}'s generators for individual shells render this model in their
  * own syntax and with their own quoting; nothing in here is specific to any shell.
+ * <p>The model is built eagerly by {@link #build(CommandLine)} and is not updated afterwards, but it is not a
+ * deep copy either: nodes keep references to the underlying picocli objects and read some values (like
+ * descriptions) from them on demand.</p>
+ * <p>The model is a <em>tree</em>, not a DAG: a {@code CommandLine} that is registered as a subcommand of two
+ * different parents becomes two separate nodes. The root {@link CommandNode} has no {@linkplain CommandNode#names()
+ * names}; the caller supplies the name of the script/command.</p>
  * <p>The model already applies the rules that every shell shares:</p>
  * <ul>
  *   <li>hidden subcommands, hidden options and hidden positional parameters are left out;</li>
  *   <li>all names (aliases) under which the same subcommand is registered are grouped into one node;</li>
  *   <li>subcommands, options and positional parameters keep their declaration order.</li>
  * </ul>
- * <p>This class is not part of the public API.</p>
+ * <p>This class is not part of the public API. Note that {@code AutoComplete.java} is therefore no longer a
+ * single self-contained source file: it needs this file as well.</p>
  */
 final class CompletionModel {
     private CompletionModel() { }
