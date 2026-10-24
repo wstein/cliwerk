@@ -8,7 +8,7 @@ ext {
     projectPreviousPublishedVersion = "4\\.9\\.2"      // for task bumpReadmeVersion
     // projectPreviousVersionRegex may be a SNAPSHOT
     projectPreviousVersionRegex     = "4\\.9\\.2"      // for task bumpVersion
-    projectVersion                  = "4.9.3"          // for all build tasks
+    projectVersion                  = "4.7.7.1"        // for all build tasks; <upstream x.y.z>.<fork revision>, see docs/FORK.adoc
     releaseDate                     = "2026-09-21"     // for task bumpVersion
     releaseDatePreviousRegex        = "2026\\-09\\-21" // for task bumpVersion
 
