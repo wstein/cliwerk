@@ -97,22 +97,40 @@ Decided 2026-10-24, *not yet implemented*:
 Decided 2026-10-24, not yet applied to the version files:
 
 * cliwerk versions have four numeric parts: `<upstream x.y.z>.<fork revision>`.
-  The first three parts name the upstream picocli release whose API is the baseline,
-  the fourth part counts cliwerk revisions on top of it, starting at 1.
-  Example from the decision: `4.9.4.1` is the API baseline of upstream picocli 4.9.4 plus cliwerk's first revision;
-  after merging upstream 4.9.5, the next version is `4.9.5.1`.
-* Why not a qualifier such as `4.9.4-cliwerk.1`: Maven and Gradle order unknown qualifiers differently.
-  Maven sorts `4.9.4-cliwerk.1` after `4.9.4`, Gradle sorts it before `4.9.4`.
-  A purely numeric fourth part is ordered the same way by both (`4.9.4.10` after `4.9.4.9`).
+  The first three parts are the upstream picocli release whose API is the baseline;
+  the fourth part is the cliwerk revision on top of it, starting at 1.
+* The current base is upstream picocli *4.7.7*, the latest upstream release when this was decided
+  (remkop/picocli GitHub releases and Maven Central; released 2025-04-19).
+  The first cliwerk version under this scheme is therefore `4.7.7.1`, followed by `4.7.7.2`, ...
+  When upstream publishes a new release and it is merged (see <<Upstream syncs>>),
+  the base moves to that release and the revision starts at 1 again (for example `4.7.8.1`).
+* Why not a qualifier such as `4.7.7-cliwerk.1`: Maven and Gradle order unknown qualifiers differently.
+  Maven sorts `4.7.7-cliwerk.1` after `4.7.7`, Gradle sorts it before `4.7.7`.
+  A purely numeric fourth part is ordered the same way by both (`4.7.7.10` after `4.7.7.9`).
 * Caveat for OSGi consumers: in an OSGi `Bundle-Version` the fourth part is the qualifier and is compared as a string,
-  so `4.9.4.10` sorts before `4.9.4.9` there.
+  so `4.7.7.10` sorts before `4.7.7.9` there.
 * Current state: `projectVersion` in `dependencies.gradle` is `4.9.3` (the release workflow sets the version from the tag);
-  it is to be aligned when the scheme is first applied. This decision record does not change any version file.
-* Open point for the owner: the tags `v4.7.8` to `v4.9.4` in this repository (and the versions in the GitHub Pages Maven repository)
-  are cliwerk's own releases, not upstream releases. When this was written (2026-10-24), the latest upstream picocli release
-  was 4.7.7 (GitHub releases of remkop/picocli and Maven Central; to be verified by the owner).
-  Applied literally, the scheme would make the next cliwerk version `4.7.7.1`, which sorts below the already published `4.9.4`.
-  How to bridge this has not been decided yet.
+  it is to be changed when the scheme is first applied. This decision record does not change any version file.
+
+=== Legacy releases 4.7.8 to 4.9.4
+
+Before this decision, cliwerk published its own releases under upstream-looking version numbers:
+tags `v4.7.8`, `v4.7.9`, `v4.8.0` and `v4.9.0` to `v4.9.4` (GitHub Releases titled "picocli 4.7.8" ... "picocli 4.9.4",
+and `io.github.wstein:picocli` 4.7.8 to 4.9.4 in the GitHub Pages Maven repository).
+These were *cliwerk's own releases, not upstream picocli releases*; they are legacy lines of this fork.
+Consequences:
+
+* The legacy versions are numerically higher than `4.7.7.x`, so Maven and Gradle treat them as newer.
+  Dynamic versions (`latest.release`, `+`, version ranges) and conflict resolution pick a legacy release over `4.7.7.x`.
+  Consumers must pin the cliwerk version explicitly.
+  Once the new coordinates `io.github.wstein:cliwerk` are in use (see <<Coordinates and distribution>>),
+  the legacy versions stay under the old artifactId `io.github.wstein:picocli` and no longer compete with the new ones.
+* Open owner action, *not done*: decide whether the legacy releases are withdrawn or marked as deprecated
+  (GitHub Releases and the GitHub Pages Maven repository).
+* Collision risk: if upstream publishes 4.7.8, 4.7.9, 4.8.0 or 4.9.0 to 4.9.4, that number is a real upstream release
+  but the tag `v<x.y.z>` already exists in this repository as a legacy cliwerk release.
+  The upstream sync must check for such a collision before merging an upstream tag (see <<Upstream syncs>>).
+  cliwerk's own versions always have four parts, so `4.7.8.1` itself cannot collide with a legacy tag.
 
 == Branch model
 
@@ -178,11 +196,12 @@ Decided 2026-10-24: upstream is synced *release by release*.
   distributed through the existing GitHub Pages Maven repository at its new address (intended `wstein.github.io/cliwerk`, to be verified).
   Maven Central only later, if others should use cliwerk. See <<Coordinates and distribution>>.
 
-| Versioning: `<upstream x.y.z>.<fork revision>` (decided 2026-10-24)
-| Four numeric parts, for example `4.9.4.1` = upstream picocli 4.9.4 API baseline plus cliwerk's first revision;
-  after merging upstream 4.9.5 the next version is `4.9.5.1`. No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
-  Version files are not changed yet; open point: existing cliwerk release numbers (up to 4.9.4) are ahead of upstream (4.7.7).
-  See <<Versioning>>.
+| Versioning: `<upstream x.y.z>.<fork revision>` on the upstream base (decided 2026-10-24)
+| Four numeric parts; the base is upstream picocli 4.7.7, so the first cliwerk version is `4.7.7.1`.
+  No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
+  The earlier cliwerk releases 4.7.8 to 4.9.4 were cliwerk's own, not upstream releases; they are legacy lines,
+  sort above `4.7.7.x`, and require consumers to pin versions. Withdrawing or deprecating them is an open owner action.
+  Version files are not changed yet. See <<Versioning>>.
 
 | Upstream sync: release by release (decided 2026-10-24)
 | Each upstream release tag is merged (merge commit) into `develop` through a draft pull request; conflicts are resolved and the base version is raised.
