@@ -685,9 +685,13 @@ public class AutoComplete {
         out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(condition);
         if (isOption) {
             for (String name : ((OptionSpec) arg).names()) {
-                if (name.startsWith("--"))     { out.append(" -l '").append(fishQuote(name.substring(2))).append('\''); }
-                else if (name.startsWith("-")) { out.append(" -s '").append(fishQuote(name.substring(1))).append('\''); }
-                else                           { out.append(" -o '").append(fishQuote(name)).append('\''); }
+                if (name.startsWith("--"))          { out.append(" -l '").append(fishQuote(name.substring(2))).append('\''); }
+                else if (name.length() == 2 && name.startsWith("-")) { // fish -s: a single-character short option
+                    out.append(" -s '").append(fishQuote(name.substring(1))).append('\'');
+                } else if (name.startsWith("-")) { // fish -o: an "old-style" long option with a single dash, like -classpath
+                    out.append(" -o '").append(fishQuote(name.substring(1))).append('\'');
+                }
+                // option names that do not start with '-' (like /? or +v) cannot be expressed in fish's complete builtin
             }
         }
         if (candidates != null) {
@@ -710,9 +714,27 @@ public class AutoComplete {
     }
 
     private static void appendFishDescription(String[] description, StringBuilder out) {
-        if (description.length > 0 && description[0].length() > 0) {
-            out.append(" -d '").append(fishQuote(description[0])).append('\'');
+        if (description.length == 0) { return; }
+        String text = renderFishDescription(description[0]);
+        if (text.length() > 0) {
+            out.append(" -d '").append(fishQuote(text)).append('\'');
         }
+    }
+
+    /**
+     * Renders a usage help description line as plain, single-line text: strips {@code @|style text|@} markup,
+     * resolves format specifiers like {@code %n} and {@code %%}, and keeps only the first line.
+     */
+    private static String renderFishDescription(String raw) {
+        String text = CommandLine.Help.Ansi.OFF.text(raw).toString();
+        try {
+            text = String.format(text);
+        } catch (java.util.IllegalFormatException ignored) {
+            // not a valid format string: use the text as is
+        }
+        int eol = text.indexOf('\n');
+        if (eol >= 0) { text = text.substring(0, eol); }
+        return text.trim();
     }
 
     private static List<String> toList(Iterable<String> iterable) {
