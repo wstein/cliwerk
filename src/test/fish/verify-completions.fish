@@ -72,6 +72,16 @@ expect_has   "fishfeatures --optional " child
 expect_has   "fishfeatures --mode " child
 # ... and the candidates are offered after --mode=
 expect_has   "fishfeatures --mode=" --mode=plain "--mode=with space"
+# an optional value without candidates still completes file names after --optional=, although the command has
+# subcommands (whose -f line switches off file completion); run in an empty temporary directory with one file
+set -g workdir (mktemp -d)
+set -g olddir $PWD
+cd $workdir
+touch picocli-fish-file.txt
+expect_has   "fishfeatures --optional=" --optional=picocli-fish-file.txt
+expect_has   "fishfeatures --optional " child
+cd $olddir
+rm -rf $workdir
 
 if test $failures -gt 0
     echo "$failures check(s) failed"

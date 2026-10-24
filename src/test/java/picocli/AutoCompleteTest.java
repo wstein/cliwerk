@@ -299,7 +299,8 @@ public class AutoCompleteTest {
     public void fishDoesNotRequireValueForOptionalValueOptions() {
         String script = AutoComplete.fish("fishopt", new CommandLine(new FishOptionalValues()));
         assertThat(script, containsString("-l 'required' -r -d 'value required'\n"));
-        assertThat(script, containsString("-l 'optional' -d 'value optional'\n")); // no -r: the value may be omitted
+        // no -r: the value may be omitted; -F keeps file names after --optional= even though the subcommand line has -f
+        assertThat(script, containsString("-l 'optional' -F -d 'value optional'\n"));
         assertThat(script, containsString("-l 'mode' -f -a 'fast slow' -d 'optional enum'\n")); // no -r/-x
         assertThat(script, containsString("-l 'level' -x -a 'fast slow' -d 'required enum'\n"));
     }

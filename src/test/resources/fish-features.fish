@@ -8,7 +8,7 @@ complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'no-col
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'shared' -d 'inherited by subcommands'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'pick' -x -a 'plain with\\ space it\\\'s \\$\\(touch\\ /tmp/picocli-fish-pwned\\) a\\(b\\)' -d 'awkward candidates'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'required' -r -d 'value required'
-complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'optional' -d 'value optional'
+complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'optional' -F -d 'value optional'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -l 'mode' -f -a 'plain with\\ space it\\\'s \\$\\(touch\\ /tmp/picocli-fish-pwned\\) a\\(b\\)' -d 'optional with candidates'
 complete -c 'fishfeatures' -n 'not __fish_seen_subcommand_from child' -f -a 'child' -d 'a child'
 complete -c 'fishfeatures' -n '__fish_seen_subcommand_from child' -l 'own' -d 'child option'
