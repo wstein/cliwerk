@@ -345,6 +345,33 @@ public class CompletionModelTest {
         assertTrue(root.positionals().get(0).valueOptional());
     }
 
+    @Command(name = "desc", description = {"Be @|bold verbose|@ and 100%% sure.%nSecond line.", "next line"})
+    static class Descriptions {
+        @Option(names = "--markup", description = "  @|red,bold red|@ text  ") boolean markup;
+        @Option(names = "--bad", description = "bad %s format %q") boolean bad;
+        @Option(names = "--none") boolean none;
+        @Option(names = "--blank", description = "  ") boolean blank;
+        @Parameters(description = "it's a 'quoted' \\ value") String p;
+    }
+
+    @Test
+    public void plainDescriptionStripsMarkupResolvesFormatAndKeepsFirstLine() {
+        CommandNode root = CompletionModel.build(new CommandLine(new Descriptions()));
+        assertEquals("Be verbose and 100% sure.", root.plainDescription());
+        assertEquals("red text", option(root, "--markup").plainDescription());
+        assertEquals("bad %s format %q", option(root, "--bad").plainDescription()); // invalid format string kept as is
+        assertEquals("", option(root, "--none").plainDescription());
+        assertEquals("", option(root, "--blank").plainDescription());
+        assertEquals("it's a 'quoted' \\ value", root.positionals().get(0).plainDescription()); // no shell quoting
+    }
+
+    @Test
+    public void plainTextHandlesEmptyAndNullDescriptions() {
+        assertEquals("", CompletionModel.plainText(new String[0]));
+        assertEquals("", CompletionModel.plainText(null));
+        assertEquals("a", CompletionModel.plainText(new String[] {"a%nb", "c"}));
+    }
+
     @SuppressWarnings({"unchecked", "rawtypes"})
     private static void assertUnmodifiable(List list) {
         try {

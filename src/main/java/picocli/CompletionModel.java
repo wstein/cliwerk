@@ -118,6 +118,9 @@ final class CompletionModel {
         /** The raw usage help description lines of this command (may contain markup and format specifiers). */
         String[] description() { return spec().usageMessage().description(); }
 
+        /** The first line of this command's description as plain text; see {@link CompletionModel#plainText(String[])}. */
+        String plainDescription() { return plainText(description()); }
+
         /** The visible options of this command, in declaration order. */
         List<OptionNode> options() { return options; }
 
@@ -165,6 +168,9 @@ final class CompletionModel {
 
         /** The raw usage help description lines (may contain markup and format specifiers). */
         String[] description() { return spec.description(); }
+
+        /** The first line of the description as plain text; see {@link CompletionModel#plainText(String[])}. */
+        String plainDescription() { return plainText(description()); }
     }
 
     /** A visible option. */
@@ -221,6 +227,24 @@ final class CompletionModel {
 
         /** The index range of this positional parameter. */
         Range index() { return spec().index(); }
+    }
+
+    /**
+     * Renders usage help description lines as plain, single-line text: strips {@code @|style text|@} markup,
+     * resolves format specifiers like {@code %n} and {@code %%} (text that is not a valid format string is used as
+     * is), keeps only the first line and trims it. Returns an empty string if there is no description.
+     */
+    static String plainText(String[] description) {
+        if (description == null || description.length == 0) { return ""; }
+        String text = CommandLine.Help.Ansi.OFF.text(description[0]).toString();
+        try {
+            text = String.format(text);
+        } catch (java.util.IllegalFormatException ignored) {
+            // not a valid format string: use the text as is
+        }
+        int eol = text.indexOf('\n');
+        if (eol >= 0) { text = text.substring(0, eol); }
+        return text.trim();
     }
 
     /** The kinds of completion candidates. */

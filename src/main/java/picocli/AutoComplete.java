@@ -654,7 +654,7 @@ public class AutoComplete {
 
             out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(ownCondition))
                     .append(" -f -a '").append(fishQuote(namesJoined)).append('\'');
-            appendFishDescription(child.description(), out);
+            appendFishDescription(child.plainDescription(), out);
             out.append('\n');
 
             String childCondition = fishAnd(condition, "__fish_seen_subcommand_from " + namesJoined);
@@ -704,7 +704,7 @@ public class AutoComplete {
         } else if (arg.takesValue()) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
-        appendFishDescription(arg.description(), out);
+        appendFishDescription(arg.plainDescription(), out);
         out.append('\n');
     }
 
@@ -734,28 +734,14 @@ public class AutoComplete {
         return sb.toString();
     }
 
-    private static void appendFishDescription(String[] description, StringBuilder out) {
-        if (description.length == 0) { return; }
-        String text = renderFishDescription(description[0]);
+    /**
+     * Appends a fish {@code -d} option for the given plain-text description (see
+     * {@link CompletionModel#plainText(String[])}), or nothing if it is empty.
+     */
+    private static void appendFishDescription(String text, StringBuilder out) {
         if (text.length() > 0) {
             out.append(" -d '").append(fishQuote(text)).append('\'');
         }
-    }
-
-    /**
-     * Renders a usage help description line as plain, single-line text: strips {@code @|style text|@} markup,
-     * resolves format specifiers like {@code %n} and {@code %%}, and keeps only the first line.
-     */
-    private static String renderFishDescription(String raw) {
-        String text = CommandLine.Help.Ansi.OFF.text(raw).toString();
-        try {
-            text = String.format(text);
-        } catch (java.util.IllegalFormatException ignored) {
-            // not a valid format string: use the text as is
-        }
-        int eol = text.indexOf('\n');
-        if (eol >= 0) { text = text.substring(0, eol); }
-        return text.trim();
     }
 
     /** Escapes a value for use inside a single-quoted fish string. */
