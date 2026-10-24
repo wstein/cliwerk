@@ -76,6 +76,22 @@ configurations.all {
 * Renaming the Java package (for example to `cliwerk`) remains possible later, but is deliberately deferred:
   it would touch almost every source file and make every upstream merge conflict broadly.
 
+== Coordinates and distribution
+
+Decided 2026-10-24, *not yet implemented*:
+
+* groupId `io.github.wstein`, artifactId `cliwerk` for the core library (published today as `io.github.wstein:picocli`).
+* Other modules follow their module names with `picocli` replaced by `cliwerk`, if and when they are published:
+  `cliwerk-codegen`, `cliwerk-groovy`, `cliwerk-shell-jline2`, `cliwerk-shell-jline3`, `cliwerk-spring-boot-starter`,
+  `cliwerk-spec` and `cliwerk-spec-tool`.
+  Today only the core artifact is published (`gradle/publish-fork-repo.gradle` is applied in the root project only);
+  when built with Java 11 or later it also contains the `picocli-spec` classes.
+* Distribution stays the existing flat Maven repository on GitHub Pages, at its new address after the repository rename.
+  Intended address: `https://wstein.github.io/cliwerk/maven` (to be verified by the owner).
+  The publishing setup (`gradle/publish-fork-repo.gradle`, `.github/workflows/release.yml`) and the GitHub Pages URLs
+  in the documentation have not been changed yet.
+* Maven Central only later, if cliwerk is to be used by others.
+
 == Branch model
 
 `develop`::
@@ -101,7 +117,7 @@ There is no automated upstream sync on `develop` yet.
 * Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...),
   the published Maven coordinates (`io.github.wstein:picocli`, ...) and the GitHub Pages URLs
   referenced in the documentation (`wstein.github.io/picocli`) still carry the upstream name.
-  Changing them is a separate migration that has not been scheduled yet.
+  The new coordinates are decided (see <<Coordinates and distribution>>), but not yet implemented.
 
 == Decision log
 
@@ -120,4 +136,9 @@ There is no automated upstream sync on `develop` yet.
   cliwerk and `info.picocli:picocli` cannot be on the same classpath.
   A package rename is deliberately deferred because it would make every upstream merge conflict broadly.
   See <<Compatibility with upstream picocli>>.
+
+| Coordinates and distribution (decided 2026-10-24, not yet implemented)
+| groupId `io.github.wstein`, artifactId `cliwerk` (other modules `cliwerk-<module>` if published),
+  distributed through the existing GitHub Pages Maven repository at its new address (intended `wstein.github.io/cliwerk`, to be verified).
+  Maven Central only later, if others should use cliwerk. See <<Coordinates and distribution>>.
 |===
