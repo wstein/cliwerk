@@ -92,6 +92,28 @@ Decided 2026-10-24, *not yet implemented*:
   in the documentation have not been changed yet.
 * Maven Central only later, if cliwerk is to be used by others.
 
+== Versioning
+
+Decided 2026-10-24, not yet applied to the version files:
+
+* cliwerk versions have four numeric parts: `<upstream x.y.z>.<fork revision>`.
+  The first three parts name the upstream picocli release whose API is the baseline,
+  the fourth part counts cliwerk revisions on top of it, starting at 1.
+  Example from the decision: `4.9.4.1` is the API baseline of upstream picocli 4.9.4 plus cliwerk's first revision;
+  after merging upstream 4.9.5, the next version is `4.9.5.1`.
+* Why not a qualifier such as `4.9.4-cliwerk.1`: Maven and Gradle order unknown qualifiers differently.
+  Maven sorts `4.9.4-cliwerk.1` after `4.9.4`, Gradle sorts it before `4.9.4`.
+  A purely numeric fourth part is ordered the same way by both (`4.9.4.10` after `4.9.4.9`).
+* Caveat for OSGi consumers: in an OSGi `Bundle-Version` the fourth part is the qualifier and is compared as a string,
+  so `4.9.4.10` sorts before `4.9.4.9` there.
+* Current state: `projectVersion` in `dependencies.gradle` is `4.9.3` (the release workflow sets the version from the tag);
+  it is to be aligned when the scheme is first applied. This decision record does not change any version file.
+* Open point for the owner: the tags `v4.7.8` to `v4.9.4` in this repository (and the versions in the GitHub Pages Maven repository)
+  are cliwerk's own releases, not upstream releases. When this was written (2026-10-24), the latest upstream picocli release
+  was 4.7.7 (GitHub releases of remkop/picocli and Maven Central; to be verified by the owner).
+  Applied literally, the scheme would make the next cliwerk version `4.7.7.1`, which sorts below the already published `4.9.4`.
+  How to bridge this has not been decided yet.
+
 == Branch model
 
 `develop`::
@@ -141,4 +163,10 @@ There is no automated upstream sync on `develop` yet.
 | groupId `io.github.wstein`, artifactId `cliwerk` (other modules `cliwerk-<module>` if published),
   distributed through the existing GitHub Pages Maven repository at its new address (intended `wstein.github.io/cliwerk`, to be verified).
   Maven Central only later, if others should use cliwerk. See <<Coordinates and distribution>>.
+
+| Versioning: `<upstream x.y.z>.<fork revision>` (decided 2026-10-24)
+| Four numeric parts, for example `4.9.4.1` = upstream picocli 4.9.4 API baseline plus cliwerk's first revision;
+  after merging upstream 4.9.5 the next version is `4.9.5.1`. No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
+  Version files are not changed yet; open point: existing cliwerk release numbers (up to 4.9.4) are ahead of upstream (4.7.7).
+  See <<Versioning>>.
 |===
