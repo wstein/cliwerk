@@ -20,6 +20,7 @@ buildscript {
 
 plugins {
     id 'org.jreleaser' version '1.17.0'
+    id 'me.champeau.gradle.japicmp' version '0.4.6' apply false // applied in gradle/api-compat.gradle
 }
 
 group          = 'info.picocli'
@@ -238,3 +239,6 @@ apply from: "${rootProject.projectDir}/gradle/publish-fork-repo.gradle"
 
 // release-related custom gradle tasks and release procedure steps
 apply from: "${rootProject.projectDir}/gradle/release-tasks.gradle"
+
+// API compatibility check against upstream picocli (task apiCompat, part of check)
+apply from: "${rootProject.projectDir}/gradle/api-compat.gradle"

@@ -1,0 +1,112 @@
+// API compatibility check against the last merged upstream picocli release (docs/FORK.adoc,
+// "Compatibility with upstream picocli" and "Upstream syncs").
+//
+// Task `apiCompat` compares package `picocli` of the jar built by this project with the upstream
+// reference jar `info.picocli:picocli:<upstreamBaseVersion>` from Maven Central, using japicmp
+// (Gradle plugin `me.champeau.gradle.japicmp`). Removed or binary-incompatibly changed public API
+// is reported (and fails the task in blocking mode); additions are allowed.
+//
+// Known exceptions are listed, each with a justification, in gradle/api-compat-exceptions.txt.
+//
+// Run with: ./gradlew apiCompat   (reports in build/reports/api-compat/)
+// Applied from the root build.gradle; registered on Java 17 and later only (see below).
+
+ext {
+    // The upstream release whose API is cliwerk's baseline: the first three parts of the cliwerk
+    // version (docs/FORK.adoc, "Versioning"). Raise it when an upstream release is merged.
+    // Pinned on purpose: never derived from this project's own group, name or version.
+    upstreamBaseVersion = '4.7.7'
+
+    // false = report-only: findings are reported, but do not fail the build.
+    // Switch to true once every finding is either fixed or accepted as an exception.
+    apiCompatBlocking = true
+}
+
+// Only resolve `info.picocli:picocli` from Maven Central, never from another repository
+// (the fork's own Maven repository publishes under different coordinates, but this makes sure).
+repositories {
+    exclusiveContent {
+        forRepository { mavenCentral() }
+        filter { includeModule('info.picocli', 'picocli') }
+    }
+}
+
+// The plugin is put on the build classpath by the `plugins { }` block of build.gradle (`apply false`)
+// and applied here on Java 17+ only, so it can never affect the Java 8 and 11 builds.
+if (!JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_17)) {
+    project.logger.info("apiCompat: not registered on Java ${JavaVersion.current()} (needs Java 17+)")
+    return
+}
+apply plugin: 'me.champeau.gradle.japicmp'
+def japicmpTaskType = plugins.getPlugin('me.champeau.gradle.japicmp').getClass().classLoader
+        .loadClass('me.champeau.gradle.japicmp.JapicmpTask')
+
+// Upstream reference jar: a detached configuration (no relation to this project's own coordinates),
+// the module only, no transitive dependencies, at exactly the pinned version.
+def upstreamApi = configurations.detachedConfiguration(
+        dependencies.create("info.picocli:picocli:${upstreamBaseVersion}") {
+            transitive = false
+            version { strictly upstreamBaseVersion }
+        })
+
+// gradle/api-compat-exceptions.txt: one exception per line, `<kind> <pattern> | <justification>`,
+// kind is one of class, method, field; patterns use japicmp's syntax
+// (class: picocli.CommandLine$Foo, method: picocli.CommandLine#foo(java.lang.String), field: picocli.CommandLine#BAR).
+// Lines starting with '#' and blank lines are ignored.
+def exceptionsFile = rootProject.file('gradle/api-compat-exceptions.txt')
+def apiExceptions = [class: [], method: [], field: []]
+if (exceptionsFile.exists()) {
+    exceptionsFile.readLines('UTF-8').eachWithIndex { String raw, int i ->
+        def line = raw.trim()
+        if (line.isEmpty() || line.startsWith('#')) return
+        def m = line =~ /^(class|method|field)\s+(\S+)\s*\|\s*(\S.*)$/
+        if (!m.matches()) {
+            throw new GradleException("${exceptionsFile}:${i + 1}: expected '<class|method|field> <pattern> | <justification>', got: ${raw}")
+        }
+        apiExceptions[m.group(1)] << m.group(2)
+    }
+}
+
+def reportDir = layout.buildDirectory.dir('reports/api-compat')
+
+def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
+    group = 'verification'
+    description = "Checks that the public API of package picocli is compatible with upstream picocli ${upstreamBaseVersion}."
+
+    inputs.file(exceptionsFile).optional()
+    doFirst {
+        // fail loudly if the reference is anything but the upstream jar from Maven Central
+        def artifacts = upstreamApi.incoming.artifacts.artifacts
+        def ids = artifacts.collect { it.id.componentIdentifier }
+        def ok = ids.size() == 1 && ids[0] instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
+                ids[0].group == 'info.picocli' && ids[0].module == 'picocli' && ids[0].version == upstreamBaseVersion
+        if (!ok) {
+            throw new GradleException("apiCompat: upstream reference did not resolve to exactly info.picocli:picocli:${upstreamBaseVersion}: ${ids}")
+        }
+        artifacts.collect { it.file }.each { f ->
+            def sha = java.security.MessageDigest.getInstance('SHA-256').digest(f.bytes).encodeHex().toString()
+            logger.lifecycle("apiCompat: upstream reference ${f.name} sha256=${sha}")
+        }
+    }
+
+    oldClasspath.from(upstreamApi)
+    newClasspath.from(tasks.named('jar'))
+
+    packageIncludes = ['picocli', 'picocli.*']
+    // picocli-spec's classes are bundled into the jar on Java 11+; they are cliwerk additions, not upstream API
+    packageExcludes = ['picocli.spec', 'picocli.spec.*']
+    // module-info.class lives in META-INF/versions/9 of both multi-release jars; it is not API
+    classExcludes = ['module-info'] + apiExceptions['class']
+    methodExcludes = apiExceptions['method']
+    fieldExcludes = apiExceptions['field']
+
+    onlyBinaryIncompatibleModified = true
+    failOnModification = apiCompatBlocking
+    ignoreMissingClasses = true
+
+    txtOutputFile = reportDir.map { it.file('api-compat.txt') }
+    htmlOutputFile = reportDir.map { it.file('api-compat.html') }
+    xmlOutputFile = reportDir.map { it.file('api-compat.xml') }
+}
+
+tasks.named('check') { dependsOn(apiCompat) }
