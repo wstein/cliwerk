@@ -330,7 +330,7 @@ public class AutoCompleteTest {
     @Command(name = "fishfeatures", subcommands = FishFeaturesSub.class)
     static class FishFeatures {
         static class Candidates extends ArrayList<String> {
-            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/picocli-fish-pwned)", "a(b)")); }
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch picocli-fish-pwned)", "a(b)")); }
         }
         @Option(names = "--color", negatable = true, description = "Use colors") boolean color;
         @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;

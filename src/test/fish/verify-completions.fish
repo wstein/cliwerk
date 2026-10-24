@@ -51,18 +51,22 @@ expect_has   "picocompletion-demo sub2 --thread-state " NEW RUNNABLE TIMED_WAITI
 # a second command, loaded from another file
 expect_has   "basicExample --timeUnit " NANOSECONDS DAYS
 
+# the fishfeatures checks run in a fresh, private temporary directory that holds one file (no fixed /tmp paths)
+set -g workdir (mktemp -d)
+set -g olddir $PWD
+cd $workdir
+touch picocli-fish-file.txt
+
 # negatable options: the negative name is offered too
 expect_has   "fishfeatures --" --color --no-color
 # inherited options (scope = INHERIT) show up in the subcommand, the parent's own options do not
 expect_has   "fishfeatures child --" --own --shared
 expect_lacks "fishfeatures child --" --color --pick
 # candidates with spaces, quotes and parentheses are each offered as ONE completion, and nothing is executed
-rm -f /tmp/picocli-fish-pwned
-expect_has   "fishfeatures --pick " plain "with space" "it's" 'a(b)' '$(touch /tmp/picocli-fish-pwned)'
+expect_has   "fishfeatures --pick " plain "with space" "it's" 'a(b)' '$(touch picocli-fish-pwned)'
 expect_lacks "fishfeatures --pick " with space "it's\\" '$(touch'
-if test -e /tmp/picocli-fish-pwned
+if test -e picocli-fish-pwned
     echo "FAIL: a completion candidate was executed as a command"
-    rm -f /tmp/picocli-fish-pwned
     set -g failures (math $failures + 1)
 end
 # required value (-r): the value follows, so subcommands are not suggested
@@ -77,11 +81,7 @@ expect_has   "fishfeatures --mode " child plain "with space"
 expect_has   "fishfeatures --mode plain " child
 expect_lacks "fishfeatures --mode plain " plain "with space"
 # an optional value without candidates still completes file names after --optional=, although the command has
-# subcommands (whose -f line switches off file completion); run in an empty temporary directory with one file
-set -g workdir (mktemp -d)
-set -g olddir $PWD
-cd $workdir
-touch picocli-fish-file.txt
+# subcommands (whose -f line switches off file completion)
 expect_has   "fishfeatures --optional=" --optional=picocli-fish-file.txt
 expect_has   "fishfeatures --optional " child
 cd $olddir
