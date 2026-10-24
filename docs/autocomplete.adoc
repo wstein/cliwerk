@@ -359,6 +359,30 @@ $ mycommand generate-completion --shell=fish > ~/.config/fish/completions/mycomm
 
 Fish loads scripts from this directory automatically for every new shell; there is no need to separately `source` the file, and no `bashcompinit`-style shim is needed (fish's `complete` builtin is native, not a bash emulation).
 
+==== Fish versions
+The generated script has been verified with fish 4.x.
+The table below lists the fish versions shipped by common Linux distributions (as of October 2026), and what the fish documentation says about the `complete` features the generated script relies on.
+
+[cols="2,1,3",options="header"]
+|===
+|Distribution |fish |Notes
+
+|Ubuntu 20.04 |3.1.0 |`complete -F` documented; multiple `-n` conditions not documented
+|Ubuntu 22.04 |3.3.1 |same as above
+|Ubuntu 24.04 |3.7.0 |all features documented
+|Ubuntu 25.10 |4.0.6 |all features documented
+|Debian 11 |3.1.2 |`complete -F` documented; multiple `-n` conditions not documented
+|Debian 12 |3.6.0 |all features documented
+|Debian 13 |4.0.2 |all features documented
+|RHEL 8 (EPEL 8) |3.3.1 |`complete -F` documented; multiple `-n` conditions not documented
+|RHEL 9 (EPEL 9) |3.7.1 |all features documented
+|RHEL 10 (EPEL 10) |4.2.0 |all features documented
+|===
+
+NOTE: Red Hat Enterprise Linux does not ship fish itself; it is available from EPEL.
+The documentation of fish 3.6 is the first to state explicitly that several `-n` (`--condition`) options may be combined in one `complete` call.
+The documentation of fish 3.1 and 3.3 does not mention it either way, and in fish 3.0 and 2.7 `complete -F` does not exist.
+
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.
 
