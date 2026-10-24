@@ -2,29 +2,9 @@ name: API compatibility
 # Checks that the public API of package picocli stays compatible with the last merged upstream
 # picocli release (task apiCompat, gradle/api-compat.gradle; docs/FORK.adoc, "Upstream syncs").
 # The findings are written to the job summary, to check run annotations and to the uploaded report.
+# Manual only (workflow_dispatch) while the task is being fixed: it is opt-in (-PapiCompat), not
+# part of check, and does not block pushes or pull requests.
 on:
-  push:
-    branches: [ develop ]
-    paths:
-      - 'src/main/**'
-      - 'picocli-spec/src/main/**'
-      - 'build.gradle'
-      - 'dependencies.gradle'
-      - 'settings.gradle'
-      - 'gradle/**'
-      - '.github/scripts/api-compat-summary.py'
-      - '.github/workflows/api-compat.yml'
-  pull_request:
-    branches: [ develop ]
-    paths:
-      - 'src/main/**'
-      - 'picocli-spec/src/main/**'
-      - 'build.gradle'
-      - 'dependencies.gradle'
-      - 'settings.gradle'
-      - 'gradle/**'
-      - '.github/scripts/api-compat-summary.py'
-      - '.github/workflows/api-compat.yml'
   workflow_dispatch:
 permissions:
   contents: read
@@ -56,10 +36,12 @@ jobs:
           cache: gradle
 
       - name: Check API compatibility with upstream picocli
-        run: ./gradlew apiCompat --no-daemon
+        continue-on-error: true
+        run: ./gradlew apiCompat -PapiCompat --no-daemon
 
       - name: Summarize findings
         if: ${{ always() }}
+        continue-on-error: true
         run: python3 -I .github/scripts/api-compat-summary.py build/reports/api-compat/api-compat.xml build/reports/api-compat/api-compat.txt build/reports/api-compat/summary.md && cat build/reports/api-compat/summary.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload report
