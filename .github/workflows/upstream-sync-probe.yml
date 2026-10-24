@@ -2,6 +2,8 @@ name: Upstream sync probe
 # This fork is long-lived and diverges from remkop/picocli. This workflow trial-merges the upstream default branch
 # into develop to detect merge conflicts early. It never commits or pushes anything: the trial merge is always aborted.
 # Scheduled workflows only run from the default branch (develop), so this file must live there.
+# Note: GitHub disables scheduled workflows after 60 days without repository activity; since the gate below makes many
+# weekly runs empty, re-enable the workflow in the Actions tab if it has been switched off.
 on:
   schedule:
     - cron: '23 5 * * 1' # weekly (Mondays, 05:23 UTC), but only if something changed, see job 'gate'
@@ -10,11 +12,12 @@ permissions:
   contents: read
 
 jobs:
-  # Scheduled runs only make sense if something changed since the previous scheduled run: either upstream received
-  # commits (its head commit is newer than that run's start) or develop moved (different head SHA than that run).
+  # Scheduled runs only make sense if something changed since the previous scheduled run: the previous run did not
+  # succeed (an unresolved conflict or failure stays red every week), develop moved (different head SHA than that run),
+  # or upstream was pushed to after that run started (repository 'pushed_at', which errs on the safe side: any push to
+  # any upstream branch counts; the commit date would be wrong because commits can be made long before they are pushed).
   # This needs no state of our own: it is derived from the Actions API (hence 'actions: read') and the public upstream
-  # API. Comparing dates instead of recorded upstream SHAs avoids having to persist anything between runs.
-  # Manual runs always run.
+  # API. Manual runs always run.
   gate:
     runs-on: ubuntu-latest
     permissions:
@@ -23,6 +26,7 @@ jobs:
       run: ${{ steps.check.outputs.run }}
     steps:
       - id: check
+        shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -30,15 +34,14 @@ jobs:
             echo "run=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          read -r last_sha last_start < <(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/upstream-sync-probe.yml/runs?event=schedule&status=completed&per_page=1" \
-            --jq '.workflow_runs[0] | "\(.head_sha // "none") \(.run_started_at // "1970-01-01T00:00:00Z")"')
-          last_sha=${last_sha:-none}; last_start=${last_start:-1970-01-01T00:00:00Z}
-          branch=$(gh api repos/remkop/picocli --jq .default_branch)
-          upstream_date=$(gh api "repos/remkop/picocli/commits/$branch" --jq .commit.committer.date)
-          echo "Previous scheduled run: develop=$last_sha started=$last_start"
-          echo "Now: develop=$GITHUB_SHA, upstream/$branch head committed $upstream_date"
+          read -r last_sha last_start last_conclusion < <(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/upstream-sync-probe.yml/runs?event=schedule&status=completed&per_page=1" \
+            --jq '.workflow_runs[0] | "\(.head_sha // "none") \(.run_started_at // "1970-01-01T00:00:00Z") \(.conclusion // "none")"')
+          last_sha=${last_sha:-none}; last_start=${last_start:-1970-01-01T00:00:00Z}; last_conclusion=${last_conclusion:-none}
+          upstream_pushed=$(gh api repos/remkop/picocli --jq .pushed_at)
+          echo "Previous scheduled run: develop=$last_sha started=$last_start conclusion=$last_conclusion"
+          echo "Now: develop=$GITHUB_SHA, upstream pushed at $upstream_pushed"
           # ISO-8601 UTC timestamps compare correctly as strings
-          if [ "$last_sha" != "$GITHUB_SHA" ] || [[ "$upstream_date" > "$last_start" ]]; then
+          if [ "$last_conclusion" != "success" ] || [ "$last_sha" != "$GITHUB_SHA" ] || [[ "$upstream_pushed" > "$last_start" ]]; then
             echo "run=true" >> "$GITHUB_OUTPUT"
           else
             echo "Nothing changed since the previous scheduled run; skipping."
@@ -51,6 +54,10 @@ jobs:
     if: needs.gate.outputs.run == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        with:
+          egress-policy: audit
       - name: Checkout develop
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
@@ -58,6 +65,7 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
       - name: Trial-merge upstream
+        shell: bash
         env:
           UPSTREAM_URL: https://github.com/remkop/picocli.git
         run: |
@@ -72,7 +80,7 @@ jobs:
           conflicts=""
           status=clean
           if [ "$behind" -gt 0 ]; then
-            if ! git merge --no-commit --no-ff "upstream/$branch" > merge.log 2>&1; then
+            if ! git merge --no-commit --no-ff "upstream/$branch" > "$RUNNER_TEMP/merge.log" 2>&1; then
               status=conflict
               conflicts=$(git diff --name-only --diff-filter=U)
               # a failed merge without unmerged files is an error, not a conflict
@@ -97,7 +105,7 @@ jobs:
               error)
                 echo "- Trial merge: **failed without conflicts**"
                 echo
-                echo '```'; cat merge.log; echo '```' ;;
+                echo '```'; cat "$RUNNER_TEMP/merge.log"; echo '```' ;;
             esac
           } >> "$GITHUB_STEP_SUMMARY"
           cat "$GITHUB_STEP_SUMMARY"
