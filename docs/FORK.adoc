@@ -119,14 +119,28 @@ Decided 2026-10-24, not yet applied to the version files:
 `develop`::
   The default and active branch. All cliwerk development is merged here, and releases are tagged from it.
 `main`::
-  An upstream-near staging branch. It has been used for work proposed to upstream picocli
-  (the fish completion of remkop/picocli#2463), which is being brought into `develop`.
-  Planned: `main` may be reset to the upstream commit; after that, `develop` is the only line carrying fork changes.
+  Intended as a pure mirror of upstream picocli (decided 2026-10-24).
+  It has been used for work proposed to upstream picocli (the fish completion of remkop/picocli#2463),
+  which has been brought into `develop`. The owner plans to reset `main` to upstream;
+  after that, `develop` is the only line carrying fork changes.
 
 == Upstream syncs
 
-Upstream changes are currently brought into cliwerk manually by the maintainer.
-There is no automated upstream sync on `develop` yet.
+Decided 2026-10-24: upstream is synced *release by release*.
+
+* When upstream picocli publishes a release, its tag is merged into `develop` with a merge commit,
+  through a draft pull request in which the conflicts are resolved and the base version
+  (the first three parts, see <<Versioning>>) is raised to that release.
+* Target: an API compatibility check against the last upstream release as part of the build verification,
+  failing on removed or incompatibly changed public API of `picocli.*` and allowing additions
+  (see <<Compatibility with upstream picocli>>). *Not implemented yet.*
+  The bnd `baseline` setup inherited from upstream in `build.gradle` is not such a check:
+  it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
+  bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
+  and it is not known to run in CI.
+* Until then, upstream changes are brought into cliwerk manually by the maintainer.
+  The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
+  to detect merge conflicts early; it never commits or pushes anything.
 
 == Naming and identity rules
 
@@ -169,4 +183,9 @@ There is no automated upstream sync on `develop` yet.
   after merging upstream 4.9.5 the next version is `4.9.5.1`. No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
   Version files are not changed yet; open point: existing cliwerk release numbers (up to 4.9.4) are ahead of upstream (4.7.7).
   See <<Versioning>>.
+
+| Upstream sync: release by release (decided 2026-10-24)
+| Each upstream release tag is merged (merge commit) into `develop` through a draft pull request; conflicts are resolved and the base version is raised.
+  Target: an API compatibility check against the last upstream release in the build (not implemented yet).
+  `main` is intended as a pure mirror of upstream (reset planned by the owner). See <<Upstream syncs>>.
 |===
