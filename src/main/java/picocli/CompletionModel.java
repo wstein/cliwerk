@@ -215,6 +215,9 @@ final class CompletionModel {
          * what a particular shell can express.
          */
         List<String> negatedNames() { return negatedNames; }
+
+        /** The longest name of this option (the first of the longest, if several have the same length). */
+        String longestName() { return spec().longestName(); }
     }
 
     /** A visible positional parameter. */
