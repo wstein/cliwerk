@@ -72,6 +72,10 @@ expect_has   "fishfeatures --optional " child
 expect_has   "fishfeatures --mode " child
 # ... and the candidates are offered after --mode=
 expect_has   "fishfeatures --mode=" --mode=plain "--mode=with space"
+# ... and also as a separate word right after --mode (picocli accepts "--mode plain"), next to the subcommands
+expect_has   "fishfeatures --mode " child plain "with space"
+expect_has   "fishfeatures --mode plain " child
+expect_lacks "fishfeatures --mode plain " plain "with space"
 # an optional value without candidates still completes file names after --optional=, although the command has
 # subcommands (whose -f line switches off file completion); run in an empty temporary directory with one file
 set -g workdir (mktemp -d)
