@@ -1,0 +1,65 @@
+name: Fish completion
+# Loads the golden fish completion scripts (src/test/resources/*.fish) into real fish shells and checks what
+# fish actually offers. The golden files are already verified against the generator by AutoCompleteTest,
+# so this job needs no Java.
+on:
+  push:
+    paths:
+      - 'src/main/java/picocli/AutoComplete.java'
+      - 'src/test/resources/*.fish'
+      - 'src/test/fish/**'
+      - '.github/workflows/fish-completion.yml'
+  pull_request:
+    paths:
+      - 'src/main/java/picocli/AutoComplete.java'
+      - 'src/test/resources/*.fish'
+      - 'src/test/fish/**'
+      - '.github/workflows/fish-completion.yml'
+  schedule:
+    - cron: '17 4 * * 1' # weekly (Mondays, 04:17 UTC): catches new fish releases
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  fish:
+    name: fish ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    container: ${{ matrix.image }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # the fish versions shipped by common distributions, see docs/autocomplete.adoc
+          - { name: '3.1 (Ubuntu 20.04)',     image: 'ubuntu:20.04', ppa: '' }
+          - { name: '3.3 (Ubuntu 22.04)',     image: 'ubuntu:22.04', ppa: '' }
+          - { name: '3.7 (Ubuntu 24.04)',     image: 'ubuntu:24.04', ppa: '' }
+          - { name: '4.x (fish-shell PPA)',   image: 'ubuntu:24.04', ppa: 'ppa:fish-shell/release-4' }
+    steps:
+      - name: Install fish
+        env:
+          DEBIAN_FRONTEND: noninteractive
+          PPA: ${{ matrix.ppa }}
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates git
+          if [ -n "$PPA" ]; then
+            apt-get install -y --no-install-recommends software-properties-common
+            add-apt-repository -y "$PPA"
+            apt-get update
+          fi
+          apt-get install -y --no-install-recommends fish
+          fish --version
+
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Syntax check the golden files
+        run: |
+          for f in src/test/resources/*.fish; do
+            echo "fish -n $f"
+            fish -n "$f"
+          done
+
+      - name: Verify what fish offers
+        run: fish src/test/fish/verify-completions.fish src/test/resources
