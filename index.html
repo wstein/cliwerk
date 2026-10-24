@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>io.github.wstein:picocli — Maven repo</title>
+<title>cliwerk — Maven repo (io.github.wstein:picocli)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #1f2328; }
@@ -12,17 +12,22 @@
 </style>
 </head>
 <body>
-<h1>io.github.wstein:picocli</h1>
+<h1>cliwerk</h1>
 <p>
   This is a small self-hosted flat Maven repository for
-  <a href="https://github.com/wstein/picocli">wstein/picocli</a>, a personal fork of
-  <a href="https://github.com/remkop/picocli">remkop/picocli</a> used to prototype additions
-  (e.g. fish shell completion, the <code>picocli-spec</code> module below) before/if they
-  get contributed upstream.
+  <a href="https://github.com/wstein/cliwerk">cliwerk</a>, an independent fork of
+  <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma (Apache License 2.0)
+  that adds e.g. fish shell completion and the <code>picocli-spec</code> module below.
 </p>
-<p>It is <strong>not</strong> affiliated with the official <code>info.picocli:picocli</code> releases on Maven Central.</p>
+<p>cliwerk is <strong>not</strong> affiliated with or endorsed by the picocli project, and its artifacts are
+not the official <code>info.picocli:picocli</code> releases on Maven Central.
+During the transition to the new name, artifacts are still published as <code>io.github.wstein:picocli</code>
+and the Java package is still <code>picocli</code>.</p>
 
 <h2>Usage</h2>
+<p><strong>No versions are currently published in this repository.</strong> The legacy
+<code>io.github.wstein:picocli</code> versions 4.7.8&ndash;4.9.4 have been withdrawn; the snippet below
+applies once the next release is published.</p>
 <pre>repositories {
     maven { url 'https://wstein.github.io/picocli/maven' }
 }
@@ -32,12 +37,11 @@ dependencies {
 
 <h2>Documentation</h2>
 <ul>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/README.md">Project README</a> (this fork's full README, including upstream picocli's own documentation)</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/README.md">Project README</a> (cliwerk's README, with links to upstream picocli's documentation)</li>
   <li><a href="apidocs/picocli/">Javadoc — picocli (core)</a></li>
   <li><a href="apidocs/picocli-spec/">Javadoc — picocli-spec</a></li>
-  <li><a href="maven/io/github/wstein/picocli/maven-metadata.xml">maven-metadata.xml</a> (lists published versions)</li>
-  <li><a href="https://github.com/wstein/picocli/releases">GitHub Releases</a> (jars attached directly)</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/.github/workflows/release.yml">release workflow source</a></li>
+  <li><a href="https://github.com/wstein/cliwerk/releases">GitHub Releases</a> (jars attached directly)</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/.github/workflows/release.yml">release workflow source</a></li>
 </ul>
 
 <h2>picocli-spec</h2>
@@ -49,22 +53,22 @@ dependencies {
   human-friendly.
 </p>
 <ul>
-  <li><a href="https://github.com/wstein/picocli/tree/develop/picocli-spec">Module README</a> (DSL grammar, JSON field reference, worked example)</li>
+  <li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-spec">Module README</a> (DSL grammar, JSON field reference, worked example)</li>
   <li><a href="spec/schema/command-spec.schema.json">JSON Schema</a> for the JSON format (tracks latest; pin an exact release at <code>spec/schema/&lt;version&gt;/command-spec.schema.json</code>, kept permanently)</li>
   <li><a href="apidocs/picocli-spec/">Javadoc</a></li>
 </ul>
 
 <h2>Other modules in this repo</h2>
-<p>These are upstream picocli modules (not fork-specific); only their READMEs are linked here — this
+<p>These are upstream picocli modules (not cliwerk-specific); only their READMEs are linked here — this
 site currently only hosts generated Javadoc for <code>picocli</code> and <code>picocli-spec</code>
 above.</p>
 <ul>
-  <li><a href="https://github.com/wstein/picocli/tree/develop/picocli-codegen">picocli-codegen</a> — annotation processor and GraalVM native-image config generators</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/picocli-groovy/README.md">picocli-groovy</a> — Groovy script support</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/picocli-shell-jline2/README.md">picocli-shell-jline2</a> — JLine 2 shell completer</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/picocli-shell-jline3/README.md">picocli-shell-jline3</a> — JLine 3 shell completer</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/picocli-spring-boot-starter/README.md">picocli-spring-boot-starter</a> — Spring Boot auto-configuration</li>
-  <li><a href="https://github.com/wstein/picocli/blob/develop/picocli-examples/README.md">picocli-examples</a> — example code</li>
+  <li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-codegen">picocli-codegen</a> — annotation processor and GraalVM native-image config generators</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-groovy/README.md">picocli-groovy</a> — Groovy script support</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline2/README.md">picocli-shell-jline2</a> — JLine 2 shell completer</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline3/README.md">picocli-shell-jline3</a> — JLine 3 shell completer</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-spring-boot-starter/README.md">picocli-spring-boot-starter</a> — Spring Boot auto-configuration</li>
+  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-examples/README.md">picocli-examples</a> — example code</li>
 </ul>
 </body>
 </html>
