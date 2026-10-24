@@ -1,11 +1,11 @@
-# Contributing to picocli
+# Contributing to cliwerk
 
 :+1::star_struck: Wow, thanks for taking the time to contribute! :tada::+1:
 
-The following is a set of guidelines for contributing to [picocli](https://github.com/remkop/picocli). These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
+The following is a set of guidelines for contributing to [cliwerk](https://github.com/wstein/cliwerk), an independent fork of [picocli](https://github.com/remkop/picocli) (see [docs/FORK.adoc](docs/FORK.adoc)). Contributions to upstream picocli itself go to [remkop/picocli](https://github.com/remkop/picocli). These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 ## <a name="questions"></a> It is okay to raise an issue to ask a question
-If you have a question about picocli, feel free to raise an issue for it.
+If you have a question about cliwerk, feel free to raise an issue for it.
 
 ## <a name="helpful"></a> Helpful problem reports look like this
 A helpful issue (problem report) is one that saves the maintainer time.
@@ -51,8 +51,8 @@ Please be aware that pull requests can only use language features that are suppo
 ## <a name="build"> Building
 
 ```
-git clone https://github.com/remkop/picocli.git
-cd picocli
+git clone https://github.com/wstein/cliwerk.git
+cd cliwerk
 gradlew publishToMavenLocal
 ```
 
