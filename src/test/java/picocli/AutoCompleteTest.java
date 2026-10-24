@@ -239,6 +239,30 @@ public class AutoCompleteTest {
         assertThat(script, not(containsString("win")));
     }
 
+    @Command(name = "fishcand")
+    static class FishCandidates {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(touch /tmp/x)", "a(b)")); }
+        }
+        @Option(names = "--pick", completionCandidates = Candidates.class) String pick;
+        @Option(names = "-", description = "a lone dash is not an option fish can express") boolean lone;
+    }
+
+    @Test
+    public void fishEscapesCompletionCandidates() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        // each candidate is escaped as a fish token (backslash before special characters),
+        // then the whole list is quoted for the single-quoted -a argument (backslashes doubled, quotes escaped)
+        String expected = "-a 'plain with\\\\ space it\\\\\\'s \\\\$\\\\(touch\\\\ /tmp/x\\\\) a\\\\(b\\\\)'";
+        assertThat(script, containsString(expected));
+    }
+
+    @Test
+    public void fishSkipsLoneDashOption() {
+        String script = AutoComplete.fish("fishcand", new CommandLine(new FishCandidates()));
+        assertThat(script, not(containsString("-o ''")));
+    }
+
     @Test
     public void fishSkipsHiddenSubcommands() {
         CommandLine cmd = new CommandLine(new FishEdgeCases())

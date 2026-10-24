@@ -134,6 +134,8 @@ $ mycommand generate-completion --shell=fish | source
 This can be accomplished by registering the built-in `picocli.AutoComplete.GenerateCompletion` class as a subcommand of the top-level command.
 The `--shell` option defaults to `bash` and also accepts `fish`.
 
+NOTE: The `generate-completion` subcommand now has a `--shell` option of its own. If your application registers `GenerateCompletion` and also has an inherited option (`scope = INHERIT`) named `--shell`, picocli will report a duplicate option name; rename one of the two options.
+
 For example:
 
 
