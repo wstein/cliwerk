@@ -28,8 +28,10 @@ The project name changed to cliwerk, but the code did not (yet):
 
 ### Migration outlook
 
-Moving the Maven coordinates (and possibly the Java package) to the cliwerk name is planned as a
-separate, explicitly announced migration. No date has been decided. Until then, existing
+The Java package stays `picocli`: cliwerk is meant as a drop-in replacement for upstream picocli,
+so it cannot be on the same classpath as `info.picocli:picocli`.
+The new Maven coordinates (`io.github.wstein:cliwerk`) and the versioning scheme are decided but not yet implemented;
+see the decisions in [docs/FORK.adoc](docs/FORK.adoc). No date has been decided. Until then, existing
 coordinates and imports keep working; any change will be described in the [CHANGELOG](CHANGELOG.md)
 before it is released.
 
