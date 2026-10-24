@@ -14,10 +14,67 @@ This page describes how the fork relates to upstream, how its branches are used,
   reproducible with an upstream picocli release.
 * The library API is still picocli's: the Java package is `picocli` and the upstream user manual at
   https://picocli.info applies to everything cliwerk has not changed.
+  cliwerk is meant as a drop-in replacement for upstream picocli, see <<Compatibility with upstream picocli>>.
 * cliwerk adds features on top of picocli (fish shell completion, `picocli-spec`, `picocli-spec-tool`,
   on-demand help sections; see the `README.md` and `CHANGELOG.md`).
   Some of them are proposed upstream as well (fish completion: https://github.com/remkop/picocli/pull/2463[remkop/picocli#2463]);
   whether upstream accepts them does not affect their availability in cliwerk.
+
+== Compatibility with upstream picocli
+
+cliwerk is a *drop-in replacement* for upstream picocli (decided 2026-10-24, see <<Decision log>>):
+
+* The Java package stays `picocli`, and all public API names (classes, annotations, methods, attributes)
+  stay as they are in upstream picocli. Only the Maven coordinates differ from upstream.
+* Rule: the public API of `picocli.*` stays *additive*. cliwerk may add public types and members,
+  but does not remove or incompatibly change public API that upstream picocli provides.
+  Removing or changing public API needs a deliberate exception, recorded in the <<Decision log>>
+  with the affected API and the reason.
+* Consequence: cliwerk and upstream picocli (`info.picocli:picocli`) cannot be on the same classpath.
+  Both contain the same fully qualified class names (`picocli.CommandLine`, ...), so whichever jar comes first wins.
+  Because the Maven coordinates differ, Maven and Gradle do not see this as a version conflict and will not resolve it for you.
+  If a dependency brings in upstream picocli transitively, exclude it or substitute cliwerk for it.
+  Since the API is additive, code compiled against upstream picocli keeps working with cliwerk.
++
+Maven, on each dependency that brings in upstream picocli:
++
+[source,xml]
+----
+<dependency>
+  <groupId>com.example</groupId>
+  <artifactId>some-library</artifactId>
+  <version>1.0</version>
+  <exclusions>
+    <exclusion>
+      <groupId>info.picocli</groupId>
+      <artifactId>picocli</artifactId>
+    </exclusion>
+  </exclusions>
+</dependency>
+----
++
+Gradle, for all configurations, either exclude upstream picocli:
++
+[source,groovy]
+----
+configurations.all {
+    exclude group: 'info.picocli', module: 'picocli'
+}
+----
++
+or substitute cliwerk for it (`using` needs Gradle 6.6 or later;
+use the current coordinates until the new ones of <<Coordinates and distribution>> are implemented):
++
+[source,groovy]
+----
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('info.picocli:picocli') using module('io.github.wstein:picocli:<version>')
+    }
+}
+----
+* Renaming the Java package (for example to `cliwerk`) remains possible later, but is deliberately deferred:
+  it would touch almost every source file and make every upstream merge conflict broadly.
 
 == Branch model
 
@@ -40,7 +97,8 @@ There is no automated upstream sync on `develop` yet.
   "picocli" refers to the upstream project only.
 * Do not use the picocli logo for cliwerk.
 * Keep upstream copyright and attribution notices intact (see `NOTICE`).
-* Transition: the Java package `picocli`, the module names (`picocli-spec`, `picocli-spec-tool`, ...),
+* The Java package `picocli` keeps the upstream name by decision (see <<Compatibility with upstream picocli>>).
+* Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...),
   the published Maven coordinates (`io.github.wstein:picocli`, ...) and the GitHub Pages URLs
   referenced in the documentation (`wstein.github.io/picocli`) still carry the upstream name.
   Changing them is a separate migration that has not been scheduled yet.
@@ -55,4 +113,11 @@ There is no automated upstream sync on `develop` yet.
 | The fork gets its own project name to make clear that it is independent of, and not endorsed by, the picocli project.
   The GitHub repository has been renamed from `wstein/picocli` to `wstein/cliwerk`; GitHub redirects the old repository URLs.
   Package and Maven coordinates are not part of this decision.
+
+| Compatibility: drop-in (decided 2026-10-24)
+| The Java package stays `picocli` and all public API names stay as in upstream picocli; only the Maven coordinates differ.
+  The public API of `picocli.*` stays additive; removing or changing public API needs a deliberate exception recorded here.
+  cliwerk and `info.picocli:picocli` cannot be on the same classpath.
+  A package rename is deliberately deferred because it would make every upstream merge conflict broadly.
+  See <<Compatibility with upstream picocli>>.
 |===
