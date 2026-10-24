@@ -767,7 +767,8 @@ public class AutoComplete {
      * fish after {@code --option=}, the unambiguous way to pass an optional value. An optional value without
      * candidates gets {@code -F} (force files): without it, fish would offer nothing after {@code --option=} once the
      * {@code -f} of a subcommand line has switched off file completion for the command. {@code -F} does not make fish
-     * offer file names instead of subcommands after {@code --option }.
+     * offer file names instead of subcommands after {@code --option }, except in fish 3.1, where {@code -F} also
+     * acts as {@code -r} (fixed in fish 3.2).
      */
     private static boolean fishOptionalValue(CompletionModel.ArgNode arg) {
         return arg.isOption() && arg.valueOptional();
