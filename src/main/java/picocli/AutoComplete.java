@@ -591,7 +591,7 @@ public class AutoComplete {
         result.append(format(FISH_HEADER, scriptName, CommandLine.VERSION));
         // erase any completions registered earlier for this command, so re-sourcing the script is idempotent
         result.append("complete -c '").append(fishQuote(scriptName)).append("' -e\n");
-        generateFishCompletions(scriptName, "", commandLine, result);
+        generateFishCompletions(scriptName, "", CompletionModel.build(commandLine), result);
         return result.toString();
     }
 
@@ -631,45 +631,31 @@ public class AutoComplete {
 
     /**
      * Recursively emits {@code complete} lines for the options, positional parameters and subcommands of
-     * {@code commandLine}. {@code condition} is the (possibly empty) {@code -n '...'} guard(s) that scope the
+     * {@code command}. {@code condition} is the (possibly empty) {@code -n '...'} guard(s) that scope the
      * already-emitted ancestors' completions to this point in the command hierarchy; this method extends it with
-     * a guard for {@code commandLine} itself before recursing into its subcommands.
+     * a guard for {@code command} itself before recursing into its subcommands.
      */
-    private static void generateFishCompletions(String scriptName, String condition, CommandLine commandLine, StringBuilder out) {
-        CommandSpec spec = commandLine.getCommandSpec();
-
-        // group subcommands by their target CommandLine, so aliases of the same subcommand share one condition
-        Map<CommandLine, List<String>> children = new LinkedHashMap<CommandLine, List<String>>();
-        for (Map.Entry<String, CommandLine> entry : commandLine.getSubcommands().entrySet()) {
-            if (entry.getValue().getCommandSpec().usageMessage().hidden()) { continue; } // skip hidden subcommands
-            List<String> names = children.get(entry.getValue());
-            if (names == null) { children.put(entry.getValue(), names = new ArrayList<String>()); }
-            names.add(entry.getKey());
-        }
-        List<String> allChildNames = new ArrayList<String>();
-        for (List<String> names : children.values()) { allChildNames.addAll(names); }
+    private static void generateFishCompletions(String scriptName, String condition, CompletionModel.CommandNode command, StringBuilder out) {
+        List<String> allChildNames = command.allSubcommandNames();
 
         // this command's own options/positionals stop being suggested once the user has drilled into a subcommand
         String notDrilledDown = allChildNames.isEmpty() ? "" :
                 "not __fish_seen_subcommand_from " + concat(" ", allChildNames);
         String ownCondition = fishAnd(condition, notDrilledDown);
 
-        for (OptionSpec option : spec.options()) {
-            if (option.hidden()) { continue; } // skip hidden options
+        for (CompletionModel.OptionNode option : command.options()) {
             appendFishArgCompletion(scriptName, ownCondition, option, out);
-            appendFishNegatedOption(scriptName, ownCondition, option, spec, out);
+            appendFishNegatedOption(scriptName, ownCondition, option, out);
         }
-        for (PositionalParamSpec positional : spec.positionalParameters()) {
-            if (positional.hidden()) { continue; } // skip hidden positional parameters
+        for (CompletionModel.PositionalNode positional : command.positionals()) {
             appendFishArgCompletion(scriptName, ownCondition, positional, out);
         }
-        for (Map.Entry<CommandLine, List<String>> entry : children.entrySet()) {
-            CommandLine child = entry.getKey();
-            String namesJoined = concat(" ", entry.getValue());
+        for (CompletionModel.CommandNode child : command.subcommands()) {
+            String namesJoined = concat(" ", child.names());
 
             out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(ownCondition))
                     .append(" -f -a '").append(fishQuote(namesJoined)).append('\'');
-            appendFishDescription(child.getCommandSpec().usageMessage().description(), out);
+            appendFishDescription(child.plainDescription(), out);
             out.append('\n');
 
             String childCondition = fishAnd(condition, "__fish_seen_subcommand_from " + namesJoined);
@@ -693,16 +679,16 @@ public class AutoComplete {
         return condition.length() == 0 ? "" : " -n '" + fishQuote(condition) + "'";
     }
 
-    private static void appendFishArgCompletion(String scriptName, String condition, ArgSpec arg, StringBuilder out) {
-        boolean isOption = arg instanceof OptionSpec;
-        Iterable<String> candidates = fishCandidates(arg);
+    private static void appendFishArgCompletion(String scriptName, String condition, CompletionModel.ArgNode arg, StringBuilder out) {
+        boolean isOption = arg.isOption();
+        CompletionModel.Candidates candidates = arg.candidates();
         if (!isOption && candidates == null) {
             return; // no useful completion to add for this positional parameter; fall back to fish's default (file) completion
         }
 
         out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition));
         if (isOption) {
-            for (String name : ((OptionSpec) arg).names()) {
+            for (String name : ((CompletionModel.OptionNode) arg).names()) {
                 if (name.startsWith("--"))          { out.append(" -l '").append(fishQuote(name.substring(2))).append('\''); }
                 else if (name.length() == 2 && name.startsWith("-")) { // fish -s: a single-character short option
                     out.append(" -s '").append(fishQuote(name.substring(1))).append('\'');
@@ -715,11 +701,11 @@ public class AutoComplete {
         if (candidates != null) {
             // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
             // notion of argument position and -f would also switch off file completion for sibling positionals
-            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(arg, candidates))).append('\'');
-        } else if (arg.arity().max() > 0 && !fishOptionalValue(arg)) {
+            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
+        } else if (arg.takesValue() && !fishOptionalValue(arg)) {
             out.append(" -r"); // requires a value; let fish fall back to its default (file) completion for it
         }
-        appendFishDescription(arg.description(), out);
+        appendFishDescription(arg.plainDescription(), out);
         out.append('\n');
     }
 
@@ -728,20 +714,16 @@ public class AutoComplete {
      * {@code --no-verbose}. Picocli's (possibly customized) negatable option transformer decides the names. Negated
      * options never take a value, so the line has no {@code -r}.
      */
-    private static void appendFishNegatedOption(String scriptName, String condition, OptionSpec option, CommandSpec spec, StringBuilder out) {
-        if (!option.negatable()) { return; }
+    private static void appendFishNegatedOption(String scriptName, String condition, CompletionModel.OptionNode option, StringBuilder out) {
         StringBuilder flags = new StringBuilder();
-        for (String name : option.names()) {
-            String negated = spec.negatableOptionTransformer().makeNegative(name, spec);
-            if (negated.equals(name)) { continue; } // no negative form
+        for (String negated : option.negatedNames()) { // empty if the option is not negatable
             if (negated.startsWith("--"))                             { flags.append(" -l '").append(fishQuote(negated.substring(2))).append('\''); }
             else if (negated.length() == 2 && negated.startsWith("-")) { flags.append(" -s '").append(fishQuote(negated.substring(1))).append('\''); }
             else if (negated.startsWith("-") && negated.length() > 2)  { flags.append(" -o '").append(fishQuote(negated.substring(1))).append('\''); }
         }
         if (flags.length() == 0) { return; }
         out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition)).append(flags);
-        String[] description = option.description();
-        String text = description.length == 0 ? "" : renderFishDescription(description[0]);
+        String text = option.plainDescription();
         out.append(" -d '").append(fishQuote(text.length() == 0 ? "Negates " + option.longestName() : "Negates: " + text)).append("'\n");
     }
 
@@ -753,18 +735,8 @@ public class AutoComplete {
      * fish after {@code --option=}, the unambiguous way to pass an optional value. Fish still offers file names for
      * an optional value without candidates, because it falls back to its default completion.
      */
-    private static boolean fishOptionalValue(ArgSpec arg) {
-        return arg instanceof OptionSpec && arg.arity().min() == 0 && arg.arity().max() > 0;
-    }
-
-    /** Returns completion candidates for the given option/positional, or {@code null} if none are known. */
-    private static Iterable<String> fishCandidates(ArgSpec arg) {
-        if (arg.completionCandidates() != null) { return arg.completionCandidates(); }
-        Class<?> type = arg.typeInfo().isMultiValue() ? arg.typeInfo().getAuxiliaryTypes()[0] : arg.type();
-        if (type.equals(InetAddress.class)) {
-            return Collections.singletonList("(__fish_print_hostnames)");
-        }
-        return null;
+    private static boolean fishOptionalValue(CompletionModel.ArgNode arg) {
+        return arg.isOption() && arg.valueOptional();
     }
 
     /**
@@ -773,12 +745,12 @@ public class AutoComplete {
      * unbalances the string and {@code $(...)} would run a command when the user presses TAB).
      * The hostname helper, which is generated by picocli itself, is the one intentional command substitution.
      */
-    private static String fishCandidateList(ArgSpec arg, Iterable<String> candidates) {
-        if (arg.completionCandidates() == null) { // InetAddress: candidates are generated by fish itself
-            return concat(" ", toList(candidates));
+    private static String fishCandidateList(CompletionModel.Candidates candidates) {
+        if (candidates.kind() == CompletionModel.CandidateKind.HOSTNAMES) { // candidates are generated by fish itself
+            return "(__fish_print_hostnames)";
         }
         List<String> escaped = new ArrayList<String>();
-        for (String candidate : candidates) { escaped.add(fishEscapeToken(candidate)); }
+        for (String candidate : candidates.values()) { escaped.add(fishEscapeToken(candidate)); }
         return concat(" ", escaped);
     }
 
@@ -793,34 +765,14 @@ public class AutoComplete {
         return sb.toString();
     }
 
-    private static void appendFishDescription(String[] description, StringBuilder out) {
-        if (description.length == 0) { return; }
-        String text = renderFishDescription(description[0]);
+    /**
+     * Appends a fish {@code -d} option for the given plain-text description (see
+     * {@link CompletionModel#plainText(String[])}), or nothing if it is empty.
+     */
+    private static void appendFishDescription(String text, StringBuilder out) {
         if (text.length() > 0) {
             out.append(" -d '").append(fishQuote(text)).append('\'');
         }
-    }
-
-    /**
-     * Renders a usage help description line as plain, single-line text: strips {@code @|style text|@} markup,
-     * resolves format specifiers like {@code %n} and {@code %%}, and keeps only the first line.
-     */
-    private static String renderFishDescription(String raw) {
-        String text = CommandLine.Help.Ansi.OFF.text(raw).toString();
-        try {
-            text = String.format(text);
-        } catch (java.util.IllegalFormatException ignored) {
-            // not a valid format string: use the text as is
-        }
-        int eol = text.indexOf('\n');
-        if (eol >= 0) { text = text.substring(0, eol); }
-        return text.trim();
-    }
-
-    private static List<String> toList(Iterable<String> iterable) {
-        List<String> result = new ArrayList<String>();
-        for (String s : iterable) { result.add(s); }
-        return result;
     }
 
     /** Escapes a value for use inside a single-quoted fish string. */
