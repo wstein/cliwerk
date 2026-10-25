@@ -9,15 +9,15 @@
         Options = @(
             @{ Names = @('-c', '--color'); Min = 0; Max = 0; Negated = @('--no-color'); NegatedDescription = 'Negates --color: Use colors'; Description = 'Use colors' },
             @{ Names = @('--shared'); Min = 0; Max = 0; Description = 'inherited by subcommands' },
-            @{ Names = @('--pick'); Min = 1; Max = 1; Description = 'awkward candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') },
+            @{ Names = @('--pick'); Min = 1; Max = 1; Description = 'awkward candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b', ('foo' + [char]0x000A + ''), '--%%', '0755', '1e3', '0x10', '1kb', '10d', '1.50', '.5', '-1', ('' + [char]0x212A + '')) },
             @{ Names = @('--required'); Min = 1; Max = 1; Description = 'value required' },
             @{ Names = @('--optional'); Min = 0; Max = 1; Description = 'value optional' },
-            @{ Names = @('--mode'); Min = 0; Max = 1; Description = 'optional with candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') },
+            @{ Names = @('--mode'); Min = 0; Max = 1; Description = 'optional with candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b', ('foo' + [char]0x000A + ''), '--%%', '0755', '1e3', '0x10', '1kb', '10d', '1.50', '.5', '-1', ('' + [char]0x212A + '')) },
             @{ Names = @('-u', '--unit'); Min = 1; Max = 1; Description = 'an enum, candidates: NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS'; Candidates = @('NANOSECONDS', 'MICROSECONDS', 'MILLISECONDS', 'SECONDS', 'MINUTES', 'HOURS', 'DAYS') },
             @{ Names = @('/win'); Min = 0; Max = 0; Description = ('Windows style, caf' + [char]0x00E9 + ' ' + [char]0x2018 + 'quoted' + [char]0x2019 + '') }
         )
         Positionals = @(
-            @{ Min = 0; Max = 0; Description = 'first positional'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') }
+            @{ Min = 0; Max = 0; Description = 'first positional'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b', ('foo' + [char]0x000A + ''), '--%%', '0755', '1e3', '0x10', '1kb', '10d', '1.50', '.5', '-1', ('' + [char]0x212A + '')) }
         )
         Subcommands = @(
             @{ Names = @('child', 'kid'); Description = 'a child';
@@ -107,9 +107,10 @@
         $seen = New-Object 'System.Collections.Generic.HashSet[string]'
         $add = {
             param($text, $type, $tip)
+            if ([string]::IsNullOrEmpty($text)) { return }
             $display = $text
             if (-not $seen.Add($display)) { return }
-            if ($text -notmatch '^[A-Za-z0-9_.:/\\+%%=-]+$') { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
+            if (($text -cnotmatch '\A[A-Za-z0-9_.:/\\+%%=-]+\z') -or ($text -ceq '--%%') -or ($text -cmatch '\A[-.]?\d')) { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
             if ([string]::IsNullOrEmpty($tip)) { $tip = $display }
             [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))
         }

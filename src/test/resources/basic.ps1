@@ -89,9 +89,10 @@
         $seen = New-Object 'System.Collections.Generic.HashSet[string]'
         $add = {
             param($text, $type, $tip)
+            if ([string]::IsNullOrEmpty($text)) { return }
             $display = $text
             if (-not $seen.Add($display)) { return }
-            if ($text -notmatch '^[A-Za-z0-9_.:/\\+%%=-]+$') { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
+            if (($text -cnotmatch '\A[A-Za-z0-9_.:/\\+%%=-]+\z') -or ($text -ceq '--%%') -or ($text -cmatch '\A[-.]?\d')) { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
             if ([string]::IsNullOrEmpty($tip)) { $tip = $display }
             [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))
         }
