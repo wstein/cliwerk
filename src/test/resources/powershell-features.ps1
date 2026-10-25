@@ -9,15 +9,15 @@
         Options = @(
             @{ Names = @('-c', '--color'); Min = 0; Max = 0; Negated = @('--no-color'); NegatedDescription = 'Negates --color: Use colors'; Description = 'Use colors' },
             @{ Names = @('--shared'); Min = 0; Max = 0; Description = 'inherited by subcommands' },
-            @{ Names = @('--pick'); Min = 1; Max = 1; Description = 'awkward candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon') },
+            @{ Names = @('--pick'); Min = 1; Max = 1; Description = 'awkward candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') },
             @{ Names = @('--required'); Min = 1; Max = 1; Description = 'value required' },
             @{ Names = @('--optional'); Min = 0; Max = 1; Description = 'value optional' },
-            @{ Names = @('--mode'); Min = 0; Max = 1; Description = 'optional with candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon') },
+            @{ Names = @('--mode'); Min = 0; Max = 1; Description = 'optional with candidates'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') },
             @{ Names = @('-u', '--unit'); Min = 1; Max = 1; Description = 'an enum, candidates: NANOSECONDS, MICROSECONDS, MILLISECONDS, SECONDS, MINUTES, HOURS, DAYS'; Candidates = @('NANOSECONDS', 'MICROSECONDS', 'MILLISECONDS', 'SECONDS', 'MINUTES', 'HOURS', 'DAYS') },
             @{ Names = @('/win'); Min = 0; Max = 0; Description = ('Windows style, caf' + [char]0x00E9 + ' ' + [char]0x2018 + 'quoted' + [char]0x2019 + '') }
         )
         Positionals = @(
-            @{ Min = 0; Max = 0; Description = 'first positional'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon') }
+            @{ Min = 0; Max = 0; Description = 'first positional'; Candidates = @('plain', 'with space', 'it''s', '$(Get-Date)', 'a`b', 'say "hi"', ('caf' + [char]0x00E9 + ''), 'semi;colon', ('it' + [char]0x2019 + 's'), ('x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019 + ''), '@x', 'a,b') }
         )
         Subcommands = @(
             @{ Names = @('child', 'kid'); Description = 'a child';
@@ -109,7 +109,7 @@
             param($text, $type, $tip)
             $display = $text
             if (-not $seen.Add($display)) { return }
-            if ($text -notmatch '^[A-Za-z0-9_.,:/\\+@%%=-]+$') { $text = "'" + $text.Replace("'", "''") + "'" }
+            if ($text -notmatch '^[A-Za-z0-9_.:/\\+%%=-]+$') { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
             if ([string]::IsNullOrEmpty($tip)) { $tip = $display }
             [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))
         }

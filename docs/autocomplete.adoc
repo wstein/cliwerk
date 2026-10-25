@@ -479,7 +479,7 @@ Below is an example Maven snippet that demonstrates how to achieve this.
 
 TIP: Pass `--shell=fish` or `--shell=powershell` to the `picocli.AutoComplete` build-time tool to generate a fish or PowerShell script instead of bash/zsh.
 When `--completionScript`/`-o` is omitted, the generated file is named `<commandName>.fish` rather than `<commandName>_completion`.
-Likewise, `--shell=powershell` generates `<commandName>-completion.ps1` (not `<commandName>.ps1`, which PowerShell would run instead of the command).
+Likewise, `--shell=powershell` generates `<commandName>-completion.ps1` (not `<commandName>.ps1`, which PowerShell would run instead of the command). With `-w`, the sample command script is written as `<commandName>.ps1` in that case.
 
 === Maven Example
 TIP: Setting system property `picocli.autocomplete.systemExitOnError` ensures the build fails if there is any problem generating the completion script (requires picocli v3.9.1).

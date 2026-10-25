@@ -192,7 +192,9 @@ public class AutoComplete {
             }
             File commandScript = null;
             if (writeCommandScript) {
-                commandScript = new File(autoCompleteScript.getAbsoluteFile().getParentFile(), commandName);
+                // PowerShell runs a wrapper script only if it has the extension .ps1
+                String scriptFileName = shell == GenerateCompletion.Shell.powershell ? commandName + ".ps1" : commandName;
+                commandScript = new File(autoCompleteScript.getAbsoluteFile().getParentFile(), scriptFileName);
             }
             if (commandScript != null && !overwriteIfExists && checkExists(commandScript)) {
                 return EXIT_CODE_COMMAND_SCRIPT_EXISTS;
@@ -848,7 +850,7 @@ public class AutoComplete {
      * @param scriptName the name of the command to generate a PowerShell completion script for
      * @param commandLine the {@code CommandLine} instance for the command line application
      * @return source code for a PowerShell completion script
-     * @since 4.8
+     * @since 4.7.7.1
      */
     public static String powershell(String scriptName, CommandLine commandLine) {
         if (scriptName == null)  { throw new NullPointerException("scriptName"); }
@@ -856,6 +858,7 @@ public class AutoComplete {
         scriptName = sanitizeScriptName(scriptName);
         if (scriptName.endsWith(".ps1")) { scriptName = scriptName.substring(0, scriptName.length() - ".ps1".length()); }
         if (scriptName.endsWith(".exe")) { scriptName = scriptName.substring(0, scriptName.length() - ".exe".length()); }
+        scriptName = scriptName.replace('\r', ' ').replace('\n', ' '); // keeps the name in the header comment on one line
         StringBuilder result = new StringBuilder();
         result.append(format(POWERSHELL_HEADER, scriptName, CommandLine.VERSION));
         result.append("& {\n");
@@ -884,7 +887,7 @@ public class AutoComplete {
      * @param out the file to write the PowerShell completion script source code to
      * @param command the file to write a helper script to that invokes the command, or {@code null} if no helper script file should be written
      * @throws IOException if a problem occurred writing to the specified files
-     * @since 4.8
+     * @since 4.7.7.1
      */
     public static void powershell(String scriptName, File out, File command, CommandLine commandLine) throws IOException {
         String autoCompleteScript = powershell(scriptName, commandLine);
@@ -985,7 +988,7 @@ public class AutoComplete {
             "    param($text, $type, $tip)",
             "    $display = $text",
             "    if (-not $seen.Add($display)) { return }",
-            "    if ($text -notmatch '^[A-Za-z0-9_.,:/\\\\+@%=-]+$') { $text = \"'\" + $text.Replace(\"'\", \"''\") + \"'\" }",
+            "    if ($text -notmatch '^[A-Za-z0-9_.:/\\\\+%=-]+$') { $text = \"'\" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + \"'\" }",
             "    if ([string]::IsNullOrEmpty($tip)) { $tip = $display }",
             "    [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))",
             "}",
