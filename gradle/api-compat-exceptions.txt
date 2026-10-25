@@ -1,11 +1,12 @@
 # Accepted exceptions to the API compatibility check (task apiCompat, see gradle/api-compat.gradle
 # and docs/FORK.adoc, "Compatibility with upstream picocli").
 #
-# Each line excludes one class, method or field of package picocli from the comparison with
-# upstream picocli. Every exception needs a justification and a matching entry in the decision log
-# of docs/FORK.adoc; the check does not accept a line without justification.
+# Each class, method or field line excludes that element of package picocli from the comparison with
+# upstream picocli; an annotation-element line excludes nothing (see below). Every exception needs a
+# justification and a matching entry in the decision log of docs/FORK.adoc; the check does not accept
+# a line without justification.
 #
-# Format:   <class|method|field> <japicmp pattern> | <justification>
+# Format:   <class|method|field|annotation-element> <japicmp pattern> | <justification>
 # Examples: class  picocli.CommandLine$Foo                         | <why>, see docs/FORK.adoc
 #           method picocli.CommandLine$Help#foo(java.lang.String)  | <why>, see docs/FORK.adoc
 #           field  picocli.CommandLine#BAR                         | <why>, see docs/FORK.adoc
@@ -19,6 +20,9 @@
 # as "excepted" and accepts them only for change METHOD_ABSTRACT_ADDED_TO_CLASS on an annotation type.
 # One entry per element, no wildcards: a new element WITHOUT a default value is a real break and
 # has to stay a finding; a new element with a default needs its own entry here.
+# Residual risk: japicmp does not see default values, so it cannot notice if a default is removed later.
+# ApiCompatExceptionsTest (src/test/java/picocli) runs in the regular build and fails if an
+# annotation-element entry names an element that does not exist or has no default value.
 
 annotation-element picocli.CommandLine$Option#helpSection()         | annotation element with default value: source and binary compatible for users of the annotation
 annotation-element picocli.CommandLine$Parameters#helpSection()     | annotation element with default value: source and binary compatible for users of the annotation

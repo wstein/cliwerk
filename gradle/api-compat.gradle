@@ -5,9 +5,8 @@
 // reference jar `info.picocli:picocli:<upstreamBaseVersion>` from Maven Central, using japicmp
 // (Gradle plugin `me.champeau.gradle.japicmp`). Removed, binary-incompatibly or source-incompatibly
 // changed public API is reported; compatible additions are allowed. In blocking mode (apiCompatBlocking)
-// only binary-incompatible changes fail the task: failOnSourceIncompatibility is set to false explicitly
-// below (japicmp-gradle 0.4.6 would otherwise make source-incompatible changes fail as well if it were
-// switched on), and source-incompatible changes are only reported, by .github/scripts/api-compat-summary.py.
+// only binary-incompatible changes fail the task (failOnSourceIncompatibility = false, set explicitly
+// below); source-incompatible changes are only reported, by .github/scripts/api-compat-summary.py.
 //
 // Known exceptions are listed, each with a justification, in gradle/api-compat-exceptions.txt.
 //
@@ -72,7 +71,8 @@ def upstreamApi = configurations.detachedConfiguration(
 // class, method and field exceptions are excluded from the comparison (japicmp does not see them at all).
 // annotation-element exceptions are NOT passed to japicmp: they are evaluated by the summary script
 // (.github/scripts/api-compat-summary.py), which reports them separately as "excepted" and accepts only
-// METHOD_ABSTRACT_ADDED_TO_CLASS on an annotation type; here they are only syntax-checked.
+// METHOD_ABSTRACT_ADDED_TO_CLASS on an annotation type. Gradle only checks the line syntax
+// (kind, pattern, justification); the form of the pattern is checked by the script.
 // Lines starting with '#' and blank lines are ignored.
 def exceptionsFile = rootProject.file('gradle/api-compat-exceptions.txt')
 def apiExceptions = [class: [], method: [], field: [], 'annotation-element': []]

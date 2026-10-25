@@ -168,6 +168,9 @@ Decided 2026-10-24: upstream is synced *release by release*.
   because it cannot see the default). The exceptions are listed one by one, with justification, in
   `gradle/api-compat-exceptions.txt` (kind `annotation-element`, no wildcards) and are shown separately as "excepted" in the report;
   a new annotation element without default value would stay a finding.
+  Residual risk: japicmp does not see default values, so it cannot notice if a default is removed later;
+  the unit test `ApiCompatExceptionsTest` (regular build) fails if an `annotation-element` entry names an element
+  that does not exist or has no default value.
 * Upstream changes are brought into cliwerk manually by the maintainer.
   The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
   to detect merge conflicts early; it never commits or pushes anything.
@@ -214,6 +217,15 @@ Decided 2026-10-24: upstream is synced *release by release*.
 
 | Upstream sync: release by release (decided 2026-10-24)
 | Each upstream release tag is merged (merge commit) into `develop` through a draft pull request; conflicts are resolved and the base version is raised.
-  Target: an API compatibility check against the last upstream release in the build (not implemented yet).
+  An API compatibility check against the last upstream release exists as opt-in, report-only task `apiCompat` (not part of `check` yet).
   `main` is intended as a pure mirror of upstream (reset planned by the owner). See <<Upstream syncs>>.
+
+| API check: exceptions for annotation elements with default value (decided 2026-10-25)
+| The check against upstream 4.7.7 finds no binary-incompatible change and 6 source-incompatible findings
+  (`METHOD_ABSTRACT_ADDED_TO_CLASS`): the new annotation elements `helpSection()` of `@Option`, `@Parameters`, `@ArgGroup` and `@Command`,
+  and `helpSections()` and `showHelpSectionsNotice()` of `@Command`. All have a default value, so they are source- and binary-compatible
+  for users of the annotation; only code that implements the annotation interface itself would break, which is not a supported use.
+  They are accepted as 6 explicit exceptions of kind `annotation-element` in `gradle/api-compat-exceptions.txt` (no wildcard) and
+  reported separately as "excepted". Rule: a new annotation element with a default value needs its own entry there;
+  one without a default value is a real break and is not excepted. `ApiCompatExceptionsTest` guards that the defaults stay.
 |===
