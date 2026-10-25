@@ -438,7 +438,7 @@ The golden scripts are loaded in real PowerShell sessions in CI (Windows PowerSh
 * *Positional parameters* offer their candidates at the index (or index range) they apply to.
 * *Everything else* falls back to the default PowerShell file name completion: options that require a value without known candidates, and positional parameters without candidates.
 
-Known limitations: options are only offered after a dash has been typed, candidates are not offered for a value attached to a short option (`-uSEC<TAB>`).
+Known limitations: options are only offered after a dash has been typed (in Windows PowerShell 5.1, which does not ask completers for a word that is just `-`, `--` or `-x`, only after at least one character that follows `--`, like `--co<TAB>`), candidates are not offered for a value attached to a short option (`-uSEC<TAB>`).
 
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.

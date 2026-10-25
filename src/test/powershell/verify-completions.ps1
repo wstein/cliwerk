@@ -52,8 +52,22 @@ function Complete([string]$line) {
 
 function Texts($items) { return @($items | ForEach-Object { $_.ListItemText }) }
 
+# Windows PowerShell 5.1 does not call argument completers when the word under the cursor is just a dash, two dashes
+# or a single-dash word like -c: the parser treats it as a parameter name (or the end-of-parameters marker), and only
+# PowerShell 6+ completes those words. Words like --co are plain arguments and work everywhere.
+function NotCompletedByThisPowerShell([string]$line) {
+    if ($PSVersionTable.PSVersion.Major -ge 6) { return $false }
+    $last = $line.Substring($line.LastIndexOf(' ') + 1)
+    if ($last -match '^(--?|-[A-Za-z0-9_]+)$') {
+        Write-Host "SKIP: '$line' (Windows PowerShell 5.1 does not ask the completer for a word like '$last')"
+        return $true
+    }
+    return $false
+}
+
 # ExpectHas "<command line>" <candidate...>   every candidate must be offered
 function ExpectHas([string]$line, [string[]]$wanted) {
+    if (NotCompletedByThisPowerShell $line) { return }
     $script:checks++
     $offered = Texts (Complete $line)
     foreach ($want in $wanted) {
@@ -63,6 +77,7 @@ function ExpectHas([string]$line, [string[]]$wanted) {
 
 # ExpectLacks "<command line>" <candidate...>   none of the candidates may be offered
 function ExpectLacks([string]$line, [string[]]$unwanted) {
+    if (NotCompletedByThisPowerShell $line) { return }
     $script:checks++
     $offered = Texts (Complete $line)
     foreach ($no in $unwanted) {
@@ -93,6 +108,11 @@ ExpectHas   'picocompletion-demo -' '--version', '--help'
 # once drilled into a subcommand, the parent's options are no longer suggested
 ExpectHas   'picocompletion-demo sub1 --' '--num', '--str', '--candidates'
 ExpectLacks 'picocompletion-demo sub1 --' '--version', '--help'
+# the same with a word that is more than a dash, which every PowerShell version completes
+ExpectHas   'picocompletion-demo --v' '--version'
+ExpectLacks 'picocompletion-demo --v' '--help'
+ExpectHas   'picocompletion-demo sub1 --n' '--num'
+ExpectLacks 'picocompletion-demo sub1 --n' '--version', '--str'
 # nested subcommands
 ExpectHas   'picocompletion-demo sub2 ' subsub1, subsub2, subsub3
 ExpectHas   'picocompletion-demo sub2 subsub2 -' '--timeUnit', '--timeout'
@@ -123,6 +143,12 @@ try {
     ExpectHas   'psfeatures --no' '--no-color'
     ExpectLacks 'psfeatures --no' '--color'
     ExpectHas   'psfeatures -' '-c', '--color', '-u', '--unit'
+    ExpectHas   'psfeatures --c' '--color'
+    ExpectHas   'psfeatures --s' '--shared'
+    ExpectLacks 'psfeatures --s' '--secret', '--color'
+    ExpectHas   'psfeatures child --o' '--own'
+    ExpectHas   'psfeatures child --s' '--shared'
+    ExpectLacks 'psfeatures child --c' '--color'
     # hidden options are not offered, and neither are options when no dash has been typed
     ExpectLacks 'psfeatures -' '--secret'
     ExpectLacks 'psfeatures ' '--color'
