@@ -104,10 +104,9 @@ public class CommandSpecSchemaTest {
 
     /**
      * The checked-in schema's {@code $id} is the *unversioned* "latest" URL. The release
-     * workflow (.github/workflows/release.yml) derives each release's pinned copy by a plain
-     * text substitution of this exact literal into
-     * {@code .../spec/schema/<version>/command-spec.schema.json} -- if this URL ever
-     * changes, that substitution must be updated too.
+     * workflow (.github/workflows/release.yml) publishes the checked-in schema unchanged at
+     * this URL (only the latest schema is published, no versioned copies) -- the URL must
+     * match the GitHub Pages location the workflow copies the file to.
      */
     @Test
     public void schemaIdIsTheUnversionedLatestUrl() {

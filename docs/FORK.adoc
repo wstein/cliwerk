@@ -91,6 +91,8 @@ Decided 2026-10-24, implemented with version `4.7.7.1` (first release, not yet t
   The publishing setup (`gradle/publish-fork-repo.gradle`, `.github/workflows/release.yml`) and the GitHub Pages URLs
   in the documentation use these coordinates. The JSON Schema `$id` is
   `https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json`; only this unversioned (latest) schema is published.
+* File names: the jars attached to GitHub Releases keep the build's names, `picocli-<version>*.jar` (drop-in decision);
+  in the Maven repository the main jar is `cliwerk-<version>.jar`.
 * Maven Central only later, if cliwerk is to be used by others.
 
 == Versioning
@@ -126,6 +128,44 @@ They have been withdrawn and deleted (tags, GitHub Releases and artifacts); they
 cliwerk's own versions always have four parts, so `4.7.8.1` cannot be confused with an upstream `4.7.8`,
 and the release workflow ignores three-part tags.
 
+== Branch model
+
+`develop`::
+  The default and active branch. All cliwerk development is merged here, and releases are tagged from it.
+`main`::
+  Intended as a pure mirror of upstream picocli (decided 2026-10-24).
+  It has been used for work proposed to upstream picocli (the fish completion of remkop/picocli#2463),
+  which has been brought into `develop`. The owner plans to reset `main` to upstream;
+  after that, `develop` is the only line carrying fork changes.
+
+== Upstream syncs
+
+Decided 2026-10-24: upstream is synced *release by release*.
+
+* When upstream picocli publishes a release, its tag is merged into `develop` with a merge commit,
+  through a draft pull request in which the conflicts are resolved and the base version
+  (the first three parts, see <<Versioning>>) is raised to that release.
+* The withdrawn tags `v4.7.8` to `v4.9.4` have been deleted (see <<Earlier releases 4.7.8 to 4.9.4 (withdrawn)>>),
+  so fetching an upstream tag with the same name no longer collides with a cliwerk tag.
+  Upstream tags are three-part and do not trigger the cliwerk release workflow.
+* Target: an API compatibility check as part of the build verification, *not implemented yet*:
+** Reference: the last merged upstream release, currently `info.picocli:picocli:4.7.7` from Maven Central,
+   pinned explicitly (for example as `upstreamBaseVersion` in `dependencies.gradle`)
+   rather than derived from the project's own group, artifactId or version.
+** Tool: japicmp (Gradle plugin `me.champeau.gradle.japicmp`), comparing package `picocli`,
+   failing on removed or binary-incompatibly changed public API and allowing additions
+   (see <<Compatibility with upstream picocli>>).
+** The bnd `baseline` setup inherited from upstream in `build.gradle` is not such a check:
+   it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
+   bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
+   and it is not known to run in CI.
+* Until then, upstream changes are brought into cliwerk manually by the maintainer.
+  The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
+  to detect merge conflicts early; it never commits or pushes anything.
+
+== Naming and identity rules
+
+* The project name is *cliwerk* (lowercase in repository, artifact and file names).
 * Do not use the name "picocli" for cliwerk releases, release titles, announcements or distributions.
   "picocli" refers to the upstream project only.
 * Do not use the picocli logo for cliwerk.

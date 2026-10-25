@@ -5,7 +5,7 @@ All notable changes to cliwerk (an independent fork of picocli) will be document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Since 4.7.7.1, versions are `<upstream x.y.z>.<fork revision>`: the first three parts are the upstream picocli
 release whose API is the baseline, the fourth part counts cliwerk revisions on top of it (see [docs/FORK.adoc](docs/FORK.adoc)).
-The releases 4.7.8 to 4.9.4 below are legacy cliwerk releases, not upstream picocli releases.
+The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream picocli releases; they have been withdrawn and deleted.
 
 ---
 
@@ -13,7 +13,10 @@ The releases 4.7.8 to 4.9.4 below are legacy cliwerk releases, not upstream pico
 
 ### Changed
 - **Versioning**: first version under the four-part scheme `<upstream x.y.z>.<fork revision>`; API baseline is upstream picocli 4.7.7.
-  Maven and Gradle sort the legacy versions 4.7.8 to 4.9.4 above `4.7.7.1`, so pin the cliwerk version explicitly.
+- **Coordinates**: published as `io.github.wstein:cliwerk` (was `io.github.wstein:picocli`) in the Maven repository
+  `https://wstein.github.io/cliwerk/maven/`; the GitHub Pages URLs (Javadoc, JSON Schema `$id`) moved from
+  `wstein.github.io/picocli` to `wstein.github.io/cliwerk`. Only the latest JSON Schema is published (no versioned copies).
+  The Java package stays `picocli`. Release jars on GitHub keep the names `picocli-<version>*.jar`.
 - **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the legacy releases reported `4.7.8-SNAPSHOT`
   (for example in `--version` output of `AutoComplete` and in generated completion script headers).
 - Contains the cliwerk changes of the legacy releases below plus changes on `develop` that are not listed under them, notably:
