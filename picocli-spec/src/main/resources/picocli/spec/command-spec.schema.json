@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wstein.github.io/picocli/spec/schema/command-spec.schema.json",
+  "$id": "https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json",
   "title": "picocli-spec command spec",
   "description": "The JSON format read and written by picocli.spec.CommandSpecJson: describes a picocli CommandSpec (a command's options and positional parameters, plus any nested subcommands) without an annotated Java class. Compiling picocli.spec.CommandSpecDsl's DSL produces a CommandSpec that serializes to exactly this shape. Note: this schema is intentionally a little stricter than CommandSpecJson.read() itself, to help editors/validators catch likely mistakes -- see the two 'Stricter than the reader' notes below. Versioning: this $id is the unversioned URL and always reflects the latest release; each release also publishes an exact, permanently-kept copy at .../spec/schema/<picocli-spec version>/command-spec.schema.json (pin to that one for reproducibility).",
   "$ref": "#/$defs/command",

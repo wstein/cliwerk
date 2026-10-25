@@ -10,14 +10,14 @@ It replaces project-specific conventions that would otherwise live in CLAUDE.md,
 
 ## Overview
 
-This is **cliwerk** ([wstein/cliwerk](https://github.com/wstein/cliwerk)), an independent fork of [remkop/picocli](https://github.com/remkop/picocli) maintained by [wstein](https://github.com/wstein); it is not affiliated with or endorsed by the picocli project. Some enhancements are also proposed upstream. See [docs/FORK.adoc](docs/FORK.adoc) for branch model and naming rules (never call cliwerk releases "picocli"). The Java package `picocli` and the module/artifact names are unchanged during the transition. cliwerk adds:
+This is **cliwerk** ([wstein/cliwerk](https://github.com/wstein/cliwerk)), an independent fork of [remkop/picocli](https://github.com/remkop/picocli) maintained by [wstein](https://github.com/wstein); it is not affiliated with or endorsed by the picocli project. Some enhancements are also proposed upstream. See [docs/FORK.adoc](docs/FORK.adoc) for branch model and naming rules (never call cliwerk releases "picocli"). The Java package `picocli` and the module names are unchanged; the published artifact is `io.github.wstein:cliwerk`. cliwerk adds:
 
 - **Fish shell completion** via `AutoComplete.fish()` 
 - **picocli-spec**: Build `CommandSpec` from DSL (`.picocli`) or JSON (`.json`) without annotated Java classes
 - **picocli-spec-tool**: Standalone CLI tool to preview, validate, convert, and generate completions/man pages for spec files
 - **On-demand help sections** (`helpSection` on `@Option` / `@ArgGroup`) for targeted help (e.g., `--Xhelp`)
 
-Publishes as `io.github.wstein:picocli` (distinct from upstream's `info.picocli:picocli`) to Maven via GitHub Pages and GitHub Releases.
+Publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:picocli`) to Maven via GitHub Pages and GitHub Releases.
 
 ## Project Structure
 
@@ -210,7 +210,7 @@ Example fixture files:
    - Runs full `./gradlew build` on Ubuntu/Java 17
    - Publishes jars to flat Maven repo (gh-pages/maven/)
    - Generates Javadoc and publishes to gh-pages/apidocs/
-   - Publishes versioned JSON schema to gh-pages/spec/schema/{version}/
+   - Publishes the JSON schema to gh-pages/spec/schema/command-spec.schema.json
    - Creates GitHub Release with generated notes
 
 ## Java Version Support
@@ -279,5 +279,5 @@ Example fixture files:
 ## Resources
 
 - **Upstream**: [remkop/picocli](https://github.com/remkop/picocli) — features, user manual, examples
-- **Published Artifacts**: [Maven](https://wstein.github.io/picocli/maven) · [Javadoc](https://wstein.github.io/picocli/apidocs/) · [JSON Schema](https://wstein.github.io/picocli/spec/schema/command-spec.schema.json)
+- **Published Artifacts**: [Maven](https://wstein.github.io/cliwerk/maven) · [Javadoc](https://wstein.github.io/cliwerk/apidocs/) · [JSON Schema](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json)
 - **Repository**: [wstein/cliwerk](https://github.com/wstein/cliwerk) (formerly `wstein/picocli`; GitHub redirects old URLs)

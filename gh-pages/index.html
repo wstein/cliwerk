@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>cliwerk — Maven repo (io.github.wstein:picocli)</title>
+<title>cliwerk — Maven repo (io.github.wstein:cliwerk)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #1f2328; }
@@ -21,15 +21,15 @@
 </p>
 <p>cliwerk is <strong>not</strong> affiliated with or endorsed by the picocli project, and its artifacts are
 not the official <code>info.picocli:picocli</code> releases on Maven Central.
-During the transition to the new name, artifacts are still published as <code>io.github.wstein:picocli</code>
-and the Java package is still <code>picocli</code>.</p>
+Artifacts are published as <code>io.github.wstein:cliwerk</code>;
+the Java package is still <code>picocli</code> (drop-in replacement).</p>
 
 <h2>Usage</h2>
 <pre>repositories {
-    maven { url 'https://wstein.github.io/picocli/maven' }
+    maven { url 'https://wstein.github.io/cliwerk/maven' }
 }
 dependencies {
-    implementation 'io.github.wstein:picocli:&lt;version&gt;'
+    implementation 'io.github.wstein:cliwerk:&lt;version&gt;'
 }</pre>
 
 <h2>Documentation</h2>
@@ -37,7 +37,7 @@ dependencies {
   <li><a href="https://github.com/wstein/cliwerk/blob/develop/README.md">Project README</a> (cliwerk's README, with links to upstream picocli's documentation)</li>
   <li><a href="apidocs/picocli/">Javadoc — picocli (core)</a></li>
   <li><a href="apidocs/picocli-spec/">Javadoc — picocli-spec</a></li>
-  <li><a href="maven/io/github/wstein/picocli/maven-metadata.xml">maven-metadata.xml</a> (lists published versions)</li>
+  <li><a href="maven/io/github/wstein/cliwerk/maven-metadata.xml">maven-metadata.xml</a> (lists published versions)</li>
   <li><a href="https://github.com/wstein/cliwerk/releases">GitHub Releases</a> (jars attached directly)</li>
   <li><a href="https://github.com/wstein/cliwerk/blob/develop/.github/workflows/release.yml">release workflow source</a></li>
 </ul>

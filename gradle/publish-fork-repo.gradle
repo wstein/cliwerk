@@ -7,7 +7,7 @@ apply plugin: 'maven-publish'
 
 ext {
     FORK_GROUP_ID    = project.hasProperty('forkGroupId')    ? forkGroupId    : 'io.github.wstein'
-    FORK_ARTIFACT_ID = project.hasProperty('forkArtifactId') ? forkArtifactId : project.name
+    FORK_ARTIFACT_ID = project.hasProperty('forkArtifactId') ? forkArtifactId : 'cliwerk'
 }
 
 publishing {
@@ -21,7 +21,7 @@ publishing {
                 packaging = 'jar'
                 name = FORK_ARTIFACT_ID
                 description = project.description
-                url = 'https://github.com/wstein/picocli'
+                url = 'https://github.com/wstein/cliwerk'
                 inceptionYear = '2018'
                 licenses {
                     license {
@@ -37,9 +37,9 @@ publishing {
                     }
                 }
                 scm {
-                    url = "https://github.com/wstein/picocli/tree/develop"
-                    connection = 'scm:git:https://github.com/wstein/picocli.git'
-                    developerConnection = 'scm:git:ssh://github.com:wstein/picocli.git'
+                    url = "https://github.com/wstein/cliwerk/tree/develop"
+                    connection = 'scm:git:https://github.com/wstein/cliwerk.git'
+                    developerConnection = 'scm:git:ssh://github.com:wstein/cliwerk.git'
                 }
             }
         }

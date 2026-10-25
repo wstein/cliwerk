@@ -31,7 +31,7 @@ import java.util.Set;
  */
 public final class CommandSpecJson {
 
-    public static final String SCHEMA_URL = "https://wstein.github.io/picocli/spec/schema/command-spec.schema.json";
+    public static final String SCHEMA_URL = "https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json";
 
     private CommandSpecJson() {}
 

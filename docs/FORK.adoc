@@ -63,13 +63,13 @@ configurations.all {
 ----
 +
 or substitute cliwerk for it (`using` needs Gradle 6.6 or later;
-use the current coordinates until the new ones of <<Coordinates and distribution>> are implemented):
+coordinates as in <<Coordinates and distribution>>):
 +
 [source,groovy]
 ----
 configurations.all {
     resolutionStrategy.dependencySubstitution {
-        substitute module('info.picocli:picocli') using module('io.github.wstein:picocli:<version>')
+        substitute module('info.picocli:picocli') using module('io.github.wstein:cliwerk:<version>')
     }
 }
 ----
@@ -78,18 +78,19 @@ configurations.all {
 
 == Coordinates and distribution
 
-Decided 2026-10-24, *not yet implemented*:
+Decided 2026-10-24, implemented with version `4.7.7.1` (first release, not yet tagged):
 
-* groupId `io.github.wstein`, artifactId `cliwerk` for the core library (published today as `io.github.wstein:picocli`).
+* groupId `io.github.wstein`, artifactId `cliwerk` for the core library.
 * Other modules follow their module names with `picocli` replaced by `cliwerk`, if and when they are published:
   `cliwerk-codegen`, `cliwerk-groovy`, `cliwerk-shell-jline2`, `cliwerk-shell-jline3`, `cliwerk-spring-boot-starter`,
   `cliwerk-spec` and `cliwerk-spec-tool`.
   Today only the core artifact is published (`gradle/publish-fork-repo.gradle` is applied in the root project only);
   when built with Java 11 or later it also contains the `picocli-spec` classes.
-* Distribution stays the existing flat Maven repository on GitHub Pages, at its new address after the repository rename.
-  Intended address: `https://wstein.github.io/cliwerk/maven` (to be verified by the owner).
+* Distribution is a flat Maven repository on GitHub Pages: `https://wstein.github.io/cliwerk/maven/`
+  (artifact path `maven/io/github/wstein/cliwerk/`).
   The publishing setup (`gradle/publish-fork-repo.gradle`, `.github/workflows/release.yml`) and the GitHub Pages URLs
-  in the documentation have not been changed yet.
+  in the documentation use these coordinates. The JSON Schema `$id` is
+  `https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json`; only this unversioned (latest) schema is published.
 * Maven Central only later, if cliwerk is to be used by others.
 
 == Versioning
@@ -117,75 +118,21 @@ Decided 2026-10-24, applied with version `4.7.7.1`:
   The next cliwerk revision is `4.7.7.2`; after an upstream release 4.7.8 is merged (if upstream ever publishes it),
   the next version is `4.7.8.1`.
 
-=== Legacy releases 4.7.8 to 4.9.4
+=== Earlier releases 4.7.8 to 4.9.4 (withdrawn)
 
-Before this decision, cliwerk published its own releases under upstream-looking version numbers:
-`io.github.wstein:picocli` 4.7.8, 4.7.9, 4.8.0 and 4.9.0 to 4.9.4 in the GitHub Pages Maven repository
-(formerly also as tags `v4.7.8` ... `v4.9.4` and GitHub Releases titled "picocli 4.7.8" ... "picocli 4.9.4";
-the owner has deleted those tags and GitHub Releases).
-These were *cliwerk's own releases, not upstream picocli releases*; they are legacy lines of this fork.
-Consequences:
+Before this decision, cliwerk briefly published releases under upstream-looking version numbers (4.7.8 to 4.9.4).
+They have been withdrawn and deleted (tags, GitHub Releases and artifacts); they were never upstream picocli releases.
+`4.7.7.1` under `io.github.wstein:cliwerk` is the first and only cliwerk release so far.
+cliwerk's own versions always have four parts, so `4.7.8.1` cannot be confused with an upstream `4.7.8`,
+and the release workflow ignores three-part tags.
 
-* The legacy versions are numerically higher than `4.7.7.x`, so Maven and Gradle treat them as newer.
-  Dynamic versions (`latest.release`, `+`, version ranges) and conflict resolution pick a legacy release over `4.7.7.x`.
-  Consumers must pin the cliwerk version explicitly.
-  Once the new coordinates `io.github.wstein:cliwerk` are in use (see <<Coordinates and distribution>>),
-  the legacy versions stay under the old artifactId `io.github.wstein:picocli` and no longer compete with the new ones.
-* The legacy artifacts are still in the GitHub Pages Maven repository (`maven/io/github/wstein/picocli/`).
-  Open owner action, *not done*: decide whether they are removed there or kept as deprecated.
-* Number overlap: if upstream publishes 4.7.8, 4.7.9, 4.8.0 or 4.9.0 to 4.9.4, that number is a real upstream release
-  (`info.picocli:picocli`) and also a legacy cliwerk version (`io.github.wstein:picocli`).
-  Since the legacy tags have been deleted, an upstream tag `v<x.y.z>` no longer collides with a tag in this repository.
-  cliwerk's own versions always have four parts, so `4.7.8.1` cannot be confused with a legacy version,
-  and the release workflow ignores three-part tags.
-
-== Branch model
-
-`develop`::
-  The default and active branch. All cliwerk development is merged here, and releases are tagged from it.
-`main`::
-  Intended as a pure mirror of upstream picocli (decided 2026-10-24).
-  It has been used for work proposed to upstream picocli (the fish completion of remkop/picocli#2463),
-  which has been brought into `develop`. The owner plans to reset `main` to upstream;
-  after that, `develop` is the only line carrying fork changes.
-
-== Upstream syncs
-
-Decided 2026-10-24: upstream is synced *release by release*.
-
-* When upstream picocli publishes a release, its tag is merged into `develop` with a merge commit,
-  through a draft pull request in which the conflicts are resolved and the base version
-  (the first three parts, see <<Versioning>>) is raised to that release.
-* The legacy tags `v4.7.8` to `v4.9.4` have been deleted (see <<Legacy releases 4.7.8 to 4.9.4>>),
-  so fetching an upstream tag with the same name no longer collides with a cliwerk tag.
-  Upstream tags are three-part and do not trigger the cliwerk release workflow.
-* Target: an API compatibility check as part of the build verification, *not implemented yet*:
-** Reference: the last merged upstream release, currently `info.picocli:picocli:4.7.7` from Maven Central,
-   pinned explicitly (for example as `upstreamBaseVersion` in `dependencies.gradle`)
-   rather than derived from the project's own group, artifactId or version.
-** Tool: japicmp (Gradle plugin `me.champeau.gradle.japicmp`), comparing package `picocli`,
-   failing on removed or binary-incompatibly changed public API and allowing additions
-   (see <<Compatibility with upstream picocli>>).
-** The bnd `baseline` setup inherited from upstream in `build.gradle` is not such a check:
-   it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
-   bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
-   and it is not known to run in CI.
-* Until then, upstream changes are brought into cliwerk manually by the maintainer.
-  The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
-  to detect merge conflicts early; it never commits or pushes anything.
-
-== Naming and identity rules
-
-* The project name is *cliwerk* (lowercase in repository, artifact and file names).
 * Do not use the name "picocli" for cliwerk releases, release titles, announcements or distributions.
   "picocli" refers to the upstream project only.
 * Do not use the picocli logo for cliwerk.
 * Keep upstream copyright and attribution notices intact (see `NOTICE`).
 * The Java package `picocli` keeps the upstream name by decision (see <<Compatibility with upstream picocli>>).
-* Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...),
-  the published Maven coordinates (`io.github.wstein:picocli`, ...) and the GitHub Pages URLs
-  referenced in the documentation (`wstein.github.io/picocli`) still carry the upstream name.
-  The new coordinates are decided (see <<Coordinates and distribution>>), but not yet implemented.
+* Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...) still carry the upstream name;
+  the published Maven coordinates (`io.github.wstein:cliwerk`) and the GitHub Pages URLs (`wstein.github.io/cliwerk`) do not.
 
 == Decision log
 
@@ -205,17 +152,15 @@ Decided 2026-10-24: upstream is synced *release by release*.
   A package rename is deliberately deferred because it would make every upstream merge conflict broadly.
   See <<Compatibility with upstream picocli>>.
 
-| Coordinates and distribution (decided 2026-10-24, not yet implemented)
+| Coordinates and distribution (decided 2026-10-24, implemented with `4.7.7.1`)
 | groupId `io.github.wstein`, artifactId `cliwerk` (other modules `cliwerk-<module>` if published),
-  distributed through the existing GitHub Pages Maven repository at its new address (intended `wstein.github.io/cliwerk`, to be verified).
+  distributed through the existing GitHub Pages Maven repository at `wstein.github.io/cliwerk/maven/`.
   Maven Central only later, if others should use cliwerk. See <<Coordinates and distribution>>.
 
 | Versioning: `<upstream x.y.z>.<fork revision>` on the upstream base (decided 2026-10-24)
 | Four numeric parts; the base is upstream picocli 4.7.7, so the first cliwerk version is `4.7.7.1`.
   No `-qualifier`, because Maven and Gradle order unknown qualifiers differently.
-  The earlier cliwerk releases 4.7.8 to 4.9.4 were cliwerk's own, not upstream releases; they are legacy lines,
-  sort above `4.7.7.x`, and require consumers to pin versions. Their tags and GitHub Releases have been deleted;
-  what to do with their artifacts in the GitHub Pages Maven repository is an open owner action.
+  The earlier cliwerk releases 4.7.8 to 4.9.4 were cliwerk's own, not upstream releases; they have been withdrawn and deleted.
   Applied: the current version is `4.7.7.1`. See <<Versioning>>.
 
 | Upstream sync: release by release (decided 2026-10-24)
