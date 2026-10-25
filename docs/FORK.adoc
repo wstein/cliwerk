@@ -78,7 +78,7 @@ configurations.all {
 
 == Coordinates and distribution
 
-Decided 2026-10-24, implemented with version `4.7.7.1` (first release, not yet tagged):
+Decided 2026-10-24, implemented with version `4.7.7.1` (first release, `4.7.7.1`):
 
 * groupId `io.github.wstein`, artifactId `cliwerk` for the core library.
 * Other modules follow their module names with `picocli` replaced by `cliwerk`, if and when they are published:

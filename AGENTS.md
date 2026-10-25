@@ -25,7 +25,7 @@ Publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:
 
 | Module | Purpose | Java Target |
 |--------|---------|-------------|
-| `picocli` (root) | Core annotation/programmatic API; also includes `AutoComplete` | Java 5 (1.8 compilation) |
+| `picocli` (root, published as `cliwerk`) | Core annotation/programmatic API; also includes `AutoComplete` | Java 5 (1.8 compilation) |
 | `picocli-codegen` | AsciiDoc man page, shell completion codegen | Java 6 |
 | `picocli-spec` | DSL/JSON parser and writer for `CommandSpec` without annotations | Java 11 |
 | `picocli-spec-tool` | Standalone `picospec` CLI (preview, validate, completion, manpage, convert) | Java 11 |
@@ -109,7 +109,7 @@ java -jar picocli-spec-tool/build/libs/picocli-spec-tool-*-all.jar preview picoc
 
 ### Zero-Dependency Philosophy
 
-Both `picocli` core and `picocli-spec` follow a strict zero-runtime-dependency design:
+Both the cliwerk core (module `picocli`) and `picocli-spec` follow a strict zero-runtime-dependency design:
 - `picocli-spec` implements its own lightweight JSON parser (`picocli.spec.json.Json`, ~150 lines)
 - No Jackson, Gson, or other JSON libraries
 - Ensures minimal classpath footprint for consumers

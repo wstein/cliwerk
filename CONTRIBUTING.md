@@ -54,4 +54,4 @@ cd cliwerk
 gradlew publishToMavenLocal
 ```
 
-That should publish `picocli-4.7.0-SNAPSHOT` to your local .m2 Maven cache. You can then try this in a project that uses the `info.picocli:picocli:4.7.0-SNAPSHOT` dependency.
+That should publish the current version (`projectVersion` in `dependencies.gradle`) to your local .m2 Maven cache under cliwerk's coordinates `io.github.wstein:cliwerk` (see [docs/FORK.adoc](docs/FORK.adoc)). You can then try this in a project that uses that dependency.
