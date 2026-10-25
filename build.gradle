@@ -157,10 +157,10 @@ moduleConfig {
 jar {
     manifest {
         attributes 'Specification-Title'   : 'picocli',
-                   'Specification-Vendor'  : 'Remko Popma',
+                   'Specification-Vendor'  : 'Werner Stein (wstein)',
                    'Specification-Version' : archiveVersion.get(),
                    'Implementation-Title'  : 'picocli',
-                   'Implementation-Vendor' : 'Remko Popma',
+                   'Implementation-Vendor' : 'Werner Stein (wstein)',
                    'Implementation-Version': archiveVersion.get(),
                    'Main-Class'            : 'picocli.AutoComplete'
     }
