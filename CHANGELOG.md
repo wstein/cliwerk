@@ -30,7 +30,8 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
   | Javadoc `apidocs/picocli/` | `apidocs/cliwerk/` (and `apidocs/cliwerk-spec/`, titled "cliwerk-spec <version> API") |
 
   Package `picocli`, the JPMS module names `info.picocli*`, the manifest titles of the core jar, and the JSON Schema URL are unchanged.
-  The renamed packages never existed in upstream picocli and were not part of any release, so no `picocli.*` API is affected.
+  The renamed packages never existed in upstream picocli; they shipped only in the withdrawn releases 4.7.8 to 4.9.4, so no `picocli.*` API is affected.
+  Migration for flixw: imports `picocli.spec.*` -> `cliwerk.spec.*`, spec files `*.picocli` -> `*.cliwerk`, tool name `picospec` -> `cliwerk-spec`.
 - **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the withdrawn/earlier releases reported `4.7.8-SNAPSHOT`
   (for example in `--version` output of `AutoComplete` and in generated completion script headers).
 - Contains the cliwerk changes of the withdrawn/earlier releases below plus changes on `develop` that are not listed under them, notably:

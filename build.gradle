@@ -46,8 +46,8 @@ pluginManager.withPlugin('biz.aQute.bnd.builder') { // if plugin applied, execut
         baseline
     }
     dependencies {
-        // The baseline is the upstream artifact info.picocli:picocli. Not jar.archiveBaseName: that is
-        // 'cliwerk' (see below), which does not exist on Maven Central.
+        // Intended to name the upstream artifact info.picocli:picocli (not jar.archiveBaseName, which is
+        // 'cliwerk' and does not exist on Maven Central). Not functional in this build, see docs/FORK.adoc.
         baseline('group': group, 'name': 'picocli') {
             version {
                 strictly "(,${jar.archiveVersion}["
