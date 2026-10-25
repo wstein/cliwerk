@@ -1,13 +1,20 @@
 #!/usr/bin/env python3
 """Summarizes the japicmp XML report of task apiCompat (gradle/api-compat.gradle).
 
-Usage: api-compat-summary.py <api-compat.xml> <api-compat.txt> <summary.md>
+Usage: api-compat-summary.py <api-compat.xml> <api-compat.txt> <summary.md> [<api-compat-exceptions.txt>]
 
 Writes a Markdown table of all findings (one row per incompatible class or member) to <summary.md>
 and prints GitHub Actions workflow commands to stdout, so the findings are also visible as
 annotations of the check run. Never fails because of findings; exits 1 only if no report exists.
+
+Exceptions of kind `annotation-element` in the exceptions file (`annotation-element <class>#<name>() | <why>`)
+are evaluated here, not by japicmp: a finding is "excepted" only if it is METHOD_ABSTRACT_ADDED_TO_CLASS
+(and nothing else) of exactly that parameterless method of an annotation type (classType ANNOTATION) of
+package picocli. Excepted findings are listed separately and do not count as findings; all others do.
+An exception that matches no finding is reported as stale.
 """
 import os
+import re
 import sys
 import xml.etree.ElementTree as ET
 
@@ -44,12 +51,43 @@ def describe(element):
     return ("%s %s" % (tag, name)).strip()
 
 
+EXCEPTION_LINE = re.compile(r"^(\S+)\s+(\S+)\s*\|\s*(\S.*)$")
+ELEMENT_PATTERN = re.compile(r"^(picocli\.[\w$.]+)#(\w+)\(\)$")
+ACCEPTED_CHANGE = "METHOD_ABSTRACT_ADDED_TO_CLASS"
+
+
+def read_exceptions(path):
+    """Returns {(class, method name): justification} of the annotation-element lines; other kinds are japicmp's."""
+    result = {}
+    if not path or not os.path.exists(path):
+        return result
+    with open(path, encoding="utf-8") as f:
+        for number, raw in enumerate(f, 1):
+            line = raw.strip()
+            if not line or line.startswith("#"):
+                continue
+            m = EXCEPTION_LINE.match(line)
+            if not m:
+                raise SystemExit("%s:%d: expected '<kind> <pattern> | <justification>', got: %s" % (path, number, raw.rstrip()))
+            if m.group(1) != "annotation-element":
+                continue
+            p = ELEMENT_PATTERN.match(m.group(2))
+            if not p:
+                raise SystemExit("%s:%d: annotation-element needs the form picocli.Class$Nested#name() (no wildcards), got: %s"
+                                 % (path, number, m.group(2)))
+            result[(p.group(1), p.group(2))] = m.group(3)
+    return result
+
+
 def findings(root):
     rows = []
 
-    def walk(element, owner):
+    def walk(element, owner, annotation):
         if element.tag == "class" and element.get("fullyQualifiedName"):
             owner = element.get("fullyQualifiedName")
+            class_type = element.find("classType")
+            annotation = class_type is not None and class_type.get("oldType") == "ANNOTATION" \
+                and class_type.get("newType") == "ANNOTATION"
         if element.tag in MEMBER_TAGS:
             changes = change_types(element)
             incompatible = [c for c in changes if is_false(c[1]) or is_false(c[2])]
@@ -59,6 +97,10 @@ def findings(root):
             for kind, binary, source in incompatible:
                 rows.append({
                     "owner": owner or "?",
+                    "annotation": bool(annotation),
+                    "name": element.get("name") or "",
+                    "parameters": len(element.find("parameters")) if element.find("parameters") is not None else 0,
+                    "changes": [c[0] for c in incompatible],
                     "member": describe(element),
                     "status": element.get("changeStatus", ""),
                     "kind": kind,
@@ -66,29 +108,59 @@ def findings(root):
                     "source": "incompatible" if is_false(source) else ("compatible" if source else "?"),
                 })
         for child in element:
-            walk(child, owner)
+            walk(child, owner, annotation)
 
-    walk(root, None)
+    walk(root, None, False)
     return rows
+
+
+def split_excepted(rows, exceptions):
+    """Splits rows into (open, excepted, stale exception keys)."""
+    open_rows, excepted, used = [], [], set()
+    for r in rows:
+        key = (r["owner"], r["name"])
+        if r["annotation"] and r["member"].startswith("method ") and r["parameters"] == 0 \
+                and key in exceptions and r["changes"] == [ACCEPTED_CHANGE]:
+            r["justification"] = exceptions[key]
+            excepted.append(r)
+            used.add(key)
+        else:
+            open_rows.append(r)
+    return open_rows, excepted, sorted(set(exceptions) - used)
 
 
 def escape_command(text):
     return text.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
 
 
-def main(xml_path, txt_path, summary_path):
+def table(lines, rows, extra=None):
+    lines.append("| # | Class | Member | Status | Change | Binary | Source |" + (" Justification |" if extra else ""))
+    lines.append("|---|---|---|---|---|---|---|" + ("---|" if extra else ""))
+    for i, r in enumerate(rows, 1):
+        lines.append("| %d | `%s` | `%s` | %s | %s | %s | %s |%s" % (
+            i, r["owner"], r["member"].replace("|", "\\|"), r["status"], r["kind"], r["binary"], r["source"],
+            (" %s |" % r["justification"]) if extra else ""))
+    lines.append("")
+
+
+def main(xml_path, txt_path, summary_path, exceptions_path=None):
     lines = ["## API compatibility with upstream picocli", ""]
     rows = None
+    open_rows = excepted = stale = []
     if os.path.exists(xml_path):
         rows = findings(ET.parse(xml_path).getroot())
-        lines.append("Findings (binary- or source-incompatible changes of package `picocli`): **%d**" % len(rows))
+        open_rows, excepted, stale = split_excepted(rows, read_exceptions(exceptions_path))
+        lines.append("Findings (binary- or source-incompatible changes of package `picocli`): **%d** not excepted, **%d** excepted"
+                     % (len(open_rows), len(excepted)))
         lines.append("")
-        if rows:
-            lines.append("| # | Class | Member | Status | Change | Binary | Source |")
-            lines.append("|---|---|---|---|---|---|---|")
-            for i, r in enumerate(rows, 1):
-                lines.append("| %d | `%s` | `%s` | %s | %s | %s | %s |" % (
-                    i, r["owner"], r["member"].replace("|", "\\|"), r["status"], r["kind"], r["binary"], r["source"]))
+        if open_rows:
+            table(lines, open_rows)
+        if excepted:
+            lines.append("Excepted (`gradle/api-compat-exceptions.txt`, kind `annotation-element`): **%d**" % len(excepted))
+            lines.append("")
+            table(lines, excepted, extra=True)
+        if stale:
+            lines.append("Stale exceptions (match no finding, remove them): %s" % ", ".join("`%s#%s()`" % k for k in stale))
             lines.append("")
     else:
         lines.append("No XML report found at `%s`; the check did not get to compare the jars." % xml_path)
@@ -102,7 +174,12 @@ def main(xml_path, txt_path, summary_path):
         f.write(summary)
 
     # annotations: one per finding (GitHub shows at most 10 warnings per step) ...
-    for r in (rows or [])[:10]:
+    if rows is not None:
+        print("::notice title=API compatibility result::%d not excepted, %d excepted, %d stale exceptions"
+              % (len(open_rows), len(excepted), len(stale)))
+    for k in stale:
+        print("::warning title=Stale API compatibility exception::%s" % escape_command("%s#%s() matches no finding" % k))
+    for r in open_rows[:10]:
         print("::warning title=API incompatible with upstream picocli::%s" % escape_command(
             "%s %s: %s %s (binary %s, source %s)" % (r["owner"], r["member"], r["status"], r["kind"], r["binary"], r["source"])))
     # ... and the whole summary in notices (at most 10 per step), so it can be read from the check run
@@ -114,4 +191,4 @@ def main(xml_path, txt_path, summary_path):
 
 
 if __name__ == "__main__":
-    sys.exit(main(*sys.argv[1:4]))
+    sys.exit(main(*sys.argv[1:5]))

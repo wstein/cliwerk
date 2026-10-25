@@ -159,7 +159,7 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * The legacy tags `v4.7.8` to `v4.9.4` have been deleted (see <<Legacy releases 4.7.8 to 4.9.4>>),
   so fetching an upstream tag with the same name no longer collides with a cliwerk tag.
   Upstream tags are three-part and do not trigger the cliwerk release workflow.
-* Target: an API compatibility check as part of the build verification, *not implemented yet*:
+* Target: an API compatibility check as part of the build verification (implemented opt-in and report-only, see Status below):
 ** Reference: the last merged upstream release, currently `info.picocli:picocli:4.7.7` from Maven Central,
    pinned explicitly (for example as `upstreamBaseVersion` in `dependencies.gradle`)
    rather than derived from the project's own group, artifactId or version.
@@ -170,7 +170,16 @@ Decided 2026-10-24: upstream is synced *release by release*.
    it compares against the highest `info.picocli:picocli` version below the version being built (not a pinned upstream release),
    bnd's semantic-versioning rules are expected to flag additions too unless the exported package version gets a minor increase,
    and it is not known to run in CI.
-* Until then, upstream changes are brought into cliwerk manually by the maintainer.
+* Status: the check exists as the opt-in Gradle task `apiCompat` (`./gradlew apiCompat -PapiCompat`, `gradle/api-compat.gradle`)
+  and the workflow `api-compat.yml`; it is report-only (`apiCompatBlocking = false`) and not part of `check`.
+  Result against upstream 4.7.7: *0 binary-incompatible* changes and *6 source-incompatible findings that are excepted*:
+  the annotation elements `helpSection()` of `@Option`, `@Parameters`, `@ArgGroup` and `@Command` and
+  `helpSections()` and `showHelpSectionsNotice()` of `@Command` are new, but all have a default value,
+  so they are source- and binary-compatible for users of the annotation (japicmp reports `METHOD_ABSTRACT_ADDED_TO_CLASS`
+  because it cannot see the default). The exceptions are listed one by one, with justification, in
+  `gradle/api-compat-exceptions.txt` (kind `annotation-element`, no wildcards) and are shown separately as "excepted" in the report;
+  a new annotation element without default value would stay a finding.
+* Upstream changes are brought into cliwerk manually by the maintainer.
   The weekly `upstream-sync-probe` workflow trial-merges the upstream default branch into `develop`
   to detect merge conflicts early; it never commits or pushes anything.
 

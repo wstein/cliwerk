@@ -4,8 +4,10 @@
 // Task `apiCompat` compares package `picocli` of the jar built by this project with the upstream
 // reference jar `info.picocli:picocli:<upstreamBaseVersion>` from Maven Central, using japicmp
 // (Gradle plugin `me.champeau.gradle.japicmp`). Removed, binary-incompatibly or source-incompatibly
-// changed public API is reported (binary-incompatible changes fail the task in blocking mode);
-// compatible additions are allowed.
+// changed public API is reported; compatible additions are allowed. In blocking mode (apiCompatBlocking)
+// only binary-incompatible changes fail the task: failOnSourceIncompatibility is set to false explicitly
+// below (japicmp-gradle 0.4.6 would otherwise make source-incompatible changes fail as well if it were
+// switched on), and source-incompatible changes are only reported, by .github/scripts/api-compat-summary.py.
 //
 // Known exceptions are listed, each with a justification, in gradle/api-compat-exceptions.txt.
 //
@@ -65,18 +67,22 @@ def upstreamApi = configurations.detachedConfiguration(
         })
 
 // gradle/api-compat-exceptions.txt: one exception per line, `<kind> <pattern> | <justification>`,
-// kind is one of class, method, field; patterns use japicmp's syntax
+// kind is one of class, method, field, annotation-element; patterns use japicmp's syntax
 // (class: picocli.CommandLine$Foo, method: picocli.CommandLine#foo(java.lang.String), field: picocli.CommandLine#BAR).
+// class, method and field exceptions are excluded from the comparison (japicmp does not see them at all).
+// annotation-element exceptions are NOT passed to japicmp: they are evaluated by the summary script
+// (.github/scripts/api-compat-summary.py), which reports them separately as "excepted" and accepts only
+// METHOD_ABSTRACT_ADDED_TO_CLASS on an annotation type; here they are only syntax-checked.
 // Lines starting with '#' and blank lines are ignored.
 def exceptionsFile = rootProject.file('gradle/api-compat-exceptions.txt')
-def apiExceptions = [class: [], method: [], field: []]
+def apiExceptions = [class: [], method: [], field: [], 'annotation-element': []]
 if (exceptionsFile.exists()) {
     exceptionsFile.readLines('UTF-8').eachWithIndex { String raw, int i ->
         def line = raw.trim()
         if (line.isEmpty() || line.startsWith('#')) return
-        def m = line =~ /^(class|method|field)\s+(\S+)\s*\|\s*(\S.*)$/
+        def m = line =~ /^(class|method|field|annotation-element)\s+(\S+)\s*\|\s*(\S.*)$/
         if (!m.matches()) {
-            throw new GradleException("${exceptionsFile}:${i + 1}: expected '<class|method|field> <pattern> | <justification>', got: ${raw}")
+            throw new GradleException("${exceptionsFile}:${i + 1}: expected '<class|method|field|annotation-element> <pattern> | <justification>', got: ${raw}")
         }
         apiExceptions[m.group(1)] << m.group(2)
     }
@@ -96,7 +102,7 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
         def ok = ids.size() == 1 && ids[0] instanceof org.gradle.api.artifacts.component.ModuleComponentIdentifier &&
                 ids[0].group == upstreamAliasGroup && ids[0].module == 'picocli' && ids[0].version == upstreamBaseVersion
         if (!ok) {
-            throw new GradleException("apiCompat: upstream reference did not resolve to exactly info.picocli:picocli:${upstreamBaseVersion}: ${ids}")
+            throw new GradleException("apiCompat: upstream reference did not resolve to exactly ${upstreamAliasGroup}:picocli:${upstreamBaseVersion} (the alias of info.picocli:picocli:${upstreamBaseVersion} from Maven Central): ${ids}")
         }
         artifacts.collect { it.file }.each { f ->
             def sha = java.security.MessageDigest.getInstance('SHA-256').digest(f.bytes).encodeHex().toString()
@@ -120,7 +126,9 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
     // (.github/scripts/api-compat-summary.py) keeps only binary- or source-incompatible ones
     onlyModified = true
     onlyBinaryIncompatibleModified = false
+    // blocking mode fails on binary-incompatible changes only; source-incompatible ones are reported, not failed on
     failOnModification = apiCompatBlocking
+    failOnSourceIncompatibility = false
     ignoreMissingClasses = true
 
     txtOutputFile = reportDir.map { it.file('api-compat.txt') }
