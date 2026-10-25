@@ -17,9 +17,9 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
   `https://wstein.github.io/cliwerk/maven/`; the GitHub Pages URLs (Javadoc, JSON Schema `$id`) moved from
   `wstein.github.io/picocli` to `wstein.github.io/cliwerk`. Only the latest JSON Schema is published (no versioned copies).
   The Java package stays `picocli`. Release jars on GitHub keep the names `picocli-<version>*.jar`.
-- **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the legacy releases reported `4.7.8-SNAPSHOT`
+- **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the withdrawn/earlier releases reported `4.7.8-SNAPSHOT`
   (for example in `--version` output of `AutoComplete` and in generated completion script headers).
-- Contains the cliwerk changes of the legacy releases below plus changes on `develop` that are not listed under them, notably:
+- Contains the cliwerk changes of the withdrawn/earlier releases below plus changes on `develop` that are not listed under them, notably:
   - **Fish completion** reworked (the version reviewed for upstream, remkop/picocli#2463): completion of negated options,
     options with an optional value no longer force a value, escaping of candidates, one condition per `complete` line;
     the generated scripts are verified in real fish shells in CI.
