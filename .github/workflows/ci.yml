@@ -53,7 +53,18 @@ jobs:
         run: ./gradlew -q javaToolchains
 
       - name: Build
-        run: ./gradlew --stop;./gradlew clean;./gradlew build --no-daemon
+        id: build
+        shell: bash
+        run: |
+          set -o pipefail
+          ./gradlew --stop || true
+          ./gradlew clean || true
+          ./gradlew build --no-daemon 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
+
+      - name: Report Gradle failure as annotations
+        if: ${{ failure() && steps.build.outcome == 'failure' }}
+        shell: bash
+        run: python3 -I .github/scripts/gradle-failure-annotations.py "$RUNNER_TEMP/gradle-build.log" build 80
 
       - name: Publish Test Results (Linux)
         uses: EnricoMi/publish-unit-test-result-action@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2.25.0
