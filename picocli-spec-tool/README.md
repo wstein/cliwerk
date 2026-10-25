@@ -1,6 +1,6 @@
 # picocli-spec-tool
 
-A picocli command line tool for working with [`picocli-spec`](../picocli-spec) DSL/JSON
+A cliwerk command line tool for working with [`picocli-spec`](../picocli-spec) DSL/JSON
 spec files: preview the CLI a spec produces, generate a shell completion script or AsciiDoc man
 pages for it, or just check that it loads — all without writing a line of Java.
 

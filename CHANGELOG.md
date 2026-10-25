@@ -9,7 +9,7 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
 
 ---
 
-## [v4.7.7.1] - Unreleased
+## [v4.7.7.1] - 2026-10-25
 
 ### Changed
 - **Versioning**: first version under the four-part scheme `<upstream x.y.z>.<fork revision>`; API baseline is upstream picocli 4.7.7.

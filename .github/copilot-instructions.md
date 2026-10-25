@@ -13,7 +13,7 @@ This repository uses a unified agent guidance file for all AI systems.
 - Gradle wrapper: always use `./gradlew`, never `gradle`
 
 ### Key Modules
-- **picocli** (root): Core annotation/programmatic API
+- **picocli** (root module, published as cliwerk): Core annotation/programmatic API
 - **picocli-spec**: DSL/JSON parser for CommandSpec (Java 11 target)
 - **picocli-spec-tool**: Standalone CLI tool (picospec) for spec operations
 - **picocli-codegen**: Man page and completion generation
