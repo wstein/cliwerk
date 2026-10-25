@@ -8,8 +8,8 @@ annotated Java class.
 - **Detailed Design & Grammar:** [picocli-spec/DESIGN.md](picocli-spec/DESIGN.md)
 - **Architecture Decision Records:** [docs/adr/ADR-001-custom-json-parser.md](docs/adr/ADR-001-custom-json-parser.md), [docs/adr/ADR-002-dsl-and-json-dual-format.md](docs/adr/ADR-002-dsl-and-json-dual-format.md), [docs/adr/ADR-003-two-module-split.md](docs/adr/ADR-003-two-module-split.md)
 - **JSON Schema:** [picocli-spec/src/main/resources/picocli/spec/command-spec.schema.json](picocli-spec/src/main/resources/picocli/spec/command-spec.schema.json)
-  (published at <https://wstein.github.io/picocli/spec/schema/command-spec.schema.json>)
-- **Javadoc:** <https://wstein.github.io/picocli/apidocs/picocli-spec/>
+  (published at <https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json>)
+- **Javadoc:** <https://wstein.github.io/cliwerk/apidocs/picocli-spec/>
 
 ---
 

@@ -5,7 +5,7 @@ All notable changes to cliwerk (an independent fork of picocli) will be document
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 Since 4.7.7.1, versions are `<upstream x.y.z>.<fork revision>`: the first three parts are the upstream picocli
 release whose API is the baseline, the fourth part counts cliwerk revisions on top of it (see [docs/FORK.adoc](docs/FORK.adoc)).
-The releases 4.7.8 to 4.9.4 below are legacy cliwerk releases, not upstream picocli releases.
+The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream picocli releases; they have been withdrawn and deleted.
 
 ---
 
@@ -13,14 +13,25 @@ The releases 4.7.8 to 4.9.4 below are legacy cliwerk releases, not upstream pico
 
 ### Changed
 - **Versioning**: first version under the four-part scheme `<upstream x.y.z>.<fork revision>`; API baseline is upstream picocli 4.7.7.
-  Maven and Gradle sort the legacy versions 4.7.8 to 4.9.4 above `4.7.7.1`, so pin the cliwerk version explicitly.
+- **Coordinates**: published as `io.github.wstein:cliwerk` (was `io.github.wstein:picocli`) in the Maven repository
+  `https://wstein.github.io/cliwerk/maven/`; the GitHub Pages URLs (Javadoc, JSON Schema `$id`) moved from
+  `wstein.github.io/picocli` to `wstein.github.io/cliwerk`. Only the latest JSON Schema is published (no versioned copies).
+  The Java package stays `picocli`. Release jars on GitHub keep the names `picocli-<version>*.jar`.
 - **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the legacy releases reported `4.7.8-SNAPSHOT`
   (for example in `--version` output of `AutoComplete` and in generated completion script headers).
 - Contains the cliwerk changes of the legacy releases below plus changes on `develop` that are not listed under them, notably:
   - **Fish completion** reworked (the version reviewed for upstream, remkop/picocli#2463): completion of negated options,
     options with an optional value no longer force a value, escaping of candidates, one condition per `complete` line;
     the generated scripts are verified in real fish shells in CI.
-  - **Shell-independent completion model** (package-private), from which the fish script is rendered.
+  - **Shell-independent completion model** (package-private), from which the fish and PowerShell scripts are rendered.
+  - **PowerShell completion** (Windows PowerShell 5.1 and PowerShell 7+ on Windows, Linux and macOS):
+    `AutoComplete.powershell()` generates a script that registers a native argument completer
+    (`Register-ArgumentCompleter -Native`) for subcommands (with aliases), options (including negated names of negatable options),
+    enum constants and other completion candidates, with the descriptions as tooltips.
+    `generate-completion --shell=powershell` and `picocli.AutoComplete --shell=powershell` (which writes `<commandName>-completion.ps1`)
+    produce it, and so does `picospec completion --shell=powershell`.
+    The golden scripts are loaded in real PowerShell sessions in CI (`powershell-completion.yml`).
+    Note that `GenerateCompletion.Shell` has a new constant `powershell`, and the `--shell` candidates of `generate-completion` and `picocli.AutoComplete` now include it.
   - **`picospec preview`**: `--section` and `--trigger-option` to render on-demand help sections, and `--format text|markdown`.
 
 ---

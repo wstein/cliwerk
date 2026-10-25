@@ -85,7 +85,7 @@ jobs:
         run: |
           gh release create "${{ steps.vars.outputs.tag }}" \
             build/libs/*.jar \
-            --title "picocli ${{ steps.vars.outputs.version }}" \
+            --title "cliwerk ${{ steps.vars.outputs.version }}" \
             --generate-notes
 
       - name: Check out existing flat Maven repo (gh-pages)
@@ -103,7 +103,7 @@ jobs:
             cp -r gh-pages-site/maven/. build/fork-maven-repo/
           fi
 
-      - name: Publish to flat Maven repo (jar + pom only, io.github.wstein:picocli)
+      - name: Publish to flat Maven repo (jar + pom only, io.github.wstein:cliwerk)
         run: ./gradlew publishForkPublicationToForkRepoRepository --no-daemon
 
       - name: Generate javadoc
@@ -120,14 +120,11 @@ jobs:
           cp -r build/docs/apidocs/. gh-pages-site/apidocs/picocli/
           cp -r picocli-spec/build/docs/apidocs/. gh-pages-site/apidocs/picocli-spec/
 
-          # spec/schema is NOT wiped: unlike apidocs (always "latest" only), every version's
-          # schema is kept permanently, mirroring how maven/ accumulates every released jar.
+          # spec/schema is NOT wiped; only the latest schema is published
+          # (spec/schema/command-spec.schema.json), its $id is that same URL.
           SCHEMA_SRC=picocli-spec/src/main/resources/picocli/spec/command-spec.schema.json
-          LATEST_URL="https://wstein.github.io/picocli/spec/schema/command-spec.schema.json"
-          VERSIONED_URL="https://wstein.github.io/picocli/spec/schema/${{ steps.vars.outputs.version }}/command-spec.schema.json"
-          mkdir -p "gh-pages-site/spec/schema/${{ steps.vars.outputs.version }}"
+          mkdir -p gh-pages-site/spec/schema
           cp "$SCHEMA_SRC" gh-pages-site/spec/schema/command-spec.schema.json
-          sed "s#$LATEST_URL#$VERSIONED_URL#" "$SCHEMA_SRC" > "gh-pages-site/spec/schema/${{ steps.vars.outputs.version }}/command-spec.schema.json"
 
           cp gh-pages/index.html gh-pages-site/index.html
 
@@ -135,5 +132,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add maven apidocs spec index.html
-          git commit -m "Publish io.github.wstein:picocli:${{ steps.vars.outputs.version }} (maven, javadoc, spec schema, site)" || echo "Nothing to commit"
+          git commit -m "Publish io.github.wstein:cliwerk:${{ steps.vars.outputs.version }} (maven, javadoc, spec schema, site)" || echo "Nothing to commit"
           git push origin HEAD:gh-pages

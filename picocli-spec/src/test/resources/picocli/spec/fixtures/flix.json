@@ -1,5 +1,5 @@
 {
-  "$schema": "https://wstein.github.io/picocli/spec/schema/command-spec.schema.json",
+  "$schema": "https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json",
   "name": "flix",
   "mixinStandardHelpOptions": true,
   "description": [

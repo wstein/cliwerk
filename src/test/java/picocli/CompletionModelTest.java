@@ -389,4 +389,45 @@ public class CompletionModelTest {
             // expected
         }
     }
+
+    // ---- what the PowerShell generator relies on: it walks the typed words down this model ----
+
+    @Test
+    public void positionalIndexRangesAreExposedWithUnboundedMaximum() {
+        CommandNode root = CompletionModel.build(new CommandLine(new Top()));
+        PositionalNode first = root.positionals().get(0);
+        assertEquals(0, first.index().min());
+        assertEquals(0, first.index().max());
+        PositionalNode rest = root.positionals().get(1);
+        assertEquals(2, rest.index().min());
+        assertEquals(Integer.MAX_VALUE, rest.index().max());
+    }
+
+    @Command(name = "inh", subcommands = InheritedChild.class)
+    static class InheritedRoot {
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT) boolean shared;
+        @Option(names = "--rootonly") boolean rootOnly;
+        @Option(names = "--many", arity = "1..*") List<String> many;
+    }
+    @Command(name = "child") static class InheritedChild {
+        @Option(names = "--own") boolean own;
+    }
+
+    @Test
+    public void inheritedOptionsAreListedInTheSubcommandNode() {
+        CommandNode root = CompletionModel.build(new CommandLine(new InheritedRoot()));
+        CommandNode child = root.subcommands().get(0);
+        assertNotNull(option(child, "--shared"));
+        assertNotNull(option(child, "--own"));
+        assertNull(option(child, "--rootonly"));
+    }
+
+    @Test
+    public void unboundedArityHasPositiveMinimumAndHugeMaximum() {
+        OptionNode many = option(CompletionModel.build(new CommandLine(new InheritedRoot())), "--many");
+        assertEquals(1, many.arity().min());
+        assertTrue(many.arity().max() > 1000);
+        assertTrue(many.takesValue());
+        assertFalse(many.valueOptional());
+    }
 }

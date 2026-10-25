@@ -36,9 +36,14 @@ tasks.withType(GroovyCompile) {
     groovyClasspath += configurations.ivy
 }
 
-javadoc.options.links += [
-        'http://docs.groovy-lang.org/2.4.9/html/gapi'
-]
+// The Groovy API link makes javadoc fetch element-list from docs.groovy-lang.org. That host times out
+// intermittently on CI runners ("Error fetching URL"), which failed the whole build although all tests
+// passed. So the link is opt-in (-PjavadocLinks, e.g. for published docs) and not part of the regular build.
+if (project.hasProperty('javadocLinks')) {
+    javadoc.options.links += [
+            'https://docs.groovy-lang.org/2.4.9/html/gapi'
+    ]
+}
 //javadoc.options.linksOffline 'http://docs.groovy-lang.org/2.4.9/html/gapi', 'gradle/javadocs/jdk/9/'
 
 jar {

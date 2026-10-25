@@ -12,7 +12,7 @@ import picocli.CommandLine.Model.CommandSpec;
 final class Completion {
 
     public enum Shell {
-        bash, fish
+        bash, fish, powershell
     }
 
     private Completion() {
@@ -22,6 +22,9 @@ final class Completion {
         CommandLine commandLine = new CommandLine(spec);
         if (shell == Shell.fish) {
             return AutoComplete.fish(scriptName, commandLine);
+        }
+        if (shell == Shell.powershell) {
+            return AutoComplete.powershell(scriptName, commandLine);
         }
         return AutoComplete.bash(scriptName, commandLine);
     }

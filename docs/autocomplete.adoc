@@ -22,7 +22,7 @@ Every main method deserves picocli!
 
 == Command Line Completion
 Starting from version 1.0.0, picocli-based applications can have command line completion in Bash or ZSH Unix shells.
-From version 4.8, picocli can also generate a completion script for the fish shell.
+From version 4.8, picocli can also generate a completion script for the fish shell and for PowerShell (Windows PowerShell 5.1 and PowerShell 7+ on Windows, Linux and macOS).
 Picocli can generate an autocompletion script tailored to your application.
 
 With this script installed, users can type the first few letters of a subcommand or an option,
@@ -107,7 +107,7 @@ Make sure to use `>>` (append), using a single `>` would overwrite the file.
 
 `~/.bashrc` indicates `.bashrc` is in your home directory.
 
-(See <<Installing Completion Scripts Permanently in Bash/ZSH/Fish>>.)
+(See <<Installing Completion Scripts Permanently in Bash/ZSH/Fish/PowerShell>>.)
 
 === Distribution
 
@@ -131,8 +131,14 @@ $ source <(mycommand generate-completion)
 $ mycommand generate-completion --shell=fish | source
 ----
 
+.PowerShell
+[source,powershell]
+----
+PS> mycommand generate-completion --shell=powershell | Out-String | Invoke-Expression
+----
+
 This can be accomplished by registering the built-in `picocli.AutoComplete.GenerateCompletion` class as a subcommand of the top-level command.
-The `--shell` option defaults to `bash` and also accepts `fish`.
+The `--shell` option defaults to `bash` and also accepts `fish` and `powershell`.
 
 NOTE: The `generate-completion` subcommand now has a `--shell` option of its own. If your application registers `GenerateCompletion` and also has an inherited option (`scope = INHERIT`) named `--shell`, picocli will report a duplicate option name; rename one of the two options.
 
@@ -343,7 +349,7 @@ CommandLine hierarchy = new CommandLine(new TopLevel())
 
 
 [#_installing_completion_scripts_permanently_in_bashzsh]
-== Installing Completion Scripts Permanently in Bash/ZSH/Fish
+== Installing Completion Scripts Permanently in Bash/ZSH/Fish/PowerShell
 This section describes installing completion scripts in more depth than the <<Quick Start Tutorial>>.
 
 
@@ -395,6 +401,45 @@ Known limitation: candidates for an optional value are only offered right after 
 
 The script relies on `-F` (force files) and `__fish_prev_arg_in`, which are available in fish 3.1 and later.
 
+=== PowerShell
+PowerShell has no directory from which completion scripts are loaded automatically.
+Add the following line to your PowerShell profile (the file that `$PROFILE` points to; create it if it does not exist), so the script is loaded in every new session:
+
+[source,powershell]
+----
+mycommand generate-completion --shell=powershell | Out-String | Invoke-Expression
+----
+
+Calling the command on every start-up takes as long as starting your application.
+To avoid that, save the script to a file once and dot-source the file from your profile instead:
+
+[source,powershell]
+----
+PS> mycommand generate-completion --shell=powershell > mycommand-completion.ps1
+PS> Add-Content $PROFILE '. C:\path\to\mycommand-completion.ps1'
+----
+
+Note that `Out-String` is required for `Invoke-Expression`: without it, PowerShell passes the lines of the script to `Invoke-Expression` as separate arguments and the script does not run.
+If PowerShell refuses to run the saved file, allow local scripts with `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
+
+The script registers a native argument completer (`Register-ArgumentCompleter -Native`) for the command and for `<command>.exe`.
+It does not define anything else in your session, and loading it again replaces the earlier registration.
+It has no dependencies, is ASCII-only and avoids syntax that exists only in PowerShell 7 (like `??`, the ternary operator or `&&`),
+so it runs in Windows PowerShell 5.1 as well as in PowerShell 7+.
+The golden scripts are loaded in real PowerShell sessions in CI (Windows PowerShell 5.1 and PowerShell 7 on Windows, PowerShell 7 on Linux and macOS), see `.github/workflows/powershell-completion.yml`.
+
+==== What the PowerShell script completes
+* *Subcommands and their aliases*: the typed words are walked down the command hierarchy, so once a subcommand has been typed, only that subcommand's options, positional parameters and subcommands are offered. Hidden subcommands, options and positional parameters are left out. Inherited options (`scope = INHERIT`) are offered in the subcommands as well.
+* *Option names* are offered when the word under the cursor starts with a dash (or, for names like `/?` or `+v`, with the same character): `mycommand -<TAB>` lists all options, `mycommand --no<TAB>` narrows them down. Short options can be clustered (`-cu <TAB>` completes the value of `-u`).
+* *Negated names* of `negatable` options (like `--no-verbose`) are offered too, with the tooltip `Negates <option>`, followed by the option's description if it has one. The names come from the command's `INegatableOptionTransformer`, so a custom transformer is honored.
+* *Descriptions* are shown as tooltips (for example in the completion menu that PSReadLine shows with `Ctrl+Space`).
+* *Option values*: enum constants and `completionCandidates` are offered after `--option `, after `--option=` and for a value that was started (`--option=va<TAB>`). Candidates with spaces or quotes are quoted for you. Host names (for `InetAddress`) are not offered, because PowerShell has no equivalent.
+* *Optional values* (arity such as `0..1` or `0..*`): the value may be omitted, so after `--option ` the subcommands and positional parameters are offered together with the option's candidates.
+* *Positional parameters* offer their candidates at the index (or index range) they apply to.
+* *Everything else* falls back to the default PowerShell file name completion: options that require a value without known candidates, and positional parameters without candidates.
+
+Known limitations: options are only offered after a dash has been typed (in Windows PowerShell 5.1, which does not ask completers for a word that is just `-`, `--` or `-x`, only after at least one character that follows `--`, like `--co<TAB>`), candidates are not offered for a value attached to a short option (`-uSEC<TAB>`).
+
 === ZSH
 Zsh can handle bash completions functions. The latest development version of zsh has a function `bashcompinit`, that when run will allow zsh to read bash completion specifications and functions. The zshcompsys man page has details.
 
@@ -432,8 +477,9 @@ Source the generated completion script or launch a new terminal to start using t
 It may be useful to generate your completion scripts automatically during the build.
 Below is an example Maven snippet that demonstrates how to achieve this.
 
-TIP: Pass `--shell=fish` to the `picocli.AutoComplete` build-time tool to generate a fish script instead of bash/zsh.
+TIP: Pass `--shell=fish` or `--shell=powershell` to the `picocli.AutoComplete` build-time tool to generate a fish or PowerShell script instead of bash/zsh.
 When `--completionScript`/`-o` is omitted, the generated file is named `<commandName>.fish` rather than `<commandName>_completion`.
+Likewise, `--shell=powershell` generates `<commandName>-completion.ps1` (not `<commandName>.ps1`, which PowerShell would run instead of the command). With `-w`, the sample command script is written as `<commandName>.ps1` in that case.
 
 === Maven Example
 TIP: Setting system property `picocli.autocomplete.systemExitOnError` ensures the build fails if there is any problem generating the completion script (requires picocli v3.9.1).
