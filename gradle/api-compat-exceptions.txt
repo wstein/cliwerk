@@ -9,3 +9,20 @@
 # Examples: class  picocli.CommandLine$Foo                         | <why>, see docs/FORK.adoc
 #           method picocli.CommandLine$Help#foo(java.lang.String)  | <why>, see docs/FORK.adoc
 #           field  picocli.CommandLine#BAR                         | <why>, see docs/FORK.adoc
+#
+# Kind annotation-element: a method of an annotation type (@interface) of package picocli that cliwerk
+# added WITH a default value. japicmp reports it as METHOD_ABSTRACT_ADDED_TO_CLASS (source-incompatible),
+# but for users of the annotation it is source- and binary-compatible: existing annotation uses need not
+# set it and existing compiled classes keep working. Only code that implements the annotation interface
+# itself would break, which is not a supported use. Unlike class/method/field entries, these are not
+# excluded from the comparison: the summary script (.github/scripts/api-compat-summary.py) reports them
+# as "excepted" and accepts them only for change METHOD_ABSTRACT_ADDED_TO_CLASS on an annotation type.
+# One entry per element, no wildcards: a new element WITHOUT a default value is a real break and
+# has to stay a finding; a new element with a default needs its own entry here.
+
+annotation-element picocli.CommandLine$Option#helpSection()         | annotation element with default value: source and binary compatible for users of the annotation
+annotation-element picocli.CommandLine$Parameters#helpSection()     | annotation element with default value: source and binary compatible for users of the annotation
+annotation-element picocli.CommandLine$ArgGroup#helpSection()       | annotation element with default value: source and binary compatible for users of the annotation
+annotation-element picocli.CommandLine$Command#helpSection()        | annotation element with default value: source and binary compatible for users of the annotation
+annotation-element picocli.CommandLine$Command#helpSections()       | annotation element with default value: source and binary compatible for users of the annotation
+annotation-element picocli.CommandLine$Command#showHelpSectionsNotice() | annotation element with default value: source and binary compatible for users of the annotation
