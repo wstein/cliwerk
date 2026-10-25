@@ -57,7 +57,8 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          ./gradlew --stop; ./gradlew clean
+          ./gradlew --stop || true
+          ./gradlew clean || true
           ./gradlew build --no-daemon 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
 
       - name: Report Gradle failure as annotations
