@@ -29,18 +29,18 @@ jobs:
     continue-on-error: ${{ matrix.os == 'macos-latest' }}
     steps:
       - name: Harden Runner
-        uses: step-security/harden-runner@c6295a65d1254861815972266d5933fd6e532bdf
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
         with:
           egress-policy: audit
 
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Validate Gradle Wrapper
-        uses: gradle/wrapper-validation-action@f9c9c575b8b21b6485636a91ffecd10e558c62f6
+        uses: gradle/actions/wrapper-validation@3f5f9adaf7d9fecd50b5935e54106014257a94e6 # v6.4.0
 
       - name: Configure JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
         with:
           distribution: 'zulu'
           java-version: ${{ matrix.java-version }}
@@ -67,7 +67,7 @@ jobs:
         run: python3 -I .github/scripts/gradle-failure-annotations.py "$RUNNER_TEMP/gradle-build.log" build 80
 
       - name: Publish Test Results (Linux)
-        uses: EnricoMi/publish-unit-test-result-action@v2
+        uses: EnricoMi/publish-unit-test-result-action@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2.25.0
         id: test-results-nix
         if: ${{ always() && matrix.os == 'ubuntu-latest' }}
         with:
@@ -75,10 +75,19 @@ jobs:
             build/test-results/test/**/*.xml
             picocli-*/build/test-results/test/**/*.xml
 
-      - name: Publish Test Results (Win/Mac)
-        uses: EnricoMi/publish-unit-test-result-action/composite@v2
-        id: test-results
-        if: ${{ always() && (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') }}
+      - name: Publish Test Results (macOS)
+        uses: EnricoMi/publish-unit-test-result-action/macos@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2.25.0
+        id: test-results-mac
+        if: ${{ always() && matrix.os == 'macos-latest' }}
+        with:
+          files: |
+            build/test-results/test/**/*.xml
+            picocli-*/build/test-results/test/**/*.xml
+
+      - name: Publish Test Results (Windows)
+        uses: EnricoMi/publish-unit-test-result-action/windows@7622c5bf3d112a72ab4fa3951c2aa5723d8ab92d # v2.25.0
+        id: test-results-win
+        if: ${{ always() && matrix.os == 'windows-latest' }}
         with:
           files: |
             build/test-results/test/**/*.xml
@@ -102,9 +111,9 @@ jobs:
 
       - name: Set badge color (Win/Mac)
         shell: bash
-        if: ${{ always() && (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') && steps.test-results.outputs.json }}
+        if: ${{ always() && (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') && (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) }}
         run: |
-          case ${{ fromJSON( steps.test-results.outputs.json ).conclusion }} in
+          case ${{ fromJSON( (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) ).conclusion }} in
             success)
               echo "BADGE_COLOR=31c653" >> $GITHUB_ENV
               ;;
@@ -118,7 +127,7 @@ jobs:
 
       - name: Create badge (Linux)
         if: ${{ always() && matrix.os == 'ubuntu-latest' && steps.test-results-nix.outputs.json }}
-        uses: emibcn/badge-action@808173dd03e2f30c980d03ee49e181626088eee8
+        uses: emibcn/badge-action@f9150fde070fcca0c4e832437611b44838fcd325 # v2.0.4
         with:
           label: Tests
           status: '${{ fromJSON( steps.test-results-nix.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results-nix.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results-nix.outputs.json ).conclusion }}'
@@ -126,11 +135,11 @@ jobs:
           path: badge.svg
 
       - name: Create badge (Win/Mac)
-        if: ${{ always() && (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') && steps.test-results.outputs.json }}
-        uses: emibcn/badge-action@808173dd03e2f30c980d03ee49e181626088eee8
+        if: ${{ always() && (matrix.os == 'macos-latest' || matrix.os == 'windows-latest') && (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) }}
+        uses: emibcn/badge-action@f9150fde070fcca0c4e832437611b44838fcd325 # v2.0.4
         with:
           label: Tests
-          status: '${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.tests }} tests, ${{ fromJSON( steps.test-results.outputs.json ).formatted.stats.runs }} runs: ${{ fromJSON( steps.test-results.outputs.json ).conclusion }}'
+          status: '${{ fromJSON( (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) ).formatted.stats.tests }} tests, ${{ fromJSON( (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) ).formatted.stats.runs }} runs: ${{ fromJSON( (steps.test-results-win.outputs.json || steps.test-results-mac.outputs.json) ).conclusion }}'
           color: ${{ env.BADGE_COLOR }}
           path: badge.svg
 
