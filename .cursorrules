@@ -13,9 +13,9 @@ This file acts as a unified reference for all AI systems working on this codebas
 
 ## Key Points
 
-**Zero Dependencies**: picocli core and picocli-spec must have zero runtime dependencies.
+**Zero Dependencies**: picocli core and cliwerk-spec must have zero runtime dependencies.
 
-**Dual Format (DSL & JSON)**: picocli-spec supports both `.picocli` (DSL) and `.json` formats with lossless round-trip fidelity.
+**Dual Format (DSL & JSON)**: cliwerk-spec supports both `.cliwerk` (DSL) and `.json` formats with lossless round-trip fidelity.
 
 **Module Organization**: Java version compatibility is critical—tests are split across modules. Always check `settings.gradle` before referencing test modules.
 

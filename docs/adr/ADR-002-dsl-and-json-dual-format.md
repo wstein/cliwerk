@@ -12,16 +12,16 @@ A JSON-only format is verbose and error-prone to write by hand (lack of trailing
 
 ## Decision
 Support dual complementary formats with lossless bidirectional conversion:
-- **DSL (`.picocli`)**: A lightweight, human-friendly text format supporting line comments (`//`), concise option/positional definitions, definition blocks, bundles, and readable command hierarchies.
+- **DSL (`.cliwerk`)**: A lightweight, human-friendly text format supporting line comments (`//`), concise option/positional definitions, definition blocks, bundles, and readable command hierarchies.
 - **JSON (`command-spec.schema.json`)**: A machine-readable, schema-validated JSON format for editor autocomplete, CI validation, and external code generation.
-- **Round-trip fidelity**: Both formats parse into the identical `CommandSpec` internal model, and `picospec convert` allows lossless round-tripping between DSL and JSON.
+- **Round-trip fidelity**: Both formats parse into the identical `CommandSpec` internal model, and `cliwerk-spec convert` allows lossless round-tripping between DSL and JSON.
 
 ## Consequences
 
 ### Positive
 - Developers get an ergonomic, readable text syntax for hand authoring CLI specs.
 - Tooling, editors, and external systems get standard JSON Schema validation and autocomplete.
-- Seamless conversion via `picospec convert --to-json` and `picospec convert --to-dsl`.
+- Seamless conversion via `cliwerk-spec convert --to-json` and `cliwerk-spec convert --to-dsl`.
 
 ### Negative
 - Requires maintaining both a DSL lexer/parser (`CommandSpecDsl`) and a JSON reader/writer (`CommandSpecJson`).

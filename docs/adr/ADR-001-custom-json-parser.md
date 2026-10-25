@@ -1,15 +1,15 @@
-# ADR-001: Custom Minimal JSON Parser for picocli-spec
+# ADR-001: Custom Minimal JSON Parser for cliwerk-spec
 
 ## Status
 Accepted
 
 ## Context
-The `picocli-spec` module enables declaring picocli `CommandSpec` models via JSON (conforming to `command-spec.schema.json`).
+The `cliwerk-spec` module enables declaring picocli `CommandSpec` models via JSON (conforming to `command-spec.schema.json`).
 
 Standard Java JSON libraries such as Jackson, Gson, or Fastjson would introduce third-party transitive dependencies. However, picocli core has an uncompromising design principle of zero external runtime dependencies. Introducing Jackson or Gson would add megabytes of transitive dependencies, potential CVE exposure, and classpath collision risks for host applications embedding picocli.
 
 ## Decision
-Implement a lightweight, self-contained JSON parser (`picocli.spec.json.Json`) within `picocli-spec` with zero external dependencies.
+Implement a lightweight, self-contained JSON parser (`cliwerk.spec.json.Json`) within `cliwerk-spec` with zero external dependencies.
 
 The parser:
 - Parses JSON text into standard Java runtime collections (`Map<String, Object>`, `List<Object>`, `String`, `Boolean`, `Number`, `null`).

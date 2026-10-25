@@ -13,8 +13,8 @@ It replaces project-specific conventions that would otherwise live in CLAUDE.md,
 This is **cliwerk** ([wstein/cliwerk](https://github.com/wstein/cliwerk)), an independent fork of [remkop/picocli](https://github.com/remkop/picocli) maintained by [wstein](https://github.com/wstein); it is not affiliated with or endorsed by the picocli project. Some enhancements are also proposed upstream. See [docs/FORK.adoc](docs/FORK.adoc) for branch model and naming rules (never call cliwerk releases "picocli"). The Java package `picocli` and the module names are unchanged; the published artifact is `io.github.wstein:cliwerk`. cliwerk adds:
 
 - **Fish shell completion** via `AutoComplete.fish()` 
-- **picocli-spec**: Build `CommandSpec` from DSL (`.picocli`) or JSON (`.json`) without annotated Java classes
-- **picocli-spec-tool**: Standalone CLI tool to preview, validate, convert, and generate completions/man pages for spec files
+- **cliwerk-spec**: Build `CommandSpec` from DSL (`.cliwerk`) or JSON (`.json`) without annotated Java classes
+- **cliwerk-spec-tool**: Standalone CLI tool to preview, validate, convert, and generate completions/man pages for spec files
 - **On-demand help sections** (`helpSection` on `@Option` / `@ArgGroup`) for targeted help (e.g., `--Xhelp`)
 
 Publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:picocli`) to Maven via GitHub Pages and GitHub Releases.
@@ -27,8 +27,8 @@ Publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:
 |--------|---------|-------------|
 | `picocli` (root, published as `cliwerk`) | Core annotation/programmatic API; also includes `AutoComplete` | Java 5 (1.8 compilation) |
 | `picocli-codegen` | AsciiDoc man page, shell completion codegen | Java 6 |
-| `picocli-spec` | DSL/JSON parser and writer for `CommandSpec` without annotations | Java 11 |
-| `picocli-spec-tool` | Standalone `picospec` CLI (preview, validate, completion, manpage, convert) | Java 11 |
+| `cliwerk-spec` | DSL/JSON parser and writer for `CommandSpec` without annotations | Java 11 |
+| `cliwerk-spec-tool` | Standalone `cliwerk-spec` CLI (preview, validate, completion, manpage, convert) | Java 11 |
 
 ### Secondary Modules
 
@@ -60,26 +60,26 @@ Include `@ParameterizedTest` fixtures and round-trip fidelity tests (DSL → JSO
 ./gradlew test
 
 # Run tests for a specific module
-./gradlew :picocli-spec:test
+./gradlew :cliwerk-spec:test
 
 # Run a single test class
-./gradlew :picocli-spec:test --tests CommandSpecDslTest
+./gradlew :cliwerk-spec:test --tests CommandSpecDslTest
 
 # Run a specific test method
-./gradlew :picocli-spec:test --tests CommandSpecDslTest.roundTripFidelity
+./gradlew :cliwerk-spec:test --tests CommandSpecDslTest.roundTripFidelity
 ```
 
-### picocli-spec & Tool Specific
+### cliwerk-spec & Tool Specific
 
 ```bash
-# Build picocli-spec-tool standalone fat jar (Shadow plugin)
-./gradlew :picocli-spec-tool:shadowJar
+# Build cliwerk-spec-tool standalone fat jar (Shadow plugin)
+./gradlew :cliwerk-spec-tool:shadowJar
 
-# Run picospec CLI locally (after shadowJar)
-java -jar picocli-spec-tool/build/libs/picocli-spec-tool-*-all.jar preview picocli-spec/examples/flix-0.60.0.picocli
+# Run cliwerk-spec CLI locally (after shadowJar)
+java -jar cliwerk-spec-tool/build/libs/cliwerk-spec-tool-*-all.jar preview cliwerk-spec/examples/flix-0.60.0.cliwerk
 
 # Generate Javadoc
-./gradlew :picocli-spec:javadoc :javadoc
+./gradlew :cliwerk-spec:javadoc :javadoc
 
 # Publish to local Maven repo (for testing consumption)
 ./gradlew publishToMavenLocal
@@ -109,20 +109,20 @@ java -jar picocli-spec-tool/build/libs/picocli-spec-tool-*-all.jar preview picoc
 
 ### Zero-Dependency Philosophy
 
-Both the cliwerk core (module `picocli`) and `picocli-spec` follow a strict zero-runtime-dependency design:
-- `picocli-spec` implements its own lightweight JSON parser (`picocli.spec.json.Json`, ~150 lines)
+Both the cliwerk core (module `picocli`) and `cliwerk-spec` follow a strict zero-runtime-dependency design:
+- `cliwerk-spec` implements its own lightweight JSON parser (`cliwerk.spec.json.Json`, ~150 lines)
 - No Jackson, Gson, or other JSON libraries
 - Ensures minimal classpath footprint for consumers
 
 **ADR References**:
 - `docs/adr/ADR-001-custom-json-parser.md`: Why embedded JSON parser
 - `docs/adr/ADR-002-dsl-and-json-dual-format.md`: DSL + JSON strategy
-- `docs/adr/ADR-003-two-module-split.md`: Why picocli-spec and picocli-spec-tool are separate
+- `docs/adr/ADR-003-two-module-split.md`: Why cliwerk-spec and cliwerk-spec-tool are separate
 
-### picocli-spec Key Design Patterns
+### cliwerk-spec Key Design Patterns
 
 1. **Dual Format (DSL & JSON)**:
-   - DSL (`.picocli`): Human-friendly, concise syntax (EBNF in `DESIGN.md`)
+   - DSL (`.cliwerk`): Human-friendly, concise syntax (EBNF in `DESIGN.md`)
    - JSON (`.json`): Machine-friendly, adheres to `command-spec.schema.json`
    - Lossless round-trip fidelity via `CommandSpecDsl.write()` and `CommandSpecJson.write()`
 
@@ -147,12 +147,12 @@ Both the cliwerk core (module `picocli`) and `picocli-spec` follow a strict zero
    - Checks: name collisions, type mismatches, missing required fields
    - Entry point: `SpecValidator.validate(CommandSpec)`
 
-### picocli-spec-tool Architecture
+### cliwerk-spec-tool Architecture
 
 ```
-User invokes: picospec preview|validate|completion|manpage|convert <spec-file>
+User invokes: cliwerk-spec preview|validate|completion|manpage|convert <spec-file>
                     ↓
-              SpecLoader (detects .picocli or .json by extension)
+              SpecLoader (detects .cliwerk or .json by extension)
                     ↓
         CommandSpecDsl.parse() OR CommandSpecJson.read()
                     ↓
@@ -165,7 +165,7 @@ User invokes: picospec preview|validate|completion|manpage|convert <spec-file>
     [Convert → uses CommandSpecDsl.write() or CommandSpecJson.write()]
 ```
 
-Shadow plugin bundles picocli, picocli-codegen, and picocli-spec into a single `-all.jar`.
+Shadow plugin bundles picocli, picocli-codegen, and cliwerk-spec into a single `-all.jar`.
 
 ### Help Sections Pattern
 
@@ -179,12 +179,12 @@ Annotated options with `@Option(helpSection = "EXPERIMENTAL")` are:
 ### Test Organization
 
 - Place unit tests in the same module with `src/test/java`
-- Fixture DSL and JSON files in `src/test/resources/picocli/spec/examples/` (or module-specific paths)
+- Fixture DSL and JSON files in `src/test/resources/cliwerk/spec/fixtures/` (or module-specific paths)
 - Use `@ParameterizedTest` with `@CsvSource` or `@ValueSource` for matrix testing
 
 ### Round-Trip Fidelity
 
-Critical for picocli-spec: verify DSL ↔ JSON bidirectional conversion:
+Critical for cliwerk-spec: verify DSL ↔ JSON bidirectional conversion:
 ```java
 // Example pattern:
 String dslText = "command foo { option --bar : String }";
@@ -198,8 +198,8 @@ String dslText2 = CommandSpecDsl.write(spec2);
 ### Test Files Location
 
 Example fixture files:
-- `picocli-spec/examples/flix-0.60.0.picocli` (Flix v0.60.0 example; multi-version progression in `flixw/src/assets/picocli/`)
-- `picocli-spec/src/test/resources/picocli/spec/examples/` (test fixtures)
+- `cliwerk-spec/examples/flix-0.60.0.cliwerk` (Flix v0.60.0 example; multi-version progression in `flixw/src/assets/picocli/`)
+- `cliwerk-spec/src/test/resources/cliwerk/spec/fixtures/` (test fixtures)
 
 ## Release Process
 
@@ -222,7 +222,7 @@ Example fixture files:
 
 **Module Targets**:
 - `picocli`: Java 5 bytecode (compiled with Java 8)
-- `picocli-spec`, `picocli-spec-tool`: Java 11 bytecode
+- `cliwerk-spec`, `cliwerk-spec-tool`: Java 11 bytecode
 
 ## Key Files & References
 
@@ -231,10 +231,10 @@ Example fixture files:
 | `build.gradle` | Root build config; multi-module orchestration |
 | `settings.gradle` | Module inclusion (conditional on Java version) |
 | `dependencies.gradle` | Centralized dependency versions |
-| `picocli-spec/README.md` | Quick start for DSL/JSON usage |
-| `picocli-spec/REQUIREMENTS.md` | Functional requirements (FR-1–FR-7, NFR-1–NFR-4) |
-| `picocli-spec/DESIGN.md` | EBNF grammar, data flow diagrams, schema reference |
-| `picocli-spec-tool/README.md` | picospec CLI usage guide |
+| `cliwerk-spec/README.md` | Quick start for DSL/JSON usage |
+| `cliwerk-spec/REQUIREMENTS.md` | Functional requirements (FR-1–FR-7, NFR-1–NFR-4) |
+| `cliwerk-spec/DESIGN.md` | EBNF grammar, data flow diagrams, schema reference |
+| `cliwerk-spec-tool/README.md` | cliwerk-spec CLI usage guide |
 | `docs/adr/` | Architecture decision records (custom JSON, dual format, module split) |
 | `.github/workflows/ci.yml` | Test matrix (Java 8/11/17/21 × Linux/macOS/Windows) |
 | `.github/workflows/release.yml` | Automated release to Maven/Javadoc/gh-pages |
@@ -243,7 +243,7 @@ Example fixture files:
 
 ### Adding a New Type to ArgTypes
 
-1. Define in `picocli-spec/src/main/java/picocli/spec/ArgTypes.java`:
+1. Define in `cliwerk-spec/src/main/java/cliwerk/spec/ArgTypes.java`:
    ```java
    public static final Map<String, String> BUILTIN_TYPES = Map.of(..., "UUID", "java.util.UUID", ...);
    ```
@@ -252,13 +252,13 @@ Example fixture files:
 4. Add roundtrip test in `CommandSpecDslTest` or `CommandSpecJsonTest`
 5. Update `CHANGELOG.md` under "Extended `ArgTypes` Vocabulary"
 
-### Implementing a New picospec Subcommand
+### Implementing a New cliwerk-spec Subcommand
 
-1. Add new task/handler in `picocli-spec-tool/src/main/java/picocli/spec/tool/SpecToolApp.java`
+1. Add new task/handler in `cliwerk-spec-tool/src/main/java/cliwerk/spec/tool/SpecToolApp.java`
 2. Implement render logic (e.g., extend existing handlers like `PreviewCommand`)
-3. Add unit tests in `picocli-spec-tool/src/test/java/picocli/spec/tool/` (e.g., `PreviewTest`)
+3. Add unit tests in `cliwerk-spec-tool/src/test/java/cliwerk/spec/tool/` (e.g., `PreviewTest`)
 4. Test end-to-end via `SpecToolAppTest` (runs `CommandLine#execute`)
-5. Document in `picocli-spec-tool/README.md`
+5. Document in `cliwerk-spec-tool/README.md`
 
 ### Proposing Changes Upstream
 
