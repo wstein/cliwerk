@@ -5,7 +5,8 @@ Usage: api-compat-summary.py <api-compat.xml> <api-compat.txt> <summary.md> [<ap
 
 Writes a Markdown table of all findings (one row per incompatible class or member) to <summary.md>
 and prints GitHub Actions workflow commands to stdout, so the findings are also visible as
-annotations of the check run. Never fails because of findings; exits 1 only if no report exists.
+annotations of the check run. Never fails because of findings. Exits 1 if neither report exists, and
+with a message if the exceptions file is malformed (bad line, bad annotation-element pattern, duplicate entry).
 
 Exceptions of kind `annotation-element` in the exceptions file (`annotation-element <class>#<name>() | <why>`)
 are evaluated here, not by japicmp: a finding is "excepted" only if it is METHOD_ABSTRACT_ADDED_TO_CLASS
@@ -75,7 +76,10 @@ def read_exceptions(path):
             if not p:
                 raise SystemExit("%s:%d: annotation-element needs the form picocli.Class$Nested#name() (no wildcards), got: %s"
                                  % (path, number, m.group(2)))
-            result[(p.group(1), p.group(2))] = m.group(3)
+            key = (p.group(1), p.group(2))
+            if key in result:
+                raise SystemExit("%s:%d: duplicate annotation-element exception: %s" % (path, number, m.group(2)))
+            result[key] = m.group(3)
     return result
 
 
@@ -139,7 +143,7 @@ def table(lines, rows, extra=None):
     for i, r in enumerate(rows, 1):
         lines.append("| %d | `%s` | `%s` | %s | %s | %s | %s |%s" % (
             i, r["owner"], r["member"].replace("|", "\\|"), r["status"], r["kind"], r["binary"], r["source"],
-            (" %s |" % r["justification"]) if extra else ""))
+            (" %s |" % r["justification"].replace("|", "\\|")) if extra else ""))
     lines.append("")
 
 
