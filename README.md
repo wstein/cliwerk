@@ -33,10 +33,10 @@ so it cannot be on the same classpath as `info.picocli:picocli`.
 The Maven coordinates are `io.github.wstein:cliwerk` (see [docs/FORK.adoc](docs/FORK.adoc)).
 A rename of the Java package is deliberately deferred; no date has been decided.
 Versions are `<upstream x.y.z>.<fork revision>`: the current version is `4.7.7.1`, based on upstream picocli 4.7.7.
-The releases 4.7.8 to 4.9.4 were cliwerk's own releases, not upstream picocli releases. Maven and Gradle sort them
-above `4.7.7.1`, so pin the cliwerk version explicitly. Until the coordinates change, existing
-coordinates and imports keep working; any change will be described in the [CHANGELOG](CHANGELOG.md)
-before it is released.
+The earlier cliwerk releases 4.7.8 to 4.9.4 were never upstream picocli releases; they have been withdrawn and deleted,
+and under the artifactId `cliwerk` there are no versions that compete with `4.7.7.x`.
+File names: jars attached to GitHub Releases keep the build's names (`picocli-<version>*.jar`, drop-in compatibility);
+in the Maven repository the main jar is `cliwerk-<version>.jar`.
 
 ---
 

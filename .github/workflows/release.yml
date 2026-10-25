@@ -85,7 +85,7 @@ jobs:
         run: |
           gh release create "${{ steps.vars.outputs.tag }}" \
             build/libs/*.jar \
-            --title "picocli ${{ steps.vars.outputs.version }}" \
+            --title "cliwerk ${{ steps.vars.outputs.version }}" \
             --generate-notes
 
       - name: Check out existing flat Maven repo (gh-pages)
