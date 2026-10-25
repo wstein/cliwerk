@@ -20,7 +20,15 @@ The releases 4.7.8 to 4.9.4 below are legacy cliwerk releases, not upstream pico
   - **Fish completion** reworked (the version reviewed for upstream, remkop/picocli#2463): completion of negated options,
     options with an optional value no longer force a value, escaping of candidates, one condition per `complete` line;
     the generated scripts are verified in real fish shells in CI.
-  - **Shell-independent completion model** (package-private), from which the fish script is rendered.
+  - **Shell-independent completion model** (package-private), from which the fish and PowerShell scripts are rendered.
+  - **PowerShell completion** (Windows PowerShell 5.1 and PowerShell 7+ on Windows, Linux and macOS):
+    `AutoComplete.powershell()` generates a script that registers a native argument completer
+    (`Register-ArgumentCompleter -Native`) for subcommands (with aliases), options (including negated names of negatable options),
+    enum constants and other completion candidates, with the descriptions as tooltips.
+    `generate-completion --shell=powershell` and `picocli.AutoComplete --shell=powershell` (which writes `<commandName>-completion.ps1`)
+    produce it, and so does `picospec completion --shell=powershell`.
+    The golden scripts are loaded in real PowerShell sessions in CI (`powershell-completion.yml`).
+    Note that `GenerateCompletion.Shell` has a new constant `powershell`, and the `--shell` candidates of `generate-completion` and `picocli.AutoComplete` now include it.
   - **`picospec preview`**: `--section` and `--trigger-option` to render on-demand help sections, and `--format text|markdown`.
 
 ---

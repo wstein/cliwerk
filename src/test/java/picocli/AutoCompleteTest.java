@@ -873,7 +873,7 @@ public class AutoCompleteTest {
                 "  -h, --help      Show this help message and exit.%n" +
                 "  -V, --version   Print version information and exit.%n" +
                 "Commands:%n" +
-                "  generate-completion  Generate a bash/zsh or fish completion script for myapp.%n");
+                "  generate-completion  Generate a shell completion script for myapp.%n");
         assertEquals(expected, cmd.getUsageMessage(CommandLine.Help.Ansi.OFF));
     }
 
@@ -895,16 +895,18 @@ public class AutoCompleteTest {
         CommandLine cmd = new CommandLine(new MyApp());
         String expected = String.format("" +
                 "Usage: myapp generate-completion [-hV] [--shell=<shell>]%n" +
-                "Generate a bash/zsh or fish completion script for myapp.%n" +
+                "Generate a shell completion script for myapp.%n" +
                 "Run the following command to give `myapp` TAB completion in the current shell:%n" +
                 "%n" +
                 "  source <(myapp generate-completion)%n" +
                 "  (or, for fish: myapp generate-completion --shell=fish | source)%n" +
+                "  (or, for PowerShell:%n" +
+                "    myapp generate-completion --shell=powershell | Out-String | iex)%n" +
                 "%n" +
                 "Options:%n" +
                 "  -h, --help            Show this help message and exit.%n" +
                 "      --shell=<shell>   The shell to generate a completion script for: bash,%n" +
-                "                          fish.%n" +
+                "                          fish, powershell.%n" +
                 "  -V, --version         Print version information and exit.%n");
         CommandLine gen = cmd.getSubcommands().get("generate-completion");
         assertEquals(expected, gen.getUsageMessage(CommandLine.Help.Ansi.OFF));
@@ -1134,7 +1136,7 @@ public class AutoCompleteTest {
                     "  local commands=\"\"\n" +
                     "  local flag_opts=\"'-h' '--help' '-V' '--version'\"\n" +
                     "  local arg_opts=\"'--shell'\"\n" +
-                    "  local shell_shell_option_args=(\"bash\" \"fish\") # --shell values\n" +
+                    "  local shell_shell_option_args=(\"bash\" \"fish\" \"powershell\") # --shell values\n" +
                     "\n" +
                     "  type compopt &>/dev/null && compopt +o default\n" +
                     "\n" +
@@ -1446,7 +1448,7 @@ public class AutoCompleteTest {
         String expectedLevel2 = String.format("" +
                 "Usage: Demo Level1 Level2 [COMMAND]%n" +
                 "Commands:%n" +
-                "  generate-completion  Generate a bash/zsh or fish completion script for Demo.%n");
+                "  generate-completion  Generate a shell completion script for Demo.%n");
         assertEquals(expectedLevel2, level2.getUsageMessage(CommandLine.Help.Ansi.OFF));
 
         CommandLine gen = level2
@@ -1454,16 +1456,19 @@ public class AutoCompleteTest {
         gen.getCommandSpec().usageMessage().hidden(true);
         String expectedGen = String.format("" +
                 "Usage: Demo Level1 Level2 generate-completion [-hV] [--shell=<shell>]%n" +
-                "Generate a bash/zsh or fish completion script for Demo.%n" +
+                "Generate a shell completion script for Demo.%n" +
                 "Run the following command to give `Demo` TAB completion in the current shell:%n" +
                 "%n" +
                 "  source <(Demo Level1 Level2 generate-completion)%n" +
                 "  (or, for fish: Demo Level1 Level2 generate-completion --shell=fish | source)%n" +
+                "  (or, for PowerShell:%n" +
+                "    Demo Level1 Level2 generate-completion --shell=powershell | Out-String |%n" +
+                "iex)%n" +
                 "%n" +
                 "Options:%n" +
                 "  -h, --help            Show this help message and exit.%n" +
                 "      --shell=<shell>   The shell to generate a completion script for: bash,%n" +
-                "                          fish.%n" +
+                "                          fish, powershell.%n" +
                 "  -V, --version         Print version information and exit.%n");
         assertEquals(expectedGen, gen.getUsageMessage(CommandLine.Help.Ansi.OFF));
     }
@@ -1575,6 +1580,210 @@ public class AutoCompleteTest {
             assertThat(script, containsString("local cmds1=(a)"));
         } finally {
             existingScript.delete();
+        }
+    }
+
+    // ---- PowerShell ----
+
+    @Test
+    public void basicPowerShell() throws Exception {
+        String script = AutoComplete.powershell("basicExample", new CommandLine(new BasicExample()));
+        String expected = format(loadTextFromClasspath("/basic.ps1"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Test
+    public void nestedSubcommandsPowerShell() throws Exception {
+        CommandLine hierarchy = new CommandLine(new TopLevel())
+                .addSubcommand("sub1", new Sub1())
+                .addSubcommand("sub2", new CommandLine(new Sub2())
+                        .addSubcommand("subsub1", new Sub2Child1())
+                        .addSubcommand("subsub2", new Sub2Child2())
+                        .addSubcommand("subsub3", new Sub2Child3())
+                );
+        String script = AutoComplete.powershell("picocompletion-demo", hierarchy);
+        String expected = format(loadTextFromClasspath("/picocompletion-demo_completion.ps1"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Command(name = "psfeatures", subcommands = PsFeaturesSub.class)
+    static class PsFeatures {
+        static class Candidates extends ArrayList<String> {
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(Get-Date)", "a`b", "say \"hi\"", "caf\u00e9", "semi;colon")); }
+        }
+        @Option(names = {"-c", "--color"}, negatable = true, description = "Use colors") boolean color;
+        @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;
+        @Option(names = "--pick", completionCandidates = Candidates.class, description = "awkward candidates") String pick;
+        @Option(names = "--required", description = "value required") String required;
+        @Option(names = "--optional", arity = "0..1", description = "value optional") String optional;
+        @Option(names = "--mode", arity = "0..1", completionCandidates = Candidates.class, description = "optional with candidates") String mode;
+        @Option(names = {"-u", "--unit"}, description = "an enum, candidates: ${COMPLETION-CANDIDATES}") TimeUnit unit;
+        @Option(names = "--secret", hidden = true, description = "hidden") boolean secret;
+        @Option(names = "/win", description = "Windows style, caf\u00e9 \u2018quoted\u2019") boolean win;
+        @Parameters(index = "0", completionCandidates = Candidates.class, description = "first positional") String first;
+    }
+    @Command(name = "child", aliases = {"kid"}, description = "a child")
+    static class PsFeaturesSub {
+        @Option(names = "--own", description = "child option") boolean own;
+    }
+
+    @Test
+    public void powerShellFeaturesGolden() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        String expected = format(loadTextFromClasspath("/powershell-features.ps1"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Test
+    public void powerShellScriptIsAsciiOnly() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        for (int i = 0; i < script.length(); i++) {
+            char c = script.charAt(i);
+            assertTrue("non-ASCII character at " + i, c == '\n' || (c >= 0x20 && c < 0x7f));
+        }
+        assertThat(script, containsString("('Windows style, caf' + [char]0x00E9 + ' ' + [char]0x2018 + 'quoted' + [char]0x2019 + '')"));
+    }
+
+    @Test
+    public void powerShellUsesNoPowerShell7OnlySyntax() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        assertThat(script, not(containsString("??")));
+        assertThat(script, not(containsString("&&")));
+        assertThat(script, not(containsString("||")));
+        assertThat(script, not(containsString("?.")));
+        assertThat(script, not(containsString(" ? ")));
+        assertThat(script, containsString("Register-ArgumentCompleter -Native -CommandName 'psfeatures', 'psfeatures.exe' -ScriptBlock"));
+    }
+
+    @Test
+    public void powerShellQuotesAndEscapesCandidatesAndDescriptions() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        // single quotes are doubled, nothing else needs escaping in a single-quoted string
+        assertThat(script, containsString("'it''s'"));
+        assertThat(script, containsString("'$(Get-Date)'"));
+        assertThat(script, containsString("'a`b'"));
+        assertThat(script, containsString("'say \"hi\"'"));
+        assertThat(script, containsString("('caf' + [char]0x00E9 + '')"));
+    }
+
+    @Test
+    public void powerShellOffersNegatedOptionsAndSkipsHiddenOnes() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        assertThat(script, containsString("Negated = @('--no-color'); NegatedDescription = 'Negates --color: Use colors'"));
+        assertThat(script, not(containsString("--secret")));
+        assertThat(script, containsString("Names = @('/win')"));
+    }
+
+    @Test
+    public void powerShellNegatedOptionsFollowCustomTransformer() {
+        CommandLine cmd = new CommandLine(new PsFeatures());
+        cmd.getCommandSpec().negatableOptionTransformer(new CommandLine.RegexTransformer.Builder()
+                .addPattern("^--(\\w+)$", "--disable-$1", "--enable-$1").build());
+        String script = AutoComplete.powershell("psfeatures", cmd);
+        assertThat(script, containsString("Negated = @('--disable-color')"));
+        assertThat(script, not(containsString("--no-color")));
+    }
+
+    @Test
+    public void powerShellInheritedOptionsAreOfferedInSubcommands() {
+        String script = AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures()));
+        int sub = script.indexOf("Subcommands = @(\n");
+        assertTrue(sub > 0);
+        String subcommands = script.substring(sub);
+        assertThat(subcommands, containsString("Names = @('--shared')"));
+        assertThat(subcommands, containsString("Names = @('--own')"));
+        assertThat(subcommands, not(containsString("Names = @('--pick')")));
+    }
+
+    @Test
+    public void powerShellGroupsAliasesAndSkipsHiddenSubcommands() {
+        CommandLine cmd = new CommandLine(new PsFeatures())
+                .addSubcommand(new HiddenSub())
+                .addSubcommand(new VisibleSub());
+        String script = AutoComplete.powershell("psfeatures", cmd);
+        assertThat(script, containsString("Names = @('child', 'kid')"));
+        assertThat(script, containsString("visiblesub"));
+        assertThat(script, not(containsString("hiddensub")));
+    }
+
+    @Test
+    public void powerShellStripsFileSuffixesFromScriptName() {
+        for (String name : new String[] {"psfeatures.ps1", "psfeatures.exe", "psfeatures"}) {
+            String script = AutoComplete.powershell(name, new CommandLine(new PsFeatures()));
+            assertThat(script, containsString("-CommandName 'psfeatures', 'psfeatures.exe' "));
+            assertThat(script, containsString("# psfeatures PowerShell completion\n"));
+        }
+    }
+
+    @Test
+    public void powerShellOmitsHostnameCandidates() {
+        CommandLine cmd = new CommandLine(new FishHostOption());
+        String script = AutoComplete.powershell("fishhost", cmd);
+        assertThat(script, containsString("Names = @('--host')"));
+        assertThat(script, not(containsString("Candidates = ")));
+    }
+
+    @Command(name = "fishhost")
+    static class FishHostOption {
+        @Option(names = "--host") InetAddress host;
+    }
+
+    @Test
+    public void powerShellRejectsNullArguments() {
+        try { AutoComplete.powershell(null, new CommandLine(new PsFeatures())); fail("expected NPE"); }
+        catch (NullPointerException expected) { assertEquals("scriptName", expected.getMessage()); }
+        try { AutoComplete.powershell("x", null); fail("expected NPE"); }
+        catch (NullPointerException expected) { assertEquals("commandLine", expected.getMessage()); }
+    }
+
+    @Test
+    public void powerShellWritesCompletionAndCommandScripts() throws IOException {
+        File dir = File.createTempFile("picocli-ps", "");
+        assertTrue(dir.delete() && dir.mkdir());
+        File out = new File(dir, "psfeatures-completion.ps1");
+        File command = new File(dir, "psfeatures");
+        try {
+            AutoComplete.powershell("psfeatures", out, command, new CommandLine(new PsFeatures()));
+            assertEquals(AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures())), readFile(out));
+            assertThat(readFile(command), containsString("& java -cp \"$libs\\myApp.jar\" 'picocli.AutoCompleteTest$PsFeatures' @args"));
+        } finally {
+            out.delete();
+            command.delete();
+            dir.delete();
+        }
+    }
+
+    private static String readFile(File file) throws IOException {
+        Scanner scanner = new Scanner(file);
+        try {
+            scanner.useDelimiter("\\A");
+            return scanner.hasNext() ? scanner.next() : "";
+        } finally {
+            scanner.close();
+        }
+    }
+
+    @Test
+    public void testGenerateCompletionScriptPowerShell() {
+        CommandLine cmd = new CommandLine(new MyApp());
+        StringWriter sw = new StringWriter();
+        cmd.setOut(new PrintWriter(sw));
+        String expected = AutoComplete.powershell("myapp", cmd) + "\n";
+        cmd.execute("generate-completion", "--shell=powershell");
+        assertEquals(expected, sw.toString());
+    }
+
+    @Test
+    public void autoCompleteAppGeneratesPowerShellScript() throws Exception {
+        File dir = File.createTempFile("picocli-psapp", "");
+        assertTrue(dir.delete() && dir.mkdir());
+        File out = new File(dir, "psfeatures-completion.ps1");
+        try {
+            AutoComplete.main("--shell=powershell", "-o", out.getAbsolutePath(), PsFeatures.class.getName());
+            assertEquals(AutoComplete.powershell("psfeatures", new CommandLine(new PsFeatures())), readFile(out));
+        } finally {
+            out.delete();
+            dir.delete();
         }
     }
 }

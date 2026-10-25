@@ -71,4 +71,23 @@ public class CompletionTest {
         assertTrue(bash.contains("--Xbenchmark-code-size"));
         assertTrue(bash.contains("--Xhelp"));
     }
+
+    @Test
+    public void generatesAPowerShellScriptMentioningEveryOptionAndSubcommand() throws Exception {
+        CommandSpec spec = CommandSpecDsl.parse(
+                "command demo \"A demo tool.\" {\n" +
+                "  option --verbose : boolean \"be verbose.\"\n" +
+                "  command build \"Builds the thing.\" {\n" +
+                "    option --release : boolean \"optimize for release.\"\n" +
+                "  }\n" +
+                "}");
+
+        String script = Completion.script(spec, "demo", Completion.Shell.powershell);
+
+        assertTrue(script.contains("# demo PowerShell completion"));
+        assertTrue(script.contains("Register-ArgumentCompleter -Native -CommandName 'demo'"));
+        assertTrue(script.contains("'--verbose'"));
+        assertTrue(script.contains("'--release'"));
+        assertTrue(script.contains("'build'"));
+    }
 }
