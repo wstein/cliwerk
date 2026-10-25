@@ -20,7 +20,7 @@
   },
   "key_constraints": [
     "Zero runtime dependencies beyond picocli core",
-    "Both DSL (.picocli) and JSON (.json) formats with lossless round-trip",
+    "Both DSL (.cliwerk) and JSON (.json) formats with lossless round-trip",
     "Tests split by Java version in separate modules",
     "Always use ./gradlew wrapper"
   ]

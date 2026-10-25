@@ -1,3 +1,5 @@
 Import-Package: !org.fusesource.jansi,!groovy.lang, *
 Export-Package: picocli
 -fixupmessages "^Classes found in the wrong directory: \\{META-INF/versions/9/module-info\\.class=module-info}$"
+# bnd would otherwise derive the symbolic name from the jar base name (cliwerk); keep the upstream OSGi identity (drop-in).
+Bundle-SymbolicName: picocli

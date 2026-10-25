@@ -61,6 +61,10 @@ jobs:
           ./gradlew clean || true
           ./gradlew build --no-daemon 2>&1 | tee "$RUNNER_TEMP/gradle-build.log"
 
+      - name: Check core jar name and manifest
+        shell: bash
+        run: python3 -I .github/scripts/check-jar-manifest.py
+
       - name: Report Gradle failure as annotations
         if: ${{ failure() && steps.build.outcome == 'failure' }}
         shell: bash
