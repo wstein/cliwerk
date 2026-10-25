@@ -175,7 +175,7 @@ try {
     $cafe = 'caf' + [char]0x00E9
     # typographic quotes count as single quotes in PowerShell: this candidate must not end the quoted string early
     $evil = 'x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019
-    $awkward = @('plain', 'with space', "it's", '$(Get-Date)', 'a`b', 'say "hi"', $cafe, 'semi;colon', ('it' + [char]0x2019 + 's'), $evil, '@x', 'a,b')
+    $awkward = @('plain', 'with space', "it's", '$(Get-Date)', 'a`b', 'say "hi"', $cafe, 'semi;colon', ('it' + [char]0x2019 + 's'), $evil, '@x', 'a,b', "foo`n", '--%', '0755', '1e3', '0x10', '1kb', '10d', '1.50', '.5', '-1', ([string][char]0x212A))
     ExpectHas   'psfeatures --pick ' $awkward
     ExpectHas   'psfeatures --pick w' 'with space'
     ExpectLacks 'psfeatures --pick w' plain, child

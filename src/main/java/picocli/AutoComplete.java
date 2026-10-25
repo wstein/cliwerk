@@ -858,9 +858,14 @@ public class AutoComplete {
         scriptName = sanitizeScriptName(scriptName);
         if (scriptName.endsWith(".ps1")) { scriptName = scriptName.substring(0, scriptName.length() - ".ps1".length()); }
         if (scriptName.endsWith(".exe")) { scriptName = scriptName.substring(0, scriptName.length() - ".exe".length()); }
-        scriptName = scriptName.replace('\r', ' ').replace('\n', ' '); // keeps the name in the header comment on one line
         StringBuilder result = new StringBuilder();
-        result.append(format(POWERSHELL_HEADER, scriptName, CommandLine.VERSION));
+        // the header is a comment: replace everything but printable ASCII (like line breaks), so it stays one ASCII line
+        StringBuilder headerName = new StringBuilder();
+        for (int i = 0; i < scriptName.length(); i++) {
+            char c = scriptName.charAt(i);
+            headerName.append(c >= 0x20 && c < 0x7f ? c : '?');
+        }
+        result.append(format(POWERSHELL_HEADER, headerName, CommandLine.VERSION));
         result.append("& {\n");
         result.append("    $tree = ");
         appendPowerShellNode(CompletionModel.build(commandLine), 1, result);
@@ -986,9 +991,10 @@ public class AutoComplete {
             "$seen = New-Object 'System.Collections.Generic.HashSet[string]'",
             "$add = {",
             "    param($text, $type, $tip)",
+            "    if ([string]::IsNullOrEmpty($text)) { return }",
             "    $display = $text",
             "    if (-not $seen.Add($display)) { return }",
-            "    if ($text -notmatch '^[A-Za-z0-9_.:/\\\\+%=-]+$') { $text = \"'\" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + \"'\" }",
+            "    if (($text -cnotmatch '\\A[A-Za-z0-9_.:/\\\\+%=-]+\\z') -or ($text -ceq '--%') -or ($text -cmatch '\\A[-.]?\\d')) { $text = \"'\" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + \"'\" }",
             "    if ([string]::IsNullOrEmpty($tip)) { $tip = $display }",
             "    [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))",
             "}",
