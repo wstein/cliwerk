@@ -13,7 +13,7 @@ import java.nio.file.Files;
 import java.util.concurrent.Callable;
 
 @Command(name = "completion", mixinStandardHelpOptions = true,
-        description = "Generates a bash/zsh or fish completion script for the given spec.")
+        description = "Generates a bash/zsh, fish or PowerShell completion script for the given spec.")
 final class CompletionCommand implements Callable<Integer> {
 
     @Parameters(index = "0", paramLabel = "<spec-file>", description = "A .picocli or .json spec file.")

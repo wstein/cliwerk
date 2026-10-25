@@ -147,7 +147,7 @@ java -jar picocli-spec-tool-<version>-all.jar <subcommand> <spec-file>
 | --- | --- |
 | `preview` | Prints the full usage help for every command in the spec |
 | `validate` | Load-only pass/fail — good for pre-commit hooks and CI |
-| `completion` | Generates a bash/zsh or fish completion script |
+| `completion` | Generates a bash/zsh, fish or PowerShell completion script |
 | `manpage` | Generates AsciiDoc man pages via picocli-codegen |
 | `convert` | Converts between DSL and JSON formats |
 

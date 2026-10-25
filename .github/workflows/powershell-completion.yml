@@ -1,0 +1,53 @@
+name: PowerShell completion
+# Loads the golden PowerShell completion scripts (src/test/resources/*.ps1) into real PowerShell sessions and checks
+# what PowerShell actually offers (TabExpansion2). The golden files are already verified against the generator by
+# AutoCompleteTest, so this job needs no Java.
+# Windows PowerShell 5.1 ('powershell') exists on Windows only; PowerShell 7 ('pwsh') runs everywhere.
+on:
+  push:
+    paths:
+      - 'src/main/java/picocli/AutoComplete.java'
+      - 'src/main/java/picocli/CompletionModel.java'
+      - 'src/test/resources/*.ps1'
+      - 'src/test/powershell/**'
+      - '.github/workflows/powershell-completion.yml'
+  pull_request:
+    paths:
+      - 'src/main/java/picocli/AutoComplete.java'
+      - 'src/main/java/picocli/CompletionModel.java'
+      - 'src/test/resources/*.ps1'
+      - 'src/test/powershell/**'
+      - '.github/workflows/powershell-completion.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  powershell:
+    name: ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { name: 'Windows PowerShell 5.1 (Windows)', os: windows-latest, shell: powershell }
+          - { name: 'PowerShell 7 (Windows)',           os: windows-latest, shell: pwsh }
+          - { name: 'PowerShell 7 (Linux)',             os: ubuntu-latest,  shell: pwsh }
+          - { name: 'PowerShell 7 (macOS)',             os: macos-latest,   shell: pwsh }
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+
+      - name: Show the PowerShell version
+        shell: ${{ matrix.shell }}
+        run: $PSVersionTable | Format-Table -AutoSize | Out-String | Write-Host
+
+      # Windows PowerShell may refuse to run unsigned script files, depending on the machine's execution policy
+      - name: Allow running the verification script
+        if: runner.os == 'Windows'
+        shell: ${{ matrix.shell }}
+        run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
+
+      - name: Verify what PowerShell offers
+        shell: ${{ matrix.shell }}
+        run: ./src/test/powershell/verify-completions.ps1 src/test/resources

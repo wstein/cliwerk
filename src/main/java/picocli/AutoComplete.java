@@ -66,7 +66,7 @@ public class AutoComplete {
     private AutoComplete() { }
 
     /**
-     * Generates a bash/zsh or fish completion script for the specified command class.
+     * Generates a bash/zsh, fish or PowerShell completion script for the specified command class.
      * @param args command line options. Specify at least the {@code commandLineFQCN} mandatory parameter, which is
      *      the fully qualified class name of the annotated {@code @Command} class to generate a completion script for.
      *      Other parameters are optional. Specify {@code -h} to see details on the available options.
@@ -105,7 +105,7 @@ public class AutoComplete {
      */
     @Command(name = "picocli.AutoComplete", mixinStandardHelpOptions = true, showAtFileInUsageHelp = true,
             version = "picocli.AutoComplete " + CommandLine.VERSION, sortOptions = false,
-            description = "Generates a bash/zsh or fish completion script for the specified command class.",
+            description = "Generates a shell completion script for the specified command class.",
             footerHeading = "%n@|bold System Properties:|@%n",
             footer = {"Set the following system properties to control the exit code of this program:",
                     "",
@@ -151,7 +151,7 @@ public class AutoComplete {
         @Option(names = {"-o", "--completionScript"},
                 description = "Optionally specify the path of the completion script file to generate. " +
                         "When omitted, a file named '<commandName>_completion' (or '<commandName>.fish' " +
-                        "when --shell=fish) is generated in the current directory.")
+                        "when --shell=fish, '<commandName>-completion.ps1' when --shell=powershell) is generated in the current directory.")
         File autoCompleteScript;
 
         @Option(names = {"-w", "--writeCommandScript"},
@@ -183,9 +183,12 @@ public class AutoComplete {
                     commandName = cls.getSimpleName().toLowerCase();
                 }
             }
-            boolean isFish = shell == GenerateCompletion.Shell.fish;
             if (autoCompleteScript == null) {
-                autoCompleteScript = new File(isFish ? commandName + ".fish" : commandName + "_completion");
+                String fileName = commandName + "_completion";
+                if (shell == GenerateCompletion.Shell.fish)       { fileName = commandName + ".fish"; }
+                // not <commandName>.ps1: PowerShell would run that file instead of the command
+                if (shell == GenerateCompletion.Shell.powershell) { fileName = commandName + "-completion.ps1"; }
+                autoCompleteScript = new File(fileName);
             }
             File commandScript = null;
             if (writeCommandScript) {
@@ -198,8 +201,10 @@ public class AutoComplete {
                 return EXIT_CODE_COMPLETION_SCRIPT_EXISTS;
             }
 
-            if (isFish) {
+            if (shell == GenerateCompletion.Shell.fish) {
                 AutoComplete.fish(commandName, autoCompleteScript, commandScript, commandLine);
+            } else if (shell == GenerateCompletion.Shell.powershell) {
+                AutoComplete.powershell(commandName, autoCompleteScript, commandScript, commandLine);
             } else {
                 AutoComplete.bash(commandName, autoCompleteScript, commandScript, commandLine);
             }
@@ -230,11 +235,13 @@ public class AutoComplete {
     @Command(name = "generate-completion", version = "generate-completion " + CommandLine.VERSION,
             mixinStandardHelpOptions = true,
             description = {
-                "Generate a bash/zsh or fish completion script for ${ROOT-COMMAND-NAME:-the root command of this command}.",
+                "Generate a shell completion script for ${ROOT-COMMAND-NAME:-the root command of this command}.",
                 "Run the following command to give `${ROOT-COMMAND-NAME:-$PARENTCOMMAND}` TAB completion in the current shell:",
                 "",
                 "  source <(${PARENT-COMMAND-FULL-NAME:-$PARENTCOMMAND} ${COMMAND-NAME})",
                 "  (or, for fish: ${PARENT-COMMAND-FULL-NAME:-$PARENTCOMMAND} ${COMMAND-NAME} --shell=fish | source)",
+                "  (or, for PowerShell:",
+                "    ${PARENT-COMMAND-FULL-NAME:-$PARENTCOMMAND} ${COMMAND-NAME} --shell=powershell | Out-String | iex)",
                 ""},
             optionListHeading = "Options:%n",
             helpCommand = true
@@ -248,6 +255,9 @@ public class AutoComplete {
             },
             fish {
                 String generate(CommandSpec spec) { return AutoComplete.fish(spec.root().name(), spec.root().commandLine()); }
+            },
+            powershell {
+                String generate(CommandSpec spec) { return AutoComplete.powershell(spec.root().name(), spec.root().commandLine()); }
             };
             abstract String generate(CommandSpec spec);
         }
@@ -813,6 +823,343 @@ public class AutoComplete {
     /** Escapes a value for use inside a single-quoted fish string. */
     private static String fishQuote(String value) {
         return value.replace("\\", "\\\\").replace("'", "\\'");
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+    // PowerShell
+    // ------------------------------------------------------------------------------------------------------------
+
+    private static final String POWERSHELL_HEADER = "" +
+            "# %1$s PowerShell completion\n" +
+            "# Generated by picocli version %2$s: https://picocli.info/\n" +
+            "# Works with Windows PowerShell 5.1 and PowerShell 7+ (Windows, Linux and macOS).\n" +
+            "# Install by adding the following line to your PowerShell profile ($PROFILE):\n" +
+            "#   %1$s generate-completion --shell=powershell | Out-String | Invoke-Expression\n" +
+            "# or save this script to a file and dot-source it from your profile.\n";
+
+    /**
+     * Generates and returns the source code for a PowerShell completion script for the specified picocli-based application.
+     * <p>The script registers a native argument completer ({@code Register-ArgumentCompleter -Native}) that works in
+     * Windows PowerShell 5.1 as well as in PowerShell 7+. It contains the command hierarchy as data, followed by a small
+     * generic function that walks the words typed so far down that data and offers the subcommands, options (including
+     * negated names of negatable options), enum constants and other completion candidates that apply at the cursor,
+     * with the descriptions as tooltips. Where nothing is known to complete, PowerShell's default file name completion
+     * applies. The script contains only ASCII characters.</p>
+     * @param scriptName the name of the command to generate a PowerShell completion script for
+     * @param commandLine the {@code CommandLine} instance for the command line application
+     * @return source code for a PowerShell completion script
+     * @since 4.8
+     */
+    public static String powershell(String scriptName, CommandLine commandLine) {
+        if (scriptName == null)  { throw new NullPointerException("scriptName"); }
+        if (commandLine == null) { throw new NullPointerException("commandLine"); }
+        scriptName = sanitizeScriptName(scriptName);
+        if (scriptName.endsWith(".ps1")) { scriptName = scriptName.substring(0, scriptName.length() - ".ps1".length()); }
+        if (scriptName.endsWith(".exe")) { scriptName = scriptName.substring(0, scriptName.length() - ".exe".length()); }
+        StringBuilder result = new StringBuilder();
+        result.append(format(POWERSHELL_HEADER, scriptName, CommandLine.VERSION));
+        result.append("& {\n");
+        result.append("    $tree = ");
+        appendPowerShellNode(CompletionModel.build(commandLine), 1, result);
+        result.append('\n');
+        result.append("    $completer = {\n");
+        for (String line : POWERSHELL_COMPLETER) {
+            if (line.length() > 0) { result.append("        ").append(line); }
+            result.append('\n');
+        }
+        result.append("    }\n");
+        // the closure captures $tree, so the script leaves no variables behind in the session
+        result.append("    Register-ArgumentCompleter -Native -CommandName ").append(powerShellQuote(scriptName))
+                .append(", ").append(powerShellQuote(scriptName + ".exe")).append(" -ScriptBlock $completer.GetNewClosure()\n");
+        result.append("}\n");
+        return result.toString();
+    }
+
+    /**
+     * Generates source code for a PowerShell completion script for the specified picocli-based application,
+     * and writes this script to the specified {@code out} file, and optionally writes an invocation script
+     * to the specified {@code command} file.
+     * @param scriptName the name of the command to generate a PowerShell completion script for
+     * @param commandLine the {@code CommandLine} instance for the command line application
+     * @param out the file to write the PowerShell completion script source code to
+     * @param command the file to write a helper script to that invokes the command, or {@code null} if no helper script file should be written
+     * @throws IOException if a problem occurred writing to the specified files
+     * @since 4.8
+     */
+    public static void powershell(String scriptName, File out, File command, CommandLine commandLine) throws IOException {
+        String autoCompleteScript = powershell(scriptName, commandLine);
+        Writer completionWriter = null;
+        Writer scriptWriter = null;
+        try {
+            completionWriter = new FileWriter(out);
+            completionWriter.write(autoCompleteScript);
+
+            if (command != null) {
+                scriptWriter = new FileWriter(command);
+                scriptWriter.write("" +
+                        "$libs = 'path\\to\\libs'\n" +
+                        "& java -cp \"$libs\\myApp.jar\" " + powerShellQuote(((Object) commandLine.getCommand()).getClass().getName()) + " @args\n");
+            }
+        } finally {
+            if (completionWriter != null) { completionWriter.close(); }
+            if (scriptWriter != null)     { scriptWriter.close(); }
+        }
+    }
+
+    /** The part of the generated PowerShell script that walks the command tree; the same for every command. */
+    private static final String[] POWERSHELL_COMPLETER = {
+            "param($wordToComplete, $commandAst, $cursorPosition)",
+            "# Words before the cursor, and the (possibly empty) prefix of the word under the cursor.",
+            "$words = New-Object System.Collections.ArrayList",
+            "$current = ''",
+            "$elements = $commandAst.CommandElements",
+            "for ($i = 1; $i -lt $elements.Count; $i++) {",
+            "    $e = $elements[$i]",
+            "    if ($e.Extent.StartOffset -ge $cursorPosition) { break }",
+            "    if ($e.Extent.EndOffset -ge $cursorPosition) {",
+            "        $current = $e.Extent.Text.Substring(0, $cursorPosition - $e.Extent.StartOffset)",
+            "        break",
+            "    }",
+            "    if ($e -is [System.Management.Automation.Language.StringConstantExpressionAst]) { [void]$words.Add([string]$e.Value) }",
+            "    else { [void]$words.Add([string]$e.Extent.Text) }",
+            "}",
+            "if ($current.Length -gt 0 -and ($current[0] -eq [char]39 -or $current[0] -eq [char]34)) { $current = $current.Substring(1) }",
+            "",
+            "$findOpt = {",
+            "    param($name)",
+            "    foreach ($o in $node.Options) {",
+            "        if (($o.Names -ccontains $name) -or ($o.Negated -ccontains $name)) { return $o }",
+            "    }",
+            "}",
+            "",
+            "# Walk the words before the cursor down the command tree.",
+            "$node = $tree",
+            "$pending = $null",
+            "$pendingLeft = 0",
+            "$lastOpt = $null",
+            "$posIndex = 0",
+            "$onlyPositional = $false",
+            "foreach ($w in $words) {",
+            "    if ($pendingLeft -gt 0) { $pendingLeft--; continue }",
+            "    $prevOpt = $lastOpt",
+            "    $lastOpt = $null",
+            "    if (-not $onlyPositional) {",
+            "        if ($w -ceq '--') { $onlyPositional = $true; continue }",
+            "        # a candidate typed after an option with an optional value is that value",
+            "        if ($null -ne $prevOpt -and ($prevOpt.Candidates -ccontains $w)) { continue }",
+            "        $name = $w",
+            "        $attached = $false",
+            "        $eq = $w.IndexOf('=')",
+            "        if ($eq -gt 0 -and $w.StartsWith('-')) { $name = $w.Substring(0, $eq); $attached = $true }",
+            "        $opt = & $findOpt $name",
+            "        if ($null -ne $opt) {",
+            "            if ($attached) { continue }",
+            "            if ($opt.Min -gt 0) { $pending = $opt; $pendingLeft = $opt.Min }",
+            "            elseif ($opt.Max -gt 0) { $lastOpt = $opt }",
+            "            continue",
+            "        }",
+            "        if ($w.StartsWith('-') -and $w.Length -gt 1) {",
+            "            # clustered short options like -abc, the last one may take the next word as its value",
+            "            if (-not $w.StartsWith('--')) {",
+            "                for ($k = 1; $k -lt $w.Length; $k++) {",
+            "                    $o = & $findOpt ('-' + $w[$k])",
+            "                    if ($null -eq $o) { break }",
+            "                    if ($o.Max -gt 0) {",
+            "                        if ($k -eq $w.Length - 1 -and $o.Min -gt 0) { $pending = $o; $pendingLeft = $o.Min }",
+            "                        break",
+            "                    }",
+            "                }",
+            "            }",
+            "            continue",
+            "        }",
+            "        $sub = $null",
+            "        foreach ($s in $node.Subcommands) { if ($s.Names -ccontains $w) { $sub = $s; break } }",
+            "        if ($null -ne $sub) { $node = $sub.Node; $posIndex = 0; continue }",
+            "    }",
+            "    $posIndex++",
+            "}",
+            "",
+            "$results = New-Object System.Collections.ArrayList",
+            "$seen = New-Object 'System.Collections.Generic.HashSet[string]'",
+            "$add = {",
+            "    param($text, $type, $tip)",
+            "    $display = $text",
+            "    if (-not $seen.Add($display)) { return }",
+            "    if ($text -notmatch '^[A-Za-z0-9_.,:/\\\\+@%=-]+$') { $text = \"'\" + $text.Replace(\"'\", \"''\") + \"'\" }",
+            "    if ([string]::IsNullOrEmpty($tip)) { $tip = $display }",
+            "    [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))",
+            "}",
+            "$addValues = {",
+            "    param($candidates, $prefix, $tip, $head)",
+            "    foreach ($c in $candidates) {",
+            "        if ($c.StartsWith($prefix, [System.StringComparison]::Ordinal)) { & $add ($head + $c) 'ParameterValue' $tip }",
+            "    }",
+            "}",
+            "",
+            "if ($pendingLeft -gt 0) {",
+            "    # the word under the cursor is a value of the preceding option",
+            "    & $addValues $pending.Candidates $current $pending.Description ''",
+            "    return $results",
+            "}",
+            "$eq = $current.IndexOf('=')",
+            "if (-not $onlyPositional -and $eq -gt 0 -and $current.StartsWith('-')) {",
+            "    # --option=value",
+            "    $name = $current.Substring(0, $eq)",
+            "    $opt = & $findOpt $name",
+            "    if ($null -ne $opt -and $opt.Max -gt 0) {",
+            "        & $addValues $opt.Candidates $current.Substring($eq + 1) $opt.Description ($name + '=')",
+            "    }",
+            "    return $results",
+            "}",
+            "if (-not $onlyPositional -and $current.Length -gt 0 -and -not [char]::IsLetterOrDigit($current[0])) {",
+            "    foreach ($o in $node.Options) {",
+            "        foreach ($n in $o.Names) {",
+            "            if ($n.StartsWith($current, [System.StringComparison]::Ordinal)) { & $add $n 'ParameterName' $o.Description }",
+            "        }",
+            "        foreach ($n in $o.Negated) {",
+            "            if ($n.StartsWith($current, [System.StringComparison]::Ordinal)) { & $add $n 'ParameterName' $o.NegatedDescription }",
+            "        }",
+            "    }",
+            "    if ($results.Count -gt 0) { return $results }",
+            "}",
+            "if ($null -ne $lastOpt) { & $addValues $lastOpt.Candidates $current $lastOpt.Description '' }",
+            "if (-not $onlyPositional) {",
+            "    foreach ($s in $node.Subcommands) {",
+            "        foreach ($n in $s.Names) {",
+            "            if ($n.StartsWith($current, [System.StringComparison]::Ordinal)) { & $add $n 'ParameterValue' $s.Description }",
+            "        }",
+            "    }",
+            "}",
+            "foreach ($p in $node.Positionals) {",
+            "    if ($posIndex -ge $p.Min -and ($p.Max -lt 0 -or $posIndex -le $p.Max)) {",
+            "        & $addValues $p.Candidates $current $p.Description ''",
+            "    }",
+            "}",
+            "return $results"
+    };
+
+    private static void powerShellIndent(int level, StringBuilder out) {
+        for (int i = 0; i < level; i++) { out.append("    "); }
+    }
+
+    /**
+     * Appends the hashtable that describes {@code command}: its {@code Options}, {@code Positionals} and
+     * {@code Subcommands} (each with their {@code Names} and a nested {@code Node}). {@code level} is the indentation
+     * level of the line the hashtable starts on.
+     */
+    private static void appendPowerShellNode(CompletionModel.CommandNode command, int level, StringBuilder out) {
+        out.append("@{\n");
+        powerShellIndent(level + 1, out);
+        out.append("Options = @(");
+        boolean first = true;
+        for (CompletionModel.OptionNode option : command.options()) {
+            out.append(first ? "\n" : ",\n");
+            first = false;
+            powerShellIndent(level + 2, out);
+            appendPowerShellOption(option, out);
+        }
+        appendPowerShellListEnd(first, level + 1, out);
+        out.append('\n');
+
+        powerShellIndent(level + 1, out);
+        out.append("Positionals = @(");
+        first = true;
+        for (CompletionModel.PositionalNode positional : command.positionals()) {
+            out.append(first ? "\n" : ",\n");
+            first = false;
+            powerShellIndent(level + 2, out);
+            int max = positional.index().max();
+            out.append("@{ Min = ").append(positional.index().min()).append("; Max = ").append(max == Integer.MAX_VALUE ? -1 : max);
+            appendPowerShellDescriptionAndCandidates(positional, positional.plainDescription(), out);
+            out.append(" }");
+        }
+        appendPowerShellListEnd(first, level + 1, out);
+        out.append('\n');
+
+        powerShellIndent(level + 1, out);
+        out.append("Subcommands = @(");
+        first = true;
+        for (CompletionModel.CommandNode child : command.subcommands()) {
+            out.append(first ? "\n" : ",\n");
+            first = false;
+            powerShellIndent(level + 2, out);
+            out.append("@{ Names = ").append(powerShellArray(child.names()));
+            String description = child.plainDescription();
+            if (description.length() > 0) { out.append("; Description = ").append(powerShellQuote(description)); }
+            out.append(";\n");
+            powerShellIndent(level + 3, out);
+            out.append("Node = ");
+            appendPowerShellNode(child, level + 3, out);
+            out.append(" }");
+        }
+        appendPowerShellListEnd(first, level + 1, out);
+        out.append('\n');
+        powerShellIndent(level, out);
+        out.append('}');
+    }
+
+    private static void appendPowerShellListEnd(boolean empty, int level, StringBuilder out) {
+        if (empty) { out.append(')'); return; }
+        out.append('\n');
+        powerShellIndent(level, out);
+        out.append(')');
+    }
+
+    private static void appendPowerShellOption(CompletionModel.OptionNode option, StringBuilder out) {
+        int max = option.arity().max();
+        out.append("@{ Names = ").append(powerShellArray(option.names()));
+        out.append("; Min = ").append(option.arity().min()).append("; Max = ").append(Math.min(max, 1000));
+        if (!option.negatedNames().isEmpty()) {
+            String text = option.plainDescription();
+            String negates = "Negates " + option.longestName() + (text.length() == 0 ? "" : ": " + text);
+            out.append("; Negated = ").append(powerShellArray(option.negatedNames()));
+            out.append("; NegatedDescription = ").append(powerShellQuote(negates));
+        }
+        appendPowerShellDescriptionAndCandidates(option, option.plainDescription(), out);
+        out.append(" }");
+    }
+
+    private static void appendPowerShellDescriptionAndCandidates(CompletionModel.ArgNode arg, String description, StringBuilder out) {
+        if (description.length() > 0) { out.append("; Description = ").append(powerShellQuote(description)); }
+        CompletionModel.Candidates candidates = arg.candidates();
+        // host names have no PowerShell equivalent: the default (file name) completion applies
+        if (arg.takesValue() && candidates != null && candidates.kind() == CompletionModel.CandidateKind.VALUES
+                && !candidates.values().isEmpty()) {
+            out.append("; Candidates = ").append(powerShellArray(candidates.values()));
+        }
+    }
+
+    private static String powerShellArray(List<String> values) {
+        StringBuilder sb = new StringBuilder("@(");
+        for (int i = 0; i < values.size(); i++) {
+            if (i > 0) { sb.append(", "); }
+            sb.append(powerShellQuote(values.get(i)));
+        }
+        return sb.append(')').toString();
+    }
+
+    /**
+     * Returns the value as a PowerShell expression for a string: a single-quoted string if it consists of printable
+     * ASCII characters only (a single quote is doubled), otherwise a parenthesized concatenation in which all other
+     * characters are written as {@code [char]0x....}. This keeps the script ASCII-only, so Windows PowerShell 5.1 reads
+     * it correctly whatever the encoding of the file is, and keeps typographic quotes (which PowerShell treats
+     * as single quotes) from ending the string early.
+     */
+    private static String powerShellQuote(String value) {
+        StringBuilder sb = new StringBuilder("'");
+        boolean concatenated = false;
+        for (int i = 0; i < value.length(); i++) {
+            char c = value.charAt(i);
+            if (c >= 0x20 && c < 0x7f) {
+                if (c == '\'') { sb.append('\''); }
+                sb.append(c);
+            } else {
+                concatenated = true;
+                sb.append("' + [char]0x").append(String.format("%04X", (int) c)).append(" + '");
+            }
+        }
+        sb.append('\'');
+        return concatenated ? "(" + sb + ")" : sb.toString();
     }
 
     private static List<CommandDescriptor> createHierarchy(String scriptName, CommandLine commandLine) {

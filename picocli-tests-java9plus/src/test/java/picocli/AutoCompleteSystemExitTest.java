@@ -26,7 +26,7 @@ public class AutoCompleteSystemExitTest {
         "Usage: picocli.AutoComplete [-fhVw] [-c=<factoryClass>] [-n=<commandName>]%n" +
         "                            [-o=<autoCompleteScript>] [--shell=<shell>]%n" +
         "                            [@<filename>...] <commandLineFQCN>%n" +
-        "Generates a bash/zsh or fish completion script for the specified command class.%n" +
+        "Generates a shell completion script for the specified command class.%n" +
         "      [@<filename>...]       One or more argument files containing options.%n" +
         "      <commandLineFQCN>      Fully qualified class name of the annotated%n" +
         "                               `@Command` class to generate a completion script%n" +
@@ -46,13 +46,15 @@ public class AutoCompleteSystemExitTest {
         "                             Optionally specify the path of the completion%n" +
         "                               script file to generate. When omitted, a file%n" +
         "                               named '<commandName>_completion' (or%n" +
-        "                               '<commandName>.fish' when --shell=fish) is%n" +
-        "                               generated in the current directory.%n" +
+        "                               '<commandName>.fish' when --shell=fish,%n" +
+        "                               '<commandName>-completion.ps1' when%n" +
+        "                               --shell=powershell) is generated in the current%n" +
+        "                               directory.%n" +
         "  -w, --writeCommandScript   Write a '<commandName>' sample command script to%n" +
         "                               the same directory as the completion script.%n" +
         "  -f, --force                Overwrite existing script files.%n" +
         "      --shell=<shell>        The shell to generate a completion script for:%n" +
-        "                               bash, fish.%n" +
+        "                               bash, fish, powershell.%n" +
         "  -h, --help                 Show this help message and exit.%n" +
         "  -V, --version              Print version information and exit.%n" +
         "%n" +
@@ -256,7 +258,7 @@ public class AutoCompleteSystemExitTest {
                 "  local commands=\"\"\n" +
                 "  local flag_opts=\"'-w' '--writeCommandScript' '-f' '--force' '-h' '--help' '-V' '--version'\"\n" +
                 "  local arg_opts=\"'-c' '--factory' '-n' '--name' '-o' '--completionScript' '--shell'\"\n" +
-                "  local shell_shell_option_args=(\"bash\" \"fish\") # --shell values\n" +
+                "  local shell_shell_option_args=(\"bash\" \"fish\" \"powershell\") # --shell values\n" +
                 "\n" +
                 "  type compopt &>/dev/null && compopt +o default\n" +
                 "\n" +
