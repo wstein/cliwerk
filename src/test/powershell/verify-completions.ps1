@@ -188,7 +188,9 @@ try {
     }
     # tooltips carry the descriptions
     $tips = @{}
-    foreach ($m in (Complete 'psfeatures --')) { $tips[$m.ListItemText] = $m.ToolTip }
+    foreach ($prefix in '--c', '--n', '--r') {
+        foreach ($m in (Complete "psfeatures $prefix")) { $tips[$m.ListItemText] = $m.ToolTip }
+    }
     ExpectEquals 'the tooltip of --color' $tips['--color'] 'Use colors'
     ExpectEquals 'the tooltip of --no-color' $tips['--no-color'] 'Negates --color: Use colors'
     ExpectEquals 'the tooltip of --required' $tips['--required'] 'value required'
