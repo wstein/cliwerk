@@ -173,7 +173,9 @@ try {
     ExpectLacks 'psfeatures -cu ' child
     # candidates with spaces, quotes, backticks, dollar signs and non-ASCII characters are each offered as ONE completion
     $cafe = 'caf' + [char]0x00E9
-    $awkward = @('plain', 'with space', "it's", '$(Get-Date)', 'a`b', 'say "hi"', $cafe, 'semi;colon')
+    # typographic quotes count as single quotes in PowerShell: this candidate must not end the quoted string early
+    $evil = 'x' + [char]0x2019 + '; Write-Host PWNED; ' + [char]0x2019
+    $awkward = @('plain', 'with space', "it's", '$(Get-Date)', 'a`b', 'say "hi"', $cafe, 'semi;colon', ('it' + [char]0x2019 + 's'), $evil, '@x', 'a,b')
     ExpectHas   'psfeatures --pick ' $awkward
     ExpectHas   'psfeatures --pick w' 'with space'
     ExpectLacks 'psfeatures --pick w' plain, child
@@ -181,6 +183,14 @@ try {
     # ... and the text that is inserted evaluates to exactly the candidate, without running anything
     foreach ($candidate in (Complete 'psfeatures --pick ')) {
         $script:checks++
+        # the inserted text must be exactly one argument of the command, not several statements or an array
+        $parseErrors = $null
+        $ast = [System.Management.Automation.Language.Parser]::ParseInput('cmd ' + $candidate.CompletionText, [ref]$null, [ref]$parseErrors)
+        $statements = @($ast.EndBlock.Statements)
+        $elements = @($statements[0].PipelineElements[0].CommandElements)
+        if (@($parseErrors).Count -gt 0 -or $statements.Count -ne 1 -or $elements.Count -ne 2 -or $elements[1] -isnot [System.Management.Automation.Language.StringConstantExpressionAst]) {
+            Fail "the completion text '$($candidate.CompletionText)' is not exactly one string argument"
+        }
         $value = & ([scriptblock]::Create('Write-Output ' + $candidate.CompletionText))
         if ($value -cne $candidate.ListItemText) {
             Fail "the completion text '$($candidate.CompletionText)' evaluates to '$value', not to '$($candidate.ListItemText)'"

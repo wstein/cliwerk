@@ -1609,7 +1609,7 @@ public class AutoCompleteTest {
     @Command(name = "psfeatures", subcommands = PsFeaturesSub.class)
     static class PsFeatures {
         static class Candidates extends ArrayList<String> {
-            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(Get-Date)", "a`b", "say \"hi\"", "caf\u00e9", "semi;colon")); }
+            Candidates() { super(Arrays.asList("plain", "with space", "it's", "$(Get-Date)", "a`b", "say \"hi\"", "caf\u00e9", "semi;colon", "it\u2019s", "x\u2019; Write-Host PWNED; \u2019", "@x", "a,b")); }
         }
         @Option(names = {"-c", "--color"}, negatable = true, description = "Use colors") boolean color;
         @Option(names = "--shared", scope = CommandLine.ScopeType.INHERIT, description = "inherited by subcommands") boolean shared;

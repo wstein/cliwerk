@@ -39,15 +39,16 @@ jobs:
           - { name: 'PowerShell 7 (macOS)',             os: macos-latest,   shell: pwsh }
     steps:
       - name: Checkout
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
 
       - name: Show the PowerShell version
         run: $PSVersionTable | Format-Table -AutoSize | Out-String | Write-Host
 
-      # Windows PowerShell may refuse to run unsigned script files, depending on the machine's execution policy
-      - name: Allow running the verification script
-        if: runner.os == 'Windows'
-        run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
-
       - name: Verify what PowerShell offers
-        run: ./src/test/powershell/verify-completions.ps1 src/test/resources
+        # Windows PowerShell may refuse to run unsigned script files, depending on the machine's execution policy
+        run: |
+          if ($env:RUNNER_OS -eq 'Windows') { Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force }
+          ./src/test/powershell/verify-completions.ps1 src/test/resources
+          if ($LASTEXITCODE) { exit $LASTEXITCODE }

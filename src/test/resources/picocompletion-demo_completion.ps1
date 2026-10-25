@@ -145,7 +145,7 @@
             param($text, $type, $tip)
             $display = $text
             if (-not $seen.Add($display)) { return }
-            if ($text -notmatch '^[A-Za-z0-9_.,:/\\+@%%=-]+$') { $text = "'" + $text.Replace("'", "''") + "'" }
+            if ($text -notmatch '^[A-Za-z0-9_.:/\\+%%=-]+$') { $text = "'" + [System.Management.Automation.Language.CodeGeneration]::EscapeSingleQuotedStringContent($text) + "'" }
             if ([string]::IsNullOrEmpty($tip)) { $tip = $display }
             [void]$results.Add([System.Management.Automation.CompletionResult]::new($text, $display, $type, $tip))
         }
