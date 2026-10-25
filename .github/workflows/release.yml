@@ -107,7 +107,7 @@ jobs:
         run: ./gradlew publishForkPublicationToForkRepoRepository --no-daemon
 
       - name: Generate javadoc
-        run: ./gradlew :javadoc :picocli-spec:javadoc --no-daemon
+        run: ./gradlew :javadoc :picocli-spec:javadoc -PjavadocLinks --no-daemon
 
       - name: Push updated site to GitHub Pages
         run: |
