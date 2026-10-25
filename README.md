@@ -20,19 +20,18 @@ The project name changed to cliwerk, but the code did not (yet):
 
 - The Java package is still `picocli` (`picocli.CommandLine`, `@Command`, `@Option`, ...);
   the library API described in the upstream documentation applies unchanged.
-- One artifact is published, `io.github.wstein:picocli` (artifactId `picocli`, under this fork's own groupId —
-  distinct from upstream's `info.picocli`). There is no separate `picocli-spec` artifact:
+- One artifact is published, `io.github.wstein:cliwerk` (this fork's own groupId and artifactId —
+  distinct from upstream's `info.picocli:picocli`). There is no separate `picocli-spec` artifact:
   the `picocli-spec` classes are bundled into this artifact.
 - The repository has been renamed from `wstein/picocli` to `wstein/cliwerk` (GitHub redirects the old repository URLs),
-  but the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) still use `wstein.github.io/picocli`
-  and will be updated in a separate change.
+  and the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) use `wstein.github.io/cliwerk`.
 
 ### Migration outlook
 
 The Java package stays `picocli`: cliwerk is meant as a drop-in replacement for upstream picocli,
 so it cannot be on the same classpath as `info.picocli:picocli`.
-The new Maven coordinates (`io.github.wstein:cliwerk`) are decided but not yet implemented;
-see the decisions in [docs/FORK.adoc](docs/FORK.adoc). No date has been decided.
+The Maven coordinates are `io.github.wstein:cliwerk` (see [docs/FORK.adoc](docs/FORK.adoc)).
+A rename of the Java package is deliberately deferred; no date has been decided.
 Versions are `<upstream x.y.z>.<fork revision>`: the current version is `4.7.7.1`, based on upstream picocli 4.7.7.
 The releases 4.7.8 to 4.9.4 were cliwerk's own releases, not upstream picocli releases. Maven and Gradle sort them
 above `4.7.7.1`, so pin the cliwerk version explicitly. Until the coordinates change, existing
@@ -54,8 +53,8 @@ before it is released.
 
 ## Download
 
-cliwerk currently publishes under `io.github.wstein:picocli` (distinct from upstream's `info.picocli:picocli`;
-see the transition note above). Releases are cut by pushing a `v<version>` tag: the
+cliwerk publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:picocli`;
+see the transition note above). The first release is `4.7.7.1`. Releases are cut by pushing a `v<version>` tag: the
 [release workflow](.github/workflows/release.yml) builds the jars, creates a GitHub Release and
 publishes the flat Maven repository, Javadoc and JSON Schema to GitHub Pages.
 
@@ -63,10 +62,10 @@ publishes the flat Maven repository, Javadoc and JSON Schema to GitHub Pages.
 
 ```groovy
 repositories {
-    maven { url 'https://wstein.github.io/picocli/maven' }
+    maven { url 'https://wstein.github.io/cliwerk/maven' }
 }
 dependencies {
-    implementation 'io.github.wstein:picocli:<version>'
+    implementation 'io.github.wstein:cliwerk:4.7.7.1'
 }
 ```
 
@@ -76,20 +75,20 @@ dependencies {
 <repositories>
   <repository>
     <id>wstein-cliwerk</id>
-    <url>https://wstein.github.io/picocli/maven</url>
+    <url>https://wstein.github.io/cliwerk/maven</url>
   </repository>
 </repositories>
 <dependency>
   <groupId>io.github.wstein</groupId>
-  <artifactId>picocli</artifactId>
-  <version>VERSION</version>
+  <artifactId>cliwerk</artifactId>
+  <version>4.7.7.1</version>
 </dependency>
 ```
 
 Jars are also attached directly to [GitHub Releases](https://github.com/wstein/cliwerk/releases).
 
 **Javadoc and JSON Schema** are hosted on GitHub Pages —
-see the [landing page](https://wstein.github.io/picocli/) for all links.
+see the [landing page](https://wstein.github.io/cliwerk/) for all links.
 
 ---
 
@@ -120,14 +119,16 @@ CommandSpecMerger.merge(myUberSpec, flixSpec);
 ```
 
 → [`picocli-spec` README](picocli-spec/README.md) ·
-[JSON Schema](https://wstein.github.io/picocli/spec/schema/command-spec.schema.json) ·
-[Javadoc](https://wstein.github.io/picocli/apidocs/picocli-spec/)
+[JSON Schema](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json) ·
+[Javadoc](https://wstein.github.io/cliwerk/apidocs/picocli-spec/)
 
 ### Gradle
 
+The spec classes are bundled into the root artifact; no separate dependency is needed:
+
 ```groovy
 dependencies {
-    implementation 'io.github.wstein:picocli-spec:<version>'
+    implementation 'io.github.wstein:cliwerk:4.7.7.1'
 }
 ```
 

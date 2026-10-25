@@ -111,7 +111,7 @@ public class CommandSpecSchemaTest {
      */
     @Test
     public void schemaIdIsTheUnversionedLatestUrl() {
-        assertEquals("https://wstein.github.io/picocli/spec/schema/command-spec.schema.json", schema().get("$id"));
+        assertEquals("https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json", schema().get("$id"));
     }
 
     @Test
