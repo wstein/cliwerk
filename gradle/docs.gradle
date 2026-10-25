@@ -24,9 +24,14 @@ linkMap << [(org.gradle.api.JavaVersion.VERSION_24)   : 'https://docs.oracle.com
 //linkMap << [(org.gradle.api.JavaVersion.VERSION_25)   : 'https://docs.oracle.com/en/java/javase/25/docs/api/']
 
 javadoc.options.overview = "src/main/java/overview.html"
-javadoc.options.links += [
-        linkMap.get(org.gradle.api.JavaVersion.current(), "https://docs.oracle.com/en/java/javase/11/docs/api/"),
-]
+// The JDK API link makes javadoc fetch package-list/element-list from docs.oracle.com. A network timeout there
+// failed the JDK 9+ builds although all tests passed, so the link is opt-in (-PjavadocLinks, e.g. for published
+// docs) and not part of the regular build.
+if (project.hasProperty('javadocLinks')) {
+    javadoc.options.links += [
+            linkMap.get(org.gradle.api.JavaVersion.current(), "https://docs.oracle.com/en/java/javase/11/docs/api/"),
+    ]
+}
 //javadoc.options.linksOffline linkMap.get(org.gradle.api.JavaVersion.current(), 'https://docs.oracle.com/en/java/javase/12/docs/api/'), 'gradle/javadocs/jdk/9/'
 
 javadoc {
