@@ -234,7 +234,7 @@ Decided 2026-10-24: upstream is synced *release by release*.
 
 | Names owned by cliwerk carry the name cliwerk (D5, decided 2026-10-25)
 | Scope: everything that exists only in cliwerk and is not upstream API.
-  Renamed (the old names never existed in upstream picocli; they shipped only in the withdrawn releases 4.7.8 to 4.9.4):
+  Renamed:
   modules and directories `picocli-spec` -> `cliwerk-spec` and `picocli-spec-tool` -> `cliwerk-spec-tool`;
   Java packages `picocli.spec`, `picocli.spec.json`, `picocli.spec.tool` -> `cliwerk.spec`, `cliwerk.spec.json`, `cliwerk.spec.tool`
   (these packages do not exist in upstream picocli 4.7.7; removing them from package `picocli` also keeps that package equal to upstream's plus additive changes);
@@ -249,7 +249,7 @@ Decided 2026-10-24: upstream is synced *release by release*.
   Stays on purpose: Java package `picocli` and all upstream API, JPMS module names of the upstream-derived modules (`info.picocli*`; the spec modules' `ext.moduleName` is `info.cliwerk.spec*`), Maven group `info.picocli` of the
   Central-style `release` publication (dormant) and the baseline, manifest `Implementation-Title`/`Specification-Title` `picocli` of the core jar,
   upstream directories `picocli-codegen`, `picocli-groovy`, ..., upstream attribution, `RELEASE-NOTES.md`, the JSON Schema URL and file name `command-spec.schema.json`.
-  Compatibility effect: code written against the `picocli.spec.*` classes of the withdrawn releases must change its imports to `cliwerk.spec.*`;
+  Compatibility effect: code written against the old `picocli.spec.*` classes must change its imports to `cliwerk.spec.*`;
   migration note for flixw: imports `picocli.spec.*` -> `cliwerk.spec.*`, spec files `*.picocli` -> `*.cliwerk`, tool name `picospec` -> `cliwerk-spec`;
   the classes still ship in the core jar on Java 11+, but are not part of the JPMS-exported API (module `info.picocli` exports only `picocli`), as before.
 |===
