@@ -26,6 +26,9 @@ jobs:
   powershell:
     name: ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: ${{ matrix.shell }}
     strategy:
       fail-fast: false
       matrix:
@@ -39,15 +42,12 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
 
       - name: Show the PowerShell version
-        shell: ${{ matrix.shell }}
         run: $PSVersionTable | Format-Table -AutoSize | Out-String | Write-Host
 
       # Windows PowerShell may refuse to run unsigned script files, depending on the machine's execution policy
       - name: Allow running the verification script
         if: runner.os == 'Windows'
-        shell: ${{ matrix.shell }}
         run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
       - name: Verify what PowerShell offers
-        shell: ${{ matrix.shell }}
         run: ./src/test/powershell/verify-completions.ps1 src/test/resources
