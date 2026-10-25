@@ -95,8 +95,8 @@ task generateJavadocOptions {
 -charset 'UTF-8'
 -docencoding 'UTF-8'
 -encoding 'UTF-8'
--doctitle 'picocli ${project.version} API'
--windowtitle 'picocli ${project.version} API'
+-doctitle 'cliwerk ${project.version} API'
+-windowtitle 'cliwerk ${project.version} API'
 -link 'https://docs.groovy-lang.org/2.4.21/html/gapi/'
 -link 'https://docs.oracle.com/en/java/javase/11/docs/api/'
 -notimestamp

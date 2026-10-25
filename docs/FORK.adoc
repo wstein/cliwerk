@@ -78,7 +78,7 @@ configurations.all {
 
 == Coordinates and distribution
 
-Decided 2026-10-24, implemented with version `4.7.7.1` (first release, `4.7.7.1`):
+Decided 2026-10-24, implemented with version `4.7.7.1` (first release):
 
 * groupId `io.github.wstein`, artifactId `cliwerk` for the core library.
 * Other modules follow their module names with `picocli` replaced by `cliwerk`, if and when they are published:
@@ -183,6 +183,7 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * Do not use the picocli logo for cliwerk.
 * Keep upstream copyright and attribution notices intact (see `NOTICE`).
 * The Java package `picocli` keeps the upstream name by decision (see <<Compatibility with upstream picocli>>).
+* The jar manifest keeps `Implementation-Title: picocli` and `Specification-Title: picocli` on purpose (machine-readable; user code such as `picocli.Demo` checks them, drop-in decision).
 * Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...) still carry the upstream name;
   the published Maven coordinates (`io.github.wstein:cliwerk`) and the GitHub Pages URLs (`wstein.github.io/cliwerk`) do not.
 
