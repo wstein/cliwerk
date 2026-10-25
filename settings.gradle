@@ -25,11 +25,11 @@ if (org.gradle.api.JavaVersion.current().isJava9Compatible()) {
         "they require Java 9+ but we have Java version ${org.gradle.api.JavaVersion.current()}")
 }
 
-// picocli-spec and picocli-spec-tool target Java 11 bytecode
+// cliwerk-spec and cliwerk-spec-tool target Java 11 bytecode
 if (org.gradle.api.JavaVersion.current().isJava11Compatible()) {
-    include 'picocli-spec'
-    include 'picocli-spec-tool'
+    include 'cliwerk-spec'
+    include 'cliwerk-spec-tool'
 } else {
-    println("Excluding modules picocli-spec, picocli-spec-tool from the build: " +
+    println("Excluding modules cliwerk-spec, cliwerk-spec-tool from the build: " +
         "they require Java 11+ but we have Java version ${org.gradle.api.JavaVersion.current()}")
 }

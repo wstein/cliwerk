@@ -2,7 +2,7 @@
 
 [project]
 name = "cliwerk"
-description = "cliwerk: independent fork of remkop/picocli with fish completion, picocli-spec DSL/JSON, spec-tool, and on-demand help sections"
+description = "cliwerk: independent fork of remkop/picocli with fish completion, cliwerk-spec DSL/JSON, spec-tool, and on-demand help sections"
 repository = "https://github.com/wstein/cliwerk"
 branch = "develop"
 

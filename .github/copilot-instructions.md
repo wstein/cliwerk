@@ -14,20 +14,20 @@ This repository uses a unified agent guidance file for all AI systems.
 
 ### Key Modules
 - **picocli** (root module, published as cliwerk): Core annotation/programmatic API
-- **picocli-spec**: DSL/JSON parser for CommandSpec (Java 11 target)
-- **picocli-spec-tool**: Standalone CLI tool (picospec) for spec operations
+- **cliwerk-spec**: DSL/JSON parser for CommandSpec (Java 11 target)
+- **cliwerk-spec-tool**: Standalone CLI tool (cliwerk-spec) for spec operations
 - **picocli-codegen**: Man page and completion generation
 
 ### Architecture Principles
-1. **Zero Runtime Dependencies**: No Jackson, Gson, or external JSON libs (embedded parser in picocli-spec)
-2. **Dual Format**: Both `.picocli` (DSL) and `.json` supported with lossless round-trip conversion
+1. **Zero Runtime Dependencies**: No Jackson, Gson, or external JSON libs (embedded parser in cliwerk-spec)
+2. **Dual Format**: Both `.cliwerk` (DSL) and `.json` supported with lossless round-trip conversion
 3. **Spec Composition**: External specs can be merged as subcommands via `CommandSpecMerger`
 4. **Multi-Java**: Tests split by Java version (5/6/7, 8, 9+); check `settings.gradle` for conditionally-included modules
 
 ### Testing Strategy
 - Round-trip fidelity tests verify DSL ↔ JSON conversion
 - Tests organized by Java compatibility in separate modules
-- Fixtures in `src/test/resources/picocli/spec/examples/`
+- Fixtures in `src/test/resources/cliwerk/spec/fixtures/`
 
 ### Release
 - Version in `dependencies.gradle`
@@ -36,7 +36,7 @@ This repository uses a unified agent guidance file for all AI systems.
 
 ### Before You Code
 - **If adding types**: Update `ArgTypes`, `command-spec.schema.json`, and add tests
-- **If new picospec subcommand**: Implement handler, add tests, document in README
+- **If new cliwerk-spec subcommand**: Implement handler, add tests, document in README
 - **If Java version-specific**: Ensure conditionally-included in `settings.gradle`
 
 ## Refer to `/agents.md`

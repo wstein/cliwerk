@@ -11,7 +11,7 @@ on:
     branches: [ develop ]
     paths:
       - 'src/main/**'
-      - 'picocli-spec/src/main/**'
+      - 'cliwerk-spec/src/main/**'
       - 'build.gradle'
       - 'dependencies.gradle'
       - 'settings.gradle'
@@ -23,7 +23,7 @@ on:
     branches: [ develop ]
     paths:
       - 'src/main/**'
-      - 'picocli-spec/src/main/**'
+      - 'cliwerk-spec/src/main/**'
       - 'build.gradle'
       - 'dependencies.gradle'
       - 'settings.gradle'

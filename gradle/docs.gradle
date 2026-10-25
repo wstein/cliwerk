@@ -24,7 +24,7 @@ linkMap << [(org.gradle.api.JavaVersion.VERSION_24)   : 'https://docs.oracle.com
 //linkMap << [(org.gradle.api.JavaVersion.VERSION_25)   : 'https://docs.oracle.com/en/java/javase/25/docs/api/']
 
 javadoc.options.overview = "src/main/java/overview.html"
-// Titles of the published javadoc name this project; rootProject.name and archiveBaseName stay as they are (docs/FORK.adoc).
+// Titles of the published javadoc name this project; rootProject.name stays 'picocli'; the jar file base name is 'cliwerk' (build.gradle, docs/FORK.adoc D5).
 javadoc.options.docTitle = "cliwerk ${project.version} API"
 javadoc.options.windowTitle = "cliwerk ${project.version} API"
 // The JDK API link makes javadoc fetch package-list/element-list from docs.oracle.com. A network timeout there

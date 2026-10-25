@@ -46,7 +46,9 @@ pluginManager.withPlugin('biz.aQute.bnd.builder') { // if plugin applied, execut
         baseline
     }
     dependencies {
-        baseline('group': group, 'name': jar.archiveBaseName) {
+        // The baseline is the upstream artifact info.picocli:picocli. Not jar.archiveBaseName: that is
+        // 'cliwerk' (see below), which does not exist on Maven Central.
+        baseline('group': group, 'name': 'picocli') {
             version {
                 strictly "(,${jar.archiveVersion}["
             }
@@ -165,15 +167,23 @@ jar {
                    'Main-Class'            : 'picocli.AutoComplete'
     }
 }
-// Bundles picocli-spec's classes into this same jar so a downstream consumer with a
+// Release artifact file names: build/libs/cliwerk-<version>[-sources|-javadoc|-tests|-test-sources].jar,
+// consistent with the Maven artifactId cliwerk (docs/FORK.adoc, decision D5). Only the file base name of the
+// root project's jars changes. rootProject.name stays 'picocli' on purpose: it is part of the Gradle capability
+// info.picocli:picocli that the upstream drop-in modules (picocli-codegen, ...) and the api-compat setup rely on.
+// The manifest (Implementation-Title: picocli) and the Maven coordinates are not derived from the file name.
+tasks.withType(Jar).configureEach {
+    archiveBaseName = 'cliwerk'
+}
+// Bundles cliwerk-spec's classes into this same jar so a downstream consumer with a
 // single-jar companion-asset model (flixw) gains CommandSpecDsl/CommandSpecJson/
 // CommandSpecMerger without fetching or verifying a second artifact. Guarded the same
-// way settings.gradle excludes the module itself: picocli-spec targets Java 11 bytecode
+// way settings.gradle excludes the module itself: cliwerk-spec targets Java 11 bytecode
 // and is absent from the build entirely under Java 8.
 if (JavaVersion.current().isJava11Compatible()) {
     jar {
-        dependsOn(':picocli-spec:classes')
-        from { project(':picocli-spec').sourceSets.main.output }
+        dependsOn(':cliwerk-spec:classes')
+        from { project(':cliwerk-spec').sourceSets.main.output }
     }
 }
 configurations {

@@ -21,8 +21,8 @@ The project name changed to cliwerk, but the code did not (yet):
 - The Java package is still `picocli` (`picocli.CommandLine`, `@Command`, `@Option`, ...);
   the library API described in the upstream documentation applies unchanged.
 - One artifact is published, `io.github.wstein:cliwerk` (this fork's own groupId and artifactId —
-  distinct from upstream's `info.picocli:picocli`). There is no separate `picocli-spec` artifact:
-  the `picocli-spec` classes are bundled into this artifact.
+  distinct from upstream's `info.picocli:picocli`). There is no separate `cliwerk-spec` artifact:
+  the `cliwerk-spec` classes are bundled into this artifact.
 - The repository has been renamed from `wstein/picocli` to `wstein/cliwerk` (GitHub redirects the old repository URLs),
   and the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) use `wstein.github.io/cliwerk`.
 
@@ -35,8 +35,8 @@ A rename of the Java package is deliberately deferred; no date has been decided.
 Versions are `<upstream x.y.z>.<fork revision>`: the current version is `4.7.7.1`, based on upstream picocli 4.7.7.
 The earlier cliwerk releases 4.7.8 to 4.9.4 were never upstream picocli releases; they have been withdrawn and deleted,
 and under the artifactId `cliwerk` there are no versions that compete with `4.7.7.x`.
-File names: jars attached to GitHub Releases keep the build's names (`picocli-<version>*.jar`, drop-in compatibility);
-in the Maven repository the main jar is `cliwerk-<version>.jar`.
+File names: the jars attached to GitHub Releases and built into `build/libs` are `cliwerk-<version>*.jar`,
+the same name as in the Maven repository.
 
 ---
 
@@ -45,8 +45,8 @@ in the Maven repository the main jar is `cliwerk-<version>.jar`.
 | Feature | Status | Upstream PR |
 | --- | --- | --- |
 | **Fish shell completion** — `AutoComplete.fish()` generates declarative `complete -c` scripts (further fixes and feature parity in progress) | ✅ In cliwerk | [remkop/picocli#2463](https://github.com/remkop/picocli/pull/2463) |
-| **`picocli-spec`** — build a `CommandSpec` from a DSL or JSON without any annotated Java class | ✅ In cliwerk | Not yet proposed |
-| **`picocli-spec-tool`** — CLI tool to preview, validate, convert, and generate completions/man pages for spec files | ✅ In cliwerk | Not yet proposed |
+| **`cliwerk-spec`** — build a `CommandSpec` from a DSL or JSON without any annotated Java class | ✅ In cliwerk | Not yet proposed |
+| **`cliwerk-spec-tool`** — CLI tool to preview, validate, convert, and generate completions/man pages for spec files | ✅ In cliwerk | Not yet proposed |
 | **`helpSection` on `@Option` / `@ArgGroup`** — on-demand help sections (e.g. `--Xhelp` shows experimental flags) | ✅ In cliwerk | Not yet proposed |
 
 ---
@@ -92,9 +92,9 @@ see the [landing page](https://wstein.github.io/cliwerk/) for all links.
 
 ---
 
-## picocli-spec
+## cliwerk-spec
 
-[`picocli-spec`](picocli-spec/README.md) builds a picocli `CommandSpec` from a small DSL or JSON,
+[`cliwerk-spec`](cliwerk-spec/README.md) builds a picocli `CommandSpec` from a small DSL or JSON,
 exports any `CommandSpec` back to JSON, and merges specs into a host CLI as subcommands —
 all without an annotated Java class.
 
@@ -102,7 +102,7 @@ Intended use-case: give a beautiful, help-and-completion-enabled picocli front e
 third-party tool whose own CLI isn't human-friendly.
 
 ```
-// flix-0.60.0.picocli  (DSL)
+// flix-0.60.0.cliwerk  (DSL)
 command flix "The Flix Programming Language 0.60.0" {
   option --help    : boolean "prints this usage information." usageHelp
   option --version : boolean "prints the version number."    versionHelp
@@ -114,13 +114,13 @@ command flix "The Flix Programming Language 0.60.0" {
 ```
 
 ```java
-CommandSpec flixSpec = CommandSpecDsl.parse(Files.readString(Path.of("flix-0.60.0.picocli")));
+CommandSpec flixSpec = CommandSpecDsl.parse(Files.readString(Path.of("flix-0.60.0.cliwerk")));
 CommandSpecMerger.merge(myUberSpec, flixSpec);
 ```
 
-→ [`picocli-spec` README](picocli-spec/README.md) ·
+→ [`cliwerk-spec` README](cliwerk-spec/README.md) ·
 [JSON Schema](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json) ·
-[Javadoc](https://wstein.github.io/cliwerk/apidocs/picocli-spec/)
+[Javadoc](https://wstein.github.io/cliwerk/apidocs/cliwerk-spec/)
 
 ### Gradle
 
@@ -134,13 +134,13 @@ dependencies {
 
 ---
 
-## picocli-spec-tool
+## cliwerk-spec-tool
 
-[`picocli-spec-tool`](picocli-spec-tool/README.md) is a self-contained fat-jar CLI for working
-with `.picocli` / `.json` spec files — no Java code required.
+[`cliwerk-spec-tool`](cliwerk-spec-tool/README.md) is a self-contained fat-jar CLI for working
+with `.cliwerk` / `.json` spec files — no Java code required.
 
 ```
-java -jar picocli-spec-tool-<version>-all.jar <subcommand> <spec-file>
+java -jar cliwerk-spec-tool-<version>-all.jar <subcommand> <spec-file>
 ```
 
 | Subcommand | What it does |
@@ -151,7 +151,7 @@ java -jar picocli-spec-tool-<version>-all.jar <subcommand> <spec-file>
 | `manpage` | Generates AsciiDoc man pages via picocli-codegen |
 | `convert` | Converts between DSL and JSON formats |
 
-→ [`picocli-spec-tool` README](picocli-spec-tool/README.md)
+→ [`cliwerk-spec-tool` README](cliwerk-spec-tool/README.md)
 
 ---
 

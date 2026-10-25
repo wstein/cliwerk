@@ -114,8 +114,7 @@ def apiCompat = tasks.register('apiCompat', japicmpTaskType) {
     newClasspath.from(tasks.named('jar'))
 
     packageIncludes = ['picocli', 'picocli.*']
-    // picocli-spec's classes are bundled into the jar on Java 11+; they are cliwerk additions, not upstream API
-    packageExcludes = ['picocli.spec', 'picocli.spec.*']
+    // cliwerk-spec's classes (package cliwerk.spec, bundled into the jar on Java 11+) are outside packageIncludes
     // module-info.class lives in META-INF/versions/9 of both multi-release jars; it is not API
     classExcludes = ['module-info'] + apiExceptions['class']
     methodExcludes = apiExceptions['method']

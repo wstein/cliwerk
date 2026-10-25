@@ -107,7 +107,7 @@ jobs:
         run: ./gradlew publishForkPublicationToForkRepoRepository --no-daemon
 
       - name: Generate javadoc
-        run: ./gradlew :javadoc :picocli-spec:javadoc -PjavadocLinks --no-daemon
+        run: ./gradlew :javadoc :cliwerk-spec:javadoc -PjavadocLinks --no-daemon
 
       - name: Push updated site to GitHub Pages
         run: |
@@ -116,13 +116,13 @@ jobs:
           cp -r build/fork-maven-repo/. gh-pages-site/maven/
 
           rm -rf gh-pages-site/apidocs
-          mkdir -p gh-pages-site/apidocs/picocli gh-pages-site/apidocs/picocli-spec
-          cp -r build/docs/apidocs/. gh-pages-site/apidocs/picocli/
-          cp -r picocli-spec/build/docs/apidocs/. gh-pages-site/apidocs/picocli-spec/
+          mkdir -p gh-pages-site/apidocs/cliwerk gh-pages-site/apidocs/cliwerk-spec
+          cp -r build/docs/apidocs/. gh-pages-site/apidocs/cliwerk/
+          cp -r cliwerk-spec/build/docs/apidocs/. gh-pages-site/apidocs/cliwerk-spec/
 
           # spec/schema is NOT wiped; only the latest schema is published
           # (spec/schema/command-spec.schema.json), its $id is that same URL.
-          SCHEMA_SRC=picocli-spec/src/main/resources/picocli/spec/command-spec.schema.json
+          SCHEMA_SRC=cliwerk-spec/src/main/resources/cliwerk/spec/command-spec.schema.json
           mkdir -p gh-pages-site/spec/schema
           cp "$SCHEMA_SRC" gh-pages-site/spec/schema/command-spec.schema.json
 

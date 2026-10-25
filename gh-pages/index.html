@@ -17,7 +17,7 @@
   This is a small self-hosted flat Maven repository for
   <a href="https://github.com/wstein/cliwerk">cliwerk</a>, an independent fork of
   <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma (Apache License 2.0)
-  that adds e.g. fish shell completion and the <code>picocli-spec</code> module below.
+  that adds e.g. fish shell completion and the <code>cliwerk-spec</code> module below.
 </p>
 <p>cliwerk is <strong>not</strong> affiliated with or endorsed by the picocli project, and its artifacts are
 not the official <code>info.picocli:picocli</code> releases on Maven Central.
@@ -35,14 +35,14 @@ dependencies {
 <h2>Documentation</h2>
 <ul>
   <li><a href="https://github.com/wstein/cliwerk/blob/develop/README.md">Project README</a> (cliwerk's README, with links to upstream picocli's documentation)</li>
-  <li><a href="apidocs/picocli/">Javadoc — picocli (core)</a></li>
-  <li><a href="apidocs/picocli-spec/">Javadoc — picocli-spec</a></li>
+  <li><a href="apidocs/cliwerk/">Javadoc — cliwerk (core)</a></li>
+  <li><a href="apidocs/cliwerk-spec/">Javadoc — cliwerk-spec</a></li>
   <li><a href="maven/io/github/wstein/cliwerk/maven-metadata.xml">maven-metadata.xml</a> (lists published versions)</li>
   <li><a href="https://github.com/wstein/cliwerk/releases">GitHub Releases</a> (jars attached directly)</li>
   <li><a href="https://github.com/wstein/cliwerk/blob/develop/.github/workflows/release.yml">release workflow source</a></li>
 </ul>
 
-<h2>picocli-spec</h2>
+<h2>cliwerk-spec</h2>
 <p>
   Build a picocli <code>CommandSpec</code> from JSON or from a small DSL, export any
   <code>CommandSpec</code> back to JSON, and merge one or more such specs into a host CLI as
@@ -51,14 +51,14 @@ dependencies {
   human-friendly.
 </p>
 <ul>
-  <li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-spec">Module README</a> (DSL grammar, JSON field reference, worked example)</li>
+  <li><a href="https://github.com/wstein/cliwerk/tree/develop/cliwerk-spec">Module README</a> (DSL grammar, JSON field reference, worked example)</li>
   <li><a href="spec/schema/command-spec.schema.json">JSON Schema</a> for the JSON format (tracks latest; pin an exact release at <code>spec/schema/&lt;version&gt;/command-spec.schema.json</code>, kept permanently)</li>
-  <li><a href="apidocs/picocli-spec/">Javadoc</a></li>
+  <li><a href="apidocs/cliwerk-spec/">Javadoc</a></li>
 </ul>
 
 <h2>Other modules in this repo</h2>
 <p>These are upstream picocli modules (not cliwerk-specific); only their READMEs are linked here — this
-site currently only hosts generated Javadoc for <code>picocli</code> and <code>picocli-spec</code>
+site currently only hosts generated Javadoc for <code>picocli</code> and <code>cliwerk-spec</code>
 above.</p>
 <ul>
   <li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-codegen">picocli-codegen</a> — annotation processor and GraalVM native-image config generators</li>

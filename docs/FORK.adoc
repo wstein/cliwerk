@@ -15,7 +15,7 @@ This page describes how the fork relates to upstream, how its branches are used,
 * The library API is still picocli's: the Java package is `picocli` and the upstream user manual at
   https://picocli.info applies to everything cliwerk has not changed.
   cliwerk is meant as a drop-in replacement for upstream picocli, see <<Compatibility with upstream picocli>>.
-* cliwerk adds features on top of picocli (fish shell completion, `picocli-spec`, `picocli-spec-tool`,
+* cliwerk adds features on top of picocli (fish shell completion, `cliwerk-spec`, `cliwerk-spec-tool`,
   on-demand help sections; see the `README.md` and `CHANGELOG.md`).
   Some of them are proposed upstream as well (fish completion: https://github.com/remkop/picocli/pull/2463[remkop/picocli#2463]);
   whether upstream accepts them does not affect their availability in cliwerk.
@@ -82,17 +82,17 @@ Decided 2026-10-24, implemented with version `4.7.7.1` (first release):
 
 * groupId `io.github.wstein`, artifactId `cliwerk` for the core library.
 * Other modules follow their module names with `picocli` replaced by `cliwerk`, if and when they are published:
-  `cliwerk-codegen`, `cliwerk-groovy`, `cliwerk-shell-jline2`, `cliwerk-shell-jline3`, `cliwerk-spring-boot-starter`,
-  `cliwerk-spec` and `cliwerk-spec-tool`.
+  `cliwerk-codegen`, `cliwerk-groovy`, `cliwerk-shell-jline2`, `cliwerk-shell-jline3` and `cliwerk-spring-boot-starter`;
+  `cliwerk-spec` and `cliwerk-spec-tool` already carry their final names.
   Today only the core artifact is published (`gradle/publish-fork-repo.gradle` is applied in the root project only);
-  when built with Java 11 or later it also contains the `picocli-spec` classes.
+  when built with Java 11 or later it also contains the `cliwerk-spec` classes (package `cliwerk.spec`).
 * Distribution is a flat Maven repository on GitHub Pages: `https://wstein.github.io/cliwerk/maven/`
   (artifact path `maven/io/github/wstein/cliwerk/`).
   The publishing setup (`gradle/publish-fork-repo.gradle`, `.github/workflows/release.yml`) and the GitHub Pages URLs
   in the documentation use these coordinates. The JSON Schema `$id` is
   `https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json`; only this unversioned (latest) schema is published.
-* File names: the jars attached to GitHub Releases keep the build's names, `picocli-<version>*.jar` (drop-in decision);
-  in the Maven repository the main jar is `cliwerk-<version>.jar`.
+* File names: the jars built into `build/libs` and attached to GitHub Releases are `cliwerk-<version>*.jar`
+  (also `-sources`, `-javadoc`, `-tests`, `-test-sources`), the same name as in the Maven repository (decision D5).
 * Maven Central only later, if cliwerk is to be used by others.
 
 == Versioning
@@ -185,8 +185,9 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * The Java package `picocli` keeps the upstream name by decision (see <<Compatibility with upstream picocli>>).
 * The jar manifest keeps `Implementation-Title: picocli` and `Specification-Title: picocli` on purpose (machine-readable; user code such as `picocli.Demo` checks them, drop-in decision).
   `Specification-Vendor` and `Implementation-Vendor` name the publisher of this fork (`Werner Stein (wstein)`, decided 2026-10-25); upstream authorship stays in `NOTICE` and the source file headers.
-* Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...) still carry the upstream name;
-  the published Maven coordinates (`io.github.wstein:cliwerk`) and the GitHub Pages URLs (`wstein.github.io/cliwerk`) do not.
+* Everything that is owned by cliwerk and not upstream API carries the name cliwerk: the modules `cliwerk-spec` and `cliwerk-spec-tool`,
+  their packages `cliwerk.spec*`, the tool `cliwerk-spec`, the DSL extension `.cliwerk`, the release jar names and the Javadoc paths (decision D5).
+  The upstream-derived modules (`picocli-codegen`, `picocli-groovy`, ...) keep their upstream directory names to keep upstream merges simple.
 
 == Decision log
 
@@ -230,4 +231,22 @@ Decided 2026-10-24: upstream is synced *release by release*.
   They are accepted as 6 explicit exceptions of kind `annotation-element` in `gradle/api-compat-exceptions.txt` (no wildcard) and
   reported separately as "excepted". Rule: a new annotation element with a default value needs its own entry there;
   one without a default value is a real break and is not excepted. `ApiCompatExceptionsTest` guards that the defaults stay.
+
+| Names owned by cliwerk carry the name cliwerk (D5, decided 2026-10-25)
+| Scope: everything that exists only in cliwerk and is not upstream API.
+  Renamed (never released under the old names, so nothing published breaks):
+  modules and directories `picocli-spec` -> `cliwerk-spec` and `picocli-spec-tool` -> `cliwerk-spec-tool`;
+  Java packages `picocli.spec`, `picocli.spec.json`, `picocli.spec.tool` -> `cliwerk.spec`, `cliwerk.spec.json`, `cliwerk.spec.tool`
+  (these packages do not exist in upstream picocli 4.7.7; removing them from package `picocli` also keeps that package equal to upstream's plus additive changes);
+  classpath resources `picocli/spec/...` -> `cliwerk/spec/...`; command line tool `picospec` -> `cliwerk-spec`;
+  DSL file extension `.picocli` -> `.cliwerk` (`.dsl` is still accepted); javadoc `apidocs/picocli/` -> `apidocs/cliwerk/`;
+  jar file names `picocli-<version>*.jar` -> `cliwerk-<version>*.jar`; manifest titles and vendor of the cliwerk-spec modules.
+  Implementation: `tasks.withType(Jar) { archiveBaseName = 'cliwerk' }` in the root `build.gradle`. `rootProject.name` stays `picocli`
+  because it defines the Gradle capability `info.picocli:picocli` used by the drop-in modules; the bnd baseline names the upstream artifact
+  `picocli` explicitly and the api-compat alias group `upstream.info.picocli` is unchanged, so neither is affected by the file name.
+  Stays on purpose: Java package `picocli` and all upstream API, JPMS module names `info.picocli*` and `ext.moduleName`, Maven group `info.picocli` of the
+  Central-style `release` publication (dormant) and the baseline, manifest `Implementation-Title`/`Specification-Title` `picocli` of the core jar,
+  upstream directories `picocli-codegen`, `picocli-groovy`, ..., upstream attribution, `RELEASE-NOTES.md`, the JSON Schema URL and file name `command-spec.schema.json`.
+  Compatibility effect: code written against the unreleased `picocli.spec.*` classes must change its imports to `cliwerk.spec.*`;
+  the classes still ship in the core jar on Java 11+, but are not part of the JPMS-exported API (module `info.picocli` exports only `picocli`), as before.
 |===

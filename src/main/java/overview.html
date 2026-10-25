@@ -11,36 +11,53 @@
 <table border="1">
     <caption>cliwerk modules: JPMS module name and Maven coordinates</caption>
     <tr>
+        <th>cliwerk module</th>
         <th>JPMS module name</th>
         <th>Maven coordinates (without version)</th>
     </tr>
     <tr>
+        <td><code>cliwerk</code> (Java package <code>picocli</code>)</td>
         <td><code>info.picocli</code></td>
-        <td><code>io.github.wstein:cliwerk</code> (also contains the <code>picocli-spec</code> classes when built with Java 11+)</td>
+        <td><code>io.github.wstein:cliwerk</code> (also contains the <code>cliwerk-spec</code> classes, package <code>cliwerk.spec</code>, when built with Java 11+)</td>
     </tr>
     <tr>
+        <td><code>cliwerk-spec</code> (Java package <code>cliwerk.spec</code>)</td>
+        <td>none (bundled into <code>info.picocli</code>)</td>
+        <td>bundled into <code>io.github.wstein:cliwerk</code>, not published on its own</td>
+    </tr>
+    <tr>
+        <td><code>cliwerk-spec-tool</code> (Java package <code>cliwerk.spec.tool</code>)</td>
+        <td>none</td>
+        <td>not published by cliwerk (fat jar <code>cliwerk-spec-tool-&lt;version&gt;-all.jar</code> via <code>./gradlew :cliwerk-spec-tool:shadowJar</code>)</td>
+    </tr>
+    <tr>
+        <td><code>picocli-codegen</code></td>
         <td><code>info.picocli.codegen</code></td>
         <td>not published by cliwerk (upstream: <code>info.picocli:picocli-codegen</code>)</td>
     </tr>
     <tr>
+        <td><code>picocli-groovy</code></td>
         <td><code>info.picocli.groovy</code></td>
         <td>not published by cliwerk (upstream: <code>info.picocli:picocli-groovy</code>)</td>
     </tr>
     <tr>
+        <td><code>picocli-shell-jline2</code></td>
         <td><code>info.picocli.shell.jline2</code></td>
         <td>not published by cliwerk (upstream: <code>info.picocli:picocli-shell-jline2</code>)</td>
     </tr>
     <tr>
+        <td><code>picocli-shell-jline3</code></td>
         <td><code>info.picocli.shell.jline3</code></td>
         <td>not published by cliwerk (upstream: <code>info.picocli:picocli-shell-jline3</code>)</td>
     </tr>
     <tr>
+        <td><code>picocli-spring-boot-starter</code></td>
         <td><code>info.picocli.spring.boot</code></td>
         <td>not published by cliwerk (upstream: <code>info.picocli:picocli-spring-boot-starter</code>)</td>
     </tr>
 </table>
 <p>
-    Most application will only need the main <code>picocli</code> module, but
+    Most applications will only need the main <code>cliwerk</code> module (Java package <code>picocli</code>), but
     we recommend also <a href="https://picocli.info/#_annotation_processor">configuring</a>
     the <code>picocli-codegen</code> module as an annotation processor for your project.
     This provides compile-time error checking and

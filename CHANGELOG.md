@@ -16,7 +16,21 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
 - **Coordinates**: published as `io.github.wstein:cliwerk` (was `io.github.wstein:picocli`) in the Maven repository
   `https://wstein.github.io/cliwerk/maven/`; the GitHub Pages URLs (Javadoc, JSON Schema `$id`) moved from
   `wstein.github.io/picocli` to `wstein.github.io/cliwerk`. Only the latest JSON Schema is published (no versioned copies).
-  The Java package stays `picocli`. Release jars on GitHub keep the names `picocli-<version>*.jar`.
+  The Java package stays `picocli`.
+- **Everything cliwerk owns carries the name cliwerk** (docs/FORK.adoc, decision D5; entries of earlier versions below keep the old names as history):
+
+  | Old | New |
+  |---|---|
+  | Release jars `picocli-<version>*.jar` (`-sources`, `-javadoc`, `-tests`, `-test-sources`) | `cliwerk-<version>*.jar` |
+  | Gradle modules and directories `picocli-spec`, `picocli-spec-tool` | `cliwerk-spec`, `cliwerk-spec-tool` |
+  | Java packages `picocli.spec`, `picocli.spec.json`, `picocli.spec.tool` | `cliwerk.spec`, `cliwerk.spec.json`, `cliwerk.spec.tool` |
+  | Command line tool `picospec` (main class `picocli.spec.tool.SpecToolApp`) | `cliwerk-spec` (`cliwerk.spec.tool.SpecToolApp`) |
+  | DSL file extension `.picocli` | `.cliwerk` |
+  | Classpath resources `/picocli/spec/...` (JSON Schema, test fixtures) | `/cliwerk/spec/...` |
+  | Javadoc `apidocs/picocli/` | `apidocs/cliwerk/` (and `apidocs/cliwerk-spec/`, titled "cliwerk-spec <version> API") |
+
+  Package `picocli`, the JPMS module names `info.picocli*`, the manifest titles of the core jar, and the JSON Schema URL are unchanged.
+  The renamed packages never existed in upstream picocli and were not part of any release, so no `picocli.*` API is affected.
 - **`CommandLine.VERSION`** now reports the cliwerk version (`4.7.7.1`); the withdrawn/earlier releases reported `4.7.8-SNAPSHOT`
   (for example in `--version` output of `AutoComplete` and in generated completion script headers).
 - Contains the cliwerk changes of the withdrawn/earlier releases below plus changes on `develop` that are not listed under them, notably:
@@ -29,10 +43,10 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
     (`Register-ArgumentCompleter -Native`) for subcommands (with aliases), options (including negated names of negatable options),
     enum constants and other completion candidates, with the descriptions as tooltips.
     `generate-completion --shell=powershell` and `picocli.AutoComplete --shell=powershell` (which writes `<commandName>-completion.ps1`)
-    produce it, and so does `picospec completion --shell=powershell`.
+    produce it, and so does `cliwerk-spec completion --shell=powershell`.
     The golden scripts are loaded in real PowerShell sessions in CI (`powershell-completion.yml`).
     Note that `GenerateCompletion.Shell` has a new constant `powershell`, and the `--shell` candidates of `generate-completion` and `picocli.AutoComplete` now include it.
-  - **`picospec preview`**: `--section` and `--trigger-option` to render on-demand help sections, and `--format text|markdown`.
+  - **`cliwerk-spec preview`**: `--section` and `--trigger-option` to render on-demand help sections, and `--format text|markdown`.
 
 ---
 

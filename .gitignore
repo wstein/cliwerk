@@ -7,6 +7,7 @@ tmp/
 picocli.iml
 /out/
 /picocli-*/out/
+/cliwerk-*/out/
 /src/test/dejagnu.tests/xtrace.log
 /src/test/dejagnu.tests/log/completion.sum
 /src/test/dejagnu.tests/log/completion.log
