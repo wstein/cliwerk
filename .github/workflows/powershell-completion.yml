@@ -49,5 +49,8 @@ jobs:
         if: runner.os == 'Windows'
         run: Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass -Force
 
+      - name: Debug
+        run: ./src/test/powershell/debug.ps1
+
       - name: Verify what PowerShell offers
         run: ./src/test/powershell/verify-completions.ps1 src/test/resources
