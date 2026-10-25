@@ -24,6 +24,9 @@ linkMap << [(org.gradle.api.JavaVersion.VERSION_24)   : 'https://docs.oracle.com
 //linkMap << [(org.gradle.api.JavaVersion.VERSION_25)   : 'https://docs.oracle.com/en/java/javase/25/docs/api/']
 
 javadoc.options.overview = "src/main/java/overview.html"
+// Titles of the published javadoc name this project; rootProject.name and archiveBaseName stay as they are (docs/FORK.adoc).
+javadoc.options.docTitle = "cliwerk ${project.version} API"
+javadoc.options.windowTitle = "cliwerk ${project.version} API"
 // The JDK API link makes javadoc fetch package-list/element-list from docs.oracle.com. A network timeout there
 // failed the JDK 9+ builds although all tests passed, so the link is opt-in (-PjavadocLinks, e.g. for published
 // docs) and not part of the regular build.
