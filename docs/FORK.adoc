@@ -184,6 +184,7 @@ Decided 2026-10-24: upstream is synced *release by release*.
 * Keep upstream copyright and attribution notices intact (see `NOTICE`).
 * The Java package `picocli` keeps the upstream name by decision (see <<Compatibility with upstream picocli>>).
 * The jar manifest keeps `Implementation-Title: picocli` and `Specification-Title: picocli` on purpose (machine-readable; user code such as `picocli.Demo` checks them, drop-in decision).
+  `Specification-Vendor` and `Implementation-Vendor` name the publisher of this fork (`Werner Stein (wstein)`, decided 2026-10-25); upstream authorship stays in `NOTICE` and the source file headers.
 * Transition: the module names (`picocli-spec`, `picocli-spec-tool`, ...) still carry the upstream name;
   the published Maven coordinates (`io.github.wstein:cliwerk`) and the GitHub Pages URLs (`wstein.github.io/cliwerk`) do not.
 
