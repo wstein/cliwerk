@@ -1,5 +1,14 @@
 name: Build
-on: [ push, pull_request ]
+on:
+  # Pull requests run via pull_request only; push is limited to develop so that a commit on a PR
+  # branch does not start a second, identical run.
+  push:
+    branches: [ develop ]
+  pull_request:
+    types: [ opened, synchronize, reopened, labeled ]
+  schedule:
+    - cron: '23 2 * * *' # nightly (02:23 UTC), full matrix
+  workflow_dispatch:
 permissions:
   checks: write
   pull-requests: write
@@ -8,18 +17,51 @@ concurrency:
   # cancel a stale in-progress run (e.g. superseded by a follow-up push or force-push)
   # for the same branch/PR, instead of letting it keep consuming this fork's limited
   # concurrent-job quota alongside the new run
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  # (the event name keeps the nightly and manual runs from cancelling a push run on the same ref)
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 
 jobs:
+  # Selects the matrix (see .github/scripts/ci_plan.py): the PR tier by default, the full tier on push to
+  # develop, schedule, workflow_dispatch and PRs labeled ci-full. Docs-only changes get an empty plan
+  # (run=false), so the build job is skipped; the required check is the always-running ci-gate job.
+  plan:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      run: ${{ steps.plan.outputs.run }}
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Plan build matrix
+        id: plan
+        shell: bash
+        env:
+          EVENT: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          LABELS: ${{ toJSON(github.event.pull_request.labels.*.name) }}
+          BASE: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: python3 -I .github/scripts/ci_plan.py plan --event "$EVENT" --ref "$REF" --labels "$LABELS" --base "$BASE" --head "$HEAD"
+
   build-java-8-plus:
+    needs: plan
+    if: ${{ needs.plan.outputs.run == 'true' }}
     strategy:
       # one red leg (e.g. a Windows-only test failure) must not cancel the others and hide their results
       fail-fast: false
       max-parallel: 10 # this fork runs on a personal account's concurrency limits (20 jobs / 5 macOS); a larger matrix gets mass-cancelled otherwise
-      matrix:
-        java-version: [ 8, 11, 17, 21 ]
-        os: [ubuntu-latest, macos-latest, windows-latest]
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
 
     runs-on: ${{ matrix.os }}
     # This fork supports the LTS releases only: 8, 11, 17 and 21. Non-LTS and newer JDKs are
@@ -166,3 +208,27 @@ jobs:
           gistURL: https://gist.githubusercontent.com/remkop/36bc8a3b4395f2fbdb9bc271e97ba2dd
           file: badge.svg
 
+  # Always runs; this is the check to require in branch protection. Succeeds iff the build job succeeded
+  # or was skipped because the change is docs-only. macOS legs are continue-on-error and do not count.
+  ci-gate:
+    needs: [ plan, build-java-8-plus ]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Harden Runner
+        uses: step-security/harden-runner@dc2769abcc0fcfbadfc1df54081c1608579ef6b2 # v2.22.2
+        with:
+          egress-policy: audit
+
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Evaluate build result
+        shell: bash
+        env:
+          PLAN_RESULT: ${{ needs.plan.result }}
+          RUN: ${{ needs.plan.outputs.run }}
+          BUILD_RESULT: ${{ needs.build-java-8-plus.result }}
+        run: python3 -I .github/scripts/ci_plan.py gate --plan-result "$PLAN_RESULT" --run "$RUN" --build-result "$BUILD_RESULT"

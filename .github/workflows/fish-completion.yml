@@ -4,6 +4,7 @@ name: Fish completion
 # so this job needs no Java.
 on:
   push:
+    branches: [ develop ]
     paths:
       - 'src/main/java/picocli/AutoComplete.java'
       - 'src/test/resources/*.fish'
@@ -20,6 +21,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+
+concurrency:
+  # cancel a superseded run for the same PR or ref
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   # Scheduled runs only make sense when something was pushed since the previous scheduled run.
