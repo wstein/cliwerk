@@ -161,5 +161,6 @@ Prints a greeting.
 cliwerk is an independently maintained personal fork. It is maintained on a best-effort basis,
 with no support guarantee.
 
-Changes and fixes are welcome as [pull requests](https://github.com/wstein/cliwerk/pulls);
-see [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).
+Bug reports and questions: [GitHub Issues](https://github.com/wstein/cliwerk/issues).
+Changes and fixes: [pull requests](https://github.com/wstein/cliwerk/pulls), see [CONTRIBUTING.md](CONTRIBUTING.md).
+Security reports follow [SECURITY.md](SECURITY.md), not public issues.
