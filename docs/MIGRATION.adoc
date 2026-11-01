@@ -4,7 +4,8 @@
 This guide is for projects that depend on upstream `info.picocli:picocli` and want to switch to
 https://github.com/wstein/cliwerk[cliwerk], an independent fork that is not affiliated with or endorsed by the picocli project.
 The rules behind it are in link:FORK.adoc[docs/FORK.adoc].
-The first cliwerk release is `4.7.7.1`.
+The first cliwerk version is `4.7.7.1`.
+The coordinates and download links in this guide work once `4.7.7.1` is published.
 
 == Summary
 
@@ -28,7 +29,7 @@ The first cliwerk release is `4.7.7.1`.
 
 Only the core artifact is published.
 The `cliwerk.spec` classes are included in it when it is built with Java 11 or later; there is no separate `cliwerk-spec` artifact.
-Jars (`cliwerk-<version>*.jar`) are also attached to https://github.com/wstein/cliwerk/releases[GitHub Releases].
+The release workflow attaches the jars (`cliwerk-<version>*.jar`) to a https://github.com/wstein/cliwerk/releases[GitHub Release].
 
 === Gradle (Kotlin DSL)
 
@@ -67,11 +68,13 @@ dependencies {
   </repository>
 </repositories>
 
-<dependency>
-  <groupId>io.github.wstein</groupId>
-  <artifactId>cliwerk</artifactId>
-  <version>4.7.7.1</version>
-</dependency>
+<dependencies>
+  <dependency>
+    <groupId>io.github.wstein</groupId>
+    <artifactId>cliwerk</artifactId>
+    <version>4.7.7.1</version>
+  </dependency>
+</dependencies>
 ----
 
 Remove the `info.picocli:picocli` dependency when you add cliwerk.
@@ -98,8 +101,9 @@ What differs at run time: `CommandLine.VERSION` reports the cliwerk version (`4.
   All have default values.
 * `cliwerk.spec`: build a `CommandSpec` from a DSL (`.cliwerk`) or JSON file without annotated classes.
 * `cliwerk-spec`: standalone command line tool (module `cliwerk-spec-tool`) to preview, validate, convert and generate completions and man pages for spec files.
-  It is not published to the Maven repository; build it with `./gradlew :cliwerk-spec-tool:build`, which produces
-  `cliwerk-spec-tool/build/libs/cliwerk-spec-tool-<version>-all.jar`.
+  It is not published to the Maven repository, and the fat jar is not attached to GitHub Releases (only the core jars are).
+  Build it from source with JDK 11 or later (the module is only included in the Gradle build on Java 11+):
+  `./gradlew :cliwerk-spec-tool:build` produces `cliwerk-spec-tool/build/libs/cliwerk-spec-tool-<version>-all.jar`.
 
 Details are in `CHANGELOG.md`, `README.md` and the module READMEs.
 
@@ -113,7 +117,6 @@ Details are in `CHANGELOG.md`, `README.md` and the module READMEs.
 * There are no qualifiers (such as `-cliwerk.1`) because Maven and Gradle order them differently.
 * OSGi consumers: the fourth part of the version is the `Bundle-Version` qualifier and is compared as a string,
   so `4.7.7.10` sorts before `4.7.7.9` there.
-* The earlier cliwerk releases 4.7.8 to 4.9.4 were not upstream releases; they have been withdrawn and deleted.
 
 == Spec renames
 
