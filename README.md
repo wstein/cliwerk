@@ -2,65 +2,30 @@
 
 [![CI](https://github.com/wstein/cliwerk/actions/workflows/ci.yml/badge.svg)](https://github.com/wstein/cliwerk/actions/workflows/ci.yml)
 [![GitHub Release](https://img.shields.io/github/release/wstein/cliwerk.svg)](https://github.com/wstein/cliwerk/releases)
-
-**cliwerk** is an independent, long-lived fork of [picocli](https://github.com/remkop/picocli)
-by Remko Popma, maintained by [wstein](https://github.com/wstein) under the
-[Apache License 2.0](LICENSE) (see also [NOTICE](NOTICE)).
+[![License](https://img.shields.io/github/license/wstein/cliwerk.svg)](LICENSE)
 
 > **cliwerk is not affiliated with or endorsed by the picocli project.**
-> "picocli" refers to the upstream project; cliwerk releases are not picocli releases.
-> **For everything about picocli itself** — features, user manual, examples, articles —
-> see the [upstream README](https://github.com/remkop/picocli#readme) and [picocli.info](https://picocli.info).
+> "picocli" refers to the upstream project. cliwerk releases are not picocli releases.
+> cliwerk is an independent fork of [picocli](https://github.com/remkop/picocli) by Remko Popma,
+> maintained by [wstein](https://github.com/wstein) under the [Apache License 2.0](LICENSE) (see [NOTICE](NOTICE)).
 
-Relationship to upstream, branch model and naming rules: [docs/FORK.adoc](docs/FORK.adoc).
+## What is cliwerk?
 
-### Transition note: package and coordinates are unchanged for now
+cliwerk is a Java library for building command line applications with options, subcommands,
+usage help and shell completion. It is a fork of picocli and a drop-in replacement for it:
+the Java package is still `picocli`, so your imports and annotations stay the same.
+Only the Maven coordinates differ: `io.github.wstein:cliwerk` instead of `info.picocli:picocli`.
 
-The project name changed to cliwerk, but the code did not (yet):
+Why use it? You get the picocli API plus fish and PowerShell completion,
+command specs built from a DSL or JSON, and on-demand help sections.
+See [Features](docs/FEATURES.adoc).
 
-- The Java package is still `picocli` (`picocli.CommandLine`, `@Command`, `@Option`, ...);
-  the library API described in the upstream documentation applies unchanged.
-- One artifact is published, `io.github.wstein:cliwerk` (this fork's own groupId and artifactId —
-  distinct from upstream's `info.picocli:picocli`). There is no separate `cliwerk-spec` artifact:
-  the `cliwerk-spec` classes are bundled into this artifact.
-- The repository has been renamed from `wstein/picocli` to `wstein/cliwerk` (GitHub redirects the old repository URLs),
-  and the GitHub Pages links below (Maven repo, Javadoc, JSON Schema) use `wstein.github.io/cliwerk`.
+## Install
 
-### Migration outlook
-
-The Java package stays `picocli`: cliwerk is meant as a drop-in replacement for upstream picocli,
-so it cannot be on the same classpath as `info.picocli:picocli`.
-The Maven coordinates are `io.github.wstein:cliwerk` (see [docs/FORK.adoc](docs/FORK.adoc)).
-A rename of the Java package is deliberately deferred; no date has been decided.
-Versions are `<upstream x.y.z>.<fork revision>`: the current version is `4.7.7.1`, based on upstream picocli 4.7.7.
-The earlier cliwerk releases 4.7.8 to 4.9.4 were never upstream picocli releases; they have been withdrawn and deleted,
-and under the artifactId `cliwerk` there are no versions that compete with `4.7.7.x`.
-File names: the jars attached to GitHub Releases and built into `build/libs` are `cliwerk-<version>*.jar`,
-the same name as in the Maven repository.
-
----
-
-## What cliwerk adds on top of upstream picocli
-
-| Feature | Status | Upstream PR |
-| --- | --- | --- |
-| **Fish shell completion** — `AutoComplete.fish()` generates declarative `complete -c` scripts (further fixes and feature parity in progress) | ✅ In cliwerk | [remkop/picocli#2463](https://github.com/remkop/picocli/pull/2463) |
-| **`cliwerk-spec`** — build a `CommandSpec` from a DSL or JSON without any annotated Java class | ✅ In cliwerk | Not yet proposed |
-| **`cliwerk-spec-tool`** — CLI tool to preview, validate, convert, and generate completions/man pages for spec files | ✅ In cliwerk | Not yet proposed |
-| **`helpSection` on `@Option` / `@ArgGroup`** — on-demand help sections (e.g. `--Xhelp` shows experimental flags) | ✅ In cliwerk | Not yet proposed |
-
----
-
-## Download
-
-cliwerk publishes as `io.github.wstein:cliwerk` (distinct from upstream's `info.picocli:picocli`;
-see the transition note above). The first release is `4.7.7.1`. Releases are cut by pushing a `v<version>` tag: the
-[release workflow](.github/workflows/release.yml) builds the jars, creates a GitHub Release and
-publishes the flat Maven repository, Javadoc and JSON Schema to GitHub Pages.
-
-### Gradle
+Current version: `4.7.7.1` (based on upstream picocli 4.7.7).
 
 ```groovy
+// Gradle
 repositories {
     maven { url 'https://wstein.github.io/cliwerk/maven' }
 }
@@ -69,9 +34,8 @@ dependencies {
 }
 ```
 
-### Maven
-
 ```xml
+<!-- Maven -->
 <repositories>
   <repository>
     <id>wstein-cliwerk</id>
@@ -85,97 +49,67 @@ dependencies {
 </dependency>
 ```
 
-Jars are also attached directly to [GitHub Releases](https://github.com/wstein/cliwerk/releases).
+More options (plain jars, requirements): [docs/INSTALL.adoc](docs/INSTALL.adoc).
 
-**Javadoc and JSON Schema** are hosted on GitHub Pages —
-see the [landing page](https://wstein.github.io/cliwerk/) for all links.
-
----
-
-## cliwerk-spec
-
-[`cliwerk-spec`](cliwerk-spec/README.md) builds a picocli `CommandSpec` from a small DSL or JSON,
-exports any `CommandSpec` back to JSON, and merges specs into a host CLI as subcommands —
-all without an annotated Java class.
-
-Intended use-case: give a beautiful, help-and-completion-enabled picocli front end to a
-third-party tool whose own CLI isn't human-friendly.
-
-```
-// flix-0.60.0.cliwerk  (DSL)
-command flix "The Flix Programming Language 0.60.0" {
-  option --help    : boolean "prints this usage information." usageHelp
-  option --version : boolean "prints the version number."    versionHelp
-  option --listen  : String  "starts the socket server and listens on the given port."
-  command init  "creates a new project in the current directory." { ... }
-  command build "builds the current project." { ... }
-  ...
-}
-```
+## Hello cliwerk
 
 ```java
-CommandSpec flixSpec = CommandSpecDsl.parse(Files.readString(Path.of("flix-0.60.0.cliwerk")));
-CommandSpecMerger.merge(myUberSpec, flixSpec);
-```
+import picocli.CommandLine;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
 
-→ [`cliwerk-spec` README](cliwerk-spec/README.md) ·
-[JSON Schema](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json) ·
-[Javadoc](https://wstein.github.io/cliwerk/apidocs/cliwerk-spec/)
+import java.util.concurrent.Callable;
 
-### Gradle
+@Command(name = "hello", mixinStandardHelpOptions = true, version = "hello 1.0",
+         description = "Prints a greeting.")
+public class Hello implements Callable<Integer> {
 
-The spec classes are bundled into the root artifact; no separate dependency is needed:
+    @Option(names = {"-n", "--name"}, description = "Who to greet (default: ${DEFAULT-VALUE}).")
+    private String name = "world";
 
-```groovy
-dependencies {
-    implementation 'io.github.wstein:cliwerk:4.7.7.1'
+    @Option(names = {"-c", "--count"}, description = "How many times to greet.")
+    private int count = 1;
+
+    @Override
+    public Integer call() {
+        for (int i = 0; i < count; i++) {
+            System.out.println("Hello, " + name + "!");
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        System.exit(new CommandLine(new Hello()).execute(args));
+    }
 }
 ```
 
----
-
-## cliwerk-spec-tool
-
-[`cliwerk-spec-tool`](cliwerk-spec-tool/README.md) is a self-contained fat-jar CLI for working
-with `.cliwerk` / `.json` spec files — no Java code required.
-
 ```
-java -jar cliwerk-spec-tool-<version>-all.jar <subcommand> <spec-file>
+$ java Hello --name cliwerk --count 2
+Hello, cliwerk!
+Hello, cliwerk!
+
+$ java Hello --help
+Usage: hello [-hV] [-c=<count>] [-n=<name>]
+Prints a greeting.
+  -c, --count=<count>   How many times to greet.
+  -h, --help            Show this help message and exit.
+  -n, --name=<name>     Who to greet (default: world).
+  -V, --version         Print version information and exit.
 ```
 
-| Subcommand | What it does |
+## Documentation
+
+| Topic | Where |
 | --- | --- |
-| `preview` | Prints the full usage help for every command in the spec |
-| `validate` | Load-only pass/fail — good for pre-commit hooks and CI |
-| `completion` | Generates a bash/zsh, fish or PowerShell completion script |
-| `manpage` | Generates AsciiDoc man pages via picocli-codegen |
-| `convert` | Converts between DSL and JSON formats |
-
-→ [`cliwerk-spec-tool` README](cliwerk-spec-tool/README.md)
-
----
-
-## Upstream picocli
-
-For everything about picocli itself — annotations, programmatic API, user manual, GraalVM,
-Spring/Micronaut/Quarkus integration, community articles — see:
-
-**[remkop/picocli on GitHub](https://github.com/remkop/picocli#readme)**
-**[picocli.info](https://picocli.info)** (user manual)
-**[Quick Guide](https://picocli.info/quick-guide.html)**
-
-To use the latest **upstream** picocli release instead of cliwerk:
-
-```groovy
-// Gradle
-implementation 'info.picocli:picocli:4.7.7'
-```
-
-```xml
-<!-- Maven -->
-<dependency>
-  <groupId>info.picocli</groupId>
-  <artifactId>picocli</artifactId>
-  <version>4.7.7</version>
-</dependency>
-```
+| Install | [docs/INSTALL.adoc](docs/INSTALL.adoc) |
+| Quickstart | [Hello cliwerk](#hello-cliwerk) (above) |
+| Features | [docs/FEATURES.adoc](docs/FEATURES.adoc) |
+| Migration from picocli | [docs/MIGRATION.adoc](docs/MIGRATION.adoc) |
+| FAQ | [docs/FAQ.adoc](docs/FAQ.adoc) |
+| Javadoc | [cliwerk API](https://wstein.github.io/cliwerk/apidocs/cliwerk/) |
+| cliwerk-spec Javadoc | [cliwerk-spec API](https://wstein.github.io/cliwerk/apidocs/cliwerk-spec/) |
+| JSON Schema | [command-spec.schema.json](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json) |
+| Upstream manual | [picocli.info](https://picocli.info) (applies to everything cliwerk has not changed) |
+| Fork rules and decisions | [docs/FORK.adoc](docs/FORK.adoc) |
+| Changelog | [CHANGELOG.md](CHANGELOG.md) |

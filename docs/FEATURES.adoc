@@ -1,0 +1,75 @@
+= What cliwerk adds
+:toc: preamble
+
+cliwerk contains the whole picocli API.
+The upstream user manual at https://picocli.info applies to everything cliwerk has not changed.
+This page lists what cliwerk adds on top.
+The full list is in link:../CHANGELOG.md[CHANGELOG.md].
+
+== Fish and PowerShell completion
+
+`AutoComplete.fish(scriptName, commandLine)` generates a fish completion script.
+`AutoComplete.powershell(scriptName, commandLine)` generates a PowerShell script
+(Windows PowerShell 5.1 and PowerShell 7+).
+The `generate-completion` subcommand and `picocli.AutoComplete` accept `--shell=fish` and `--shell=powershell`.
+
+The fish work was proposed upstream as https://github.com/remkop/picocli/pull/2463[remkop/picocli#2463].
+Whether upstream accepts it does not change its availability in cliwerk
+(see link:FORK.adoc[FORK.adoc]).
+The current state of that pull request was not checked for this page.
+
+== On-demand help sections
+
+`helpSection` on `@Option`, `@Parameters`, `@ArgGroup` and `@Command` tags an element with a section name.
+Tagged elements are left out of the normal `--help` output.
+They are shown when the matching section is requested, for example with `--Xhelp` for experimental options.
+
+== cliwerk-spec
+
+link:../cliwerk-spec/README.md[`cliwerk-spec`] builds a picocli `CommandSpec` from a small DSL or from JSON,
+without an annotated Java class.
+It also exports a `CommandSpec` to JSON and merges specs into a host CLI as subcommands.
+Typical use: give a third-party tool a help-and-completion-enabled front end.
+
+[source]
+----
+command greet "Prints a greeting." {
+  mixinStandardHelpOptions
+  option -n, --name : String "Who to greet." default=world
+}
+----
+
+[source,java]
+----
+CommandSpec spec = CommandSpecDsl.parse(dslText);
+new CommandLine(spec).usage(System.out);
+----
+
+The classes are in the cliwerk jar, see link:INSTALL.adoc[Install].
+Reference:
+link:../cliwerk-spec/README.md[module README],
+https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json[JSON Schema],
+https://wstein.github.io/cliwerk/apidocs/cliwerk-spec/[Javadoc].
+
+== cliwerk-spec-tool
+
+link:../cliwerk-spec-tool/README.md[`cliwerk-spec-tool`] is a command line tool for `.cliwerk` and `.json` spec files.
+It is not published as a download.
+Build the runnable jar from source:
+
+[source,shell]
+----
+./gradlew :cliwerk-spec-tool:shadowJar
+java -jar cliwerk-spec-tool/build/libs/cliwerk-spec-tool-<version>-all.jar <subcommand> <spec-file>
+----
+
+[cols="1,3"]
+|===
+| Subcommand | What it does
+
+| `preview` | Prints the usage help for every command in the spec.
+| `validate` | Checks that the spec loads. Useful in pre-commit hooks and CI.
+| `completion` | Generates a bash, fish or PowerShell completion script.
+| `manpage` | Generates AsciiDoc man pages.
+| `convert` | Converts between DSL and JSON.
+|===

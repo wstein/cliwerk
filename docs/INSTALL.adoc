@@ -1,0 +1,93 @@
+= Install cliwerk
+:toc: preamble
+
+This page shows how to add cliwerk to a project.
+The current version is `4.7.7.1`, based on upstream picocli 4.7.7.
+The Maven coordinates are `io.github.wstein:cliwerk`.
+cliwerk is not published to Maven Central.
+It is published to a Maven repository on GitHub Pages and as jars on GitHub Releases.
+
+== Gradle
+
+[source,groovy]
+----
+repositories {
+    maven { url 'https://wstein.github.io/cliwerk/maven' }
+}
+dependencies {
+    implementation 'io.github.wstein:cliwerk:4.7.7.1'
+}
+----
+
+== Maven
+
+[source,xml]
+----
+<repositories>
+  <repository>
+    <id>wstein-cliwerk</id>
+    <url>https://wstein.github.io/cliwerk/maven</url>
+  </repository>
+</repositories>
+<dependency>
+  <groupId>io.github.wstein</groupId>
+  <artifactId>cliwerk</artifactId>
+  <version>4.7.7.1</version>
+</dependency>
+----
+
+== Plain jars
+
+Each release at https://github.com/wstein/cliwerk/releases[GitHub Releases] has these jars attached:
+`cliwerk-<version>.jar`, `cliwerk-<version>-sources.jar`, `cliwerk-<version>-javadoc.jar`,
+`cliwerk-<version>-tests.jar` and `cliwerk-<version>-test-sources.jar`.
+Put `cliwerk-<version>.jar` on the classpath.
+
+The repository URL `https://wstein.github.io/cliwerk/maven` is a flat Maven repository.
+It holds the jar and the pom of `io.github.wstein:cliwerk` only.
+The list of published versions is in
+https://wstein.github.io/cliwerk/maven/io/github/wstein/cliwerk/maven-metadata.xml[maven-metadata.xml].
+
+== What is published
+
+* Maven repository: one artifact, `io.github.wstein:cliwerk` (jar and pom).
+  Source: `gradle/publish-fork-repo.gradle`, applied in the root project only.
+* GitHub Release: the jars of the root project (`build/libs/*.jar`).
+  Source: the "Create GitHub Release" step in `.github/workflows/release.yml`.
+* GitHub Pages: Javadoc for the core and for `cliwerk-spec`, and the JSON Schema.
+* Not published: `cliwerk-spec` as a separate artifact, `cliwerk-spec-tool`, and the other modules
+  (`picocli-codegen`, `picocli-groovy`, and so on).
+
+== cliwerk-spec classes are inside the jar
+
+`cliwerk-spec` is its own Gradle module, but it has no separate download.
+The root jar contains its classes (package `cliwerk.spec`) when the jar is built with Java 11 or later
+(`build.gradle`, `jar` block guarded by `isJava11Compatible()`).
+The release workflow builds with Java 17 (`.github/workflows/release.yml`), so the released jar contains them.
+No extra dependency is needed to use `cliwerk-spec`.
+
+== Java versions
+
+* The core classes are compiled for Java 8 bytecode when the build runs on Java 9 or later
+  (`build.gradle`, `sourceCompatibility` and `targetCompatibility`).
+  The release build runs on Java 17.
+* The `cliwerk-spec` classes are compiled for Java 11 (`cliwerk-spec/build.gradle`).
+  Use them on Java 11 or later.
+
+== Build from source
+
+[source,shell]
+----
+git clone https://github.com/wstein/cliwerk.git
+cd cliwerk
+./gradlew build
+----
+
+The jars are written to `build/libs`.
+`cliwerk-spec-tool` is built with `./gradlew :cliwerk-spec-tool:shadowJar`, see link:FEATURES.adoc[Features].
+
+== Next steps
+
+* link:../README.md#hello-cliwerk[Hello cliwerk] shows a complete first program.
+* link:MIGRATION.adoc[Migration from picocli] explains how to switch an existing project.
+* link:FAQ.adoc[FAQ]
