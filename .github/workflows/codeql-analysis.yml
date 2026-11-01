@@ -78,8 +78,17 @@ jobs:
       #    and modify them (or add more) to build your code if your project
       #    uses a compiled language
 
+      - name: Configure JDK 21
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          distribution: 'zulu'
+          java-version: 21
+          cache: gradle
+
+      # Compile only: CodeQL needs the compiled classes, not tests or javadoc
+      # (javadoc fetches external package lists from the network).
       - run: |
-          ./gradlew build --no-daemon
+          ./gradlew classes testClasses --no-daemon
       #   make bootstrap
       #   make release
 
