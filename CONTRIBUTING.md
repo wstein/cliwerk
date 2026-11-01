@@ -5,13 +5,13 @@
 The following is a set of guidelines for contributing to [cliwerk](https://github.com/wstein/cliwerk), an independent fork of [picocli](https://github.com/remkop/picocli) (see [docs/FORK.adoc](docs/FORK.adoc)). Contributions to upstream picocli itself go to [remkop/picocli](https://github.com/remkop/picocli). These are mostly guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
 ## <a name="questions"></a> Questions and problem reports
-GitHub Issues and Discussions are currently not enabled for this repository.
-Questions, problem reports and changes all go through [pull requests](https://github.com/wstein/cliwerk/pulls).
-Please do not report security vulnerabilities in a pull request; see [SECURITY.md](SECURITY.md) instead.
+Bug reports and questions go to [GitHub Issues](https://github.com/wstein/cliwerk/issues).
+Changes and fixes go through [pull requests](https://github.com/wstein/cliwerk/pulls).
+Please do not report security vulnerabilities in a public issue or pull request; see [SECURITY.md](SECURITY.md) instead.
 
 ## <a name="helpful"></a> Helpful problem reports look like this
 A helpful problem report saves the maintainer time.
-Try to include these elements in the pull request description:
+Try to include these elements in the issue:
 
 * How to reproduce the problem
 * What is the expected behaviour
