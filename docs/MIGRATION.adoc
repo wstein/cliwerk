@@ -1,0 +1,151 @@
+= Migrating from upstream picocli to cliwerk
+:toc: preamble
+
+This guide is for projects that depend on upstream `info.picocli:picocli` and want to switch to
+https://github.com/wstein/cliwerk[cliwerk], an independent fork that is not affiliated with or endorsed by the picocli project.
+The rules behind it are in link:FORK.adoc[docs/FORK.adoc].
+The first cliwerk release is `4.7.7.1`.
+
+== Summary
+
+* Replace the dependency `info.picocli:picocli` with `io.github.wstein:cliwerk` and add the cliwerk Maven repository.
+* No source changes are needed for code that uses `picocli.*`: the Java package and the public API stay as in upstream picocli
+  (the API only grows).
+* Only cliwerk-owned names changed: the spec classes, the spec file extension and the spec tool (see <<Spec renames>>).
+  They matter only if you used an earlier cliwerk build of `picocli-spec` or `picospec`.
+
+== Coordinates
+
+[cols="1,2",options="header"]
+|===
+| | Value
+
+| Maven repository | `https://wstein.github.io/cliwerk/maven/`
+| groupId | `io.github.wstein`
+| artifactId | `cliwerk`
+| Version | `4.7.7.1`
+|===
+
+Only the core artifact is published.
+The `cliwerk.spec` classes are included in it when it is built with Java 11 or later; there is no separate `cliwerk-spec` artifact.
+Jars (`cliwerk-<version>*.jar`) are also attached to https://github.com/wstein/cliwerk/releases[GitHub Releases].
+
+=== Gradle (Kotlin DSL)
+
+[source,kotlin]
+----
+repositories {
+    mavenCentral()
+    maven { url = uri("https://wstein.github.io/cliwerk/maven/") }
+}
+dependencies {
+    implementation("io.github.wstein:cliwerk:4.7.7.1")
+}
+----
+
+=== Gradle (Groovy DSL)
+
+[source,groovy]
+----
+repositories {
+    mavenCentral()
+    maven { url 'https://wstein.github.io/cliwerk/maven/' }
+}
+dependencies {
+    implementation 'io.github.wstein:cliwerk:4.7.7.1'
+}
+----
+
+=== Maven
+
+[source,xml]
+----
+<repositories>
+  <repository>
+    <id>wstein-cliwerk</id>
+    <url>https://wstein.github.io/cliwerk/maven/</url>
+  </repository>
+</repositories>
+
+<dependency>
+  <groupId>io.github.wstein</groupId>
+  <artifactId>cliwerk</artifactId>
+  <version>4.7.7.1</version>
+</dependency>
+----
+
+Remove the `info.picocli:picocli` dependency when you add cliwerk.
+
+== What stays identical
+
+* Java package `picocli` and all public API names (classes, annotations, methods, attributes).
+  The upstream user manual at https://picocli.info applies to everything cliwerk has not changed.
+* The API is additive: cliwerk may add public types and members but does not remove or incompatibly change upstream API.
+  An opt-in, report-only check against upstream 4.7.7 (`apiCompat`) reports no binary-incompatible change;
+  see link:FORK.adoc[docs/FORK.adoc] for the six excepted annotation elements.
+* JPMS module name `info.picocli` and OSGi `Bundle-SymbolicName` `picocli`.
+* Jar manifest `Implementation-Title` and `Specification-Title` stay `picocli`.
+* License: Apache License 2.0.
+
+What differs at run time: `CommandLine.VERSION` reports the cliwerk version (`4.7.7.1`).
+
+== What is new
+
+* Fish completion: `AutoComplete.fish()`.
+* PowerShell completion: `AutoComplete.powershell()`.
+  The new constant `GenerateCompletion.Shell.powershell` also appears in the `--shell` candidates of `generate-completion` and `picocli.AutoComplete`.
+* On-demand help sections: `helpSection` on `@Option`, `@Parameters`, `@ArgGroup` and `@Command`, and `helpSections()` and `showHelpSectionsNotice()` on `@Command`.
+  All have default values.
+* `cliwerk.spec`: build a `CommandSpec` from a DSL (`.cliwerk`) or JSON file without annotated classes.
+* `cliwerk-spec`: standalone command line tool (module `cliwerk-spec-tool`) to preview, validate, convert and generate completions and man pages for spec files.
+  It is not published to the Maven repository; build it with `./gradlew :cliwerk-spec-tool:build`, which produces
+  `cliwerk-spec-tool/build/libs/cliwerk-spec-tool-<version>-all.jar`.
+
+Details are in `CHANGELOG.md`, `README.md` and the module READMEs.
+
+== Versioning and upstream sync
+
+* Versions have four numeric parts, `<upstream x.y.z>.<fork revision>`: `4.7.7.1` is the first cliwerk revision on upstream picocli 4.7.7;
+  the next ones are `4.7.7.2`, ...
+* Each upstream release is merged into cliwerk by the maintainer, and the base version moves to it with the revision reset to 1
+  (for example `4.7.8.1`).
+  There is no automatic sync, and no promise about how soon after an upstream release cliwerk follows.
+* There are no qualifiers (such as `-cliwerk.1`) because Maven and Gradle order them differently.
+* OSGi consumers: the fourth part of the version is the `Bundle-Version` qualifier and is compared as a string,
+  so `4.7.7.10` sorts before `4.7.7.9` there.
+* The earlier cliwerk releases 4.7.8 to 4.9.4 were not upstream releases; they have been withdrawn and deleted.
+
+== Spec renames
+
+Relevant only if you used the cliwerk spec modules before `4.7.7.1`.
+
+[cols="1,1",options="header"]
+|===
+| Old | New
+
+| `picocli.spec.*` (also `picocli.spec.json`, `picocli.spec.tool`) | `cliwerk.spec.*` (`cliwerk.spec.json`, `cliwerk.spec.tool`)
+| `*.picocli` spec files | `*.cliwerk` (`.dsl` is still accepted)
+| `picospec` (main class `picocli.spec.tool.SpecToolApp`) | `cliwerk-spec` (`cliwerk.spec.tool.SpecToolApp`)
+| Modules `picocli-spec`, `picocli-spec-tool` | `cliwerk-spec`, `cliwerk-spec-tool`
+| Resources `/picocli/spec/...` | `/cliwerk/spec/...`
+| Jars `picocli-<version>*.jar` | `cliwerk-<version>*.jar`
+|===
+
+== Side-by-side use
+
+cliwerk and `info.picocli:picocli` cannot be on the same classpath: both contain `picocli.CommandLine` and the other `picocli.*` classes,
+and Maven and Gradle do not treat the different coordinates as a version conflict.
+If a dependency brings in upstream picocli transitively, exclude it or substitute cliwerk for it;
+the Maven exclusion and the Gradle `exclude` and `dependencySubstitution` snippets are in
+section "Compatibility with upstream picocli" of link:FORK.adoc[docs/FORK.adoc].
+
+== Verification checklist
+
+. The Maven repository is declared and `io.github.wstein:cliwerk:4.7.7.1` resolves.
+. `info.picocli:picocli` no longer appears in the dependency tree
+  (`./gradlew dependencies` or `mvn dependency:tree`), including transitive dependencies.
+. The project compiles without source changes to `picocli.*` imports.
+. The tests pass.
+. `CommandLine.VERSION` (or your `--version` output, if it uses it) prints `4.7.7.1`.
+. Generated completion scripts are regenerated if you ship them; their headers show the new version.
+. If you used the spec modules: imports, file extensions and tool invocations follow <<Spec renames>>.

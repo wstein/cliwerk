@@ -14,6 +14,8 @@ by Remko Popma, maintained by [wstein](https://github.com/wstein) under the
 
 Relationship to upstream, branch model and naming rules: [docs/FORK.adoc](docs/FORK.adoc).
 
+Switching from upstream picocli: [docs/MIGRATION.adoc](docs/MIGRATION.adoc).
+
 ### Transition note: package and coordinates are unchanged for now
 
 The project name changed to cliwerk, but the code did not (yet):
