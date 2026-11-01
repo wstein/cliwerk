@@ -65,6 +65,11 @@ jobs:
         shell: bash
         run: python3 -I .github/scripts/check-jar-manifest.py
 
+      - name: Test CI scripts
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        shell: bash
+        run: python3 -I -m unittest discover -s .github/scripts -p "test_*.py"
+
       - name: Report Gradle failure as annotations
         if: ${{ failure() && steps.build.outcome == 'failure' }}
         shell: bash
