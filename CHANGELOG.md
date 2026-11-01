@@ -13,7 +13,7 @@ The releases 4.7.8 to 4.9.4 below were cliwerk's own releases, not upstream pico
 
 ### Changed
 - **Fish completion of positional parameters**: a positional parameter is now offered at its own position only (before, its
-  candidates were offered at every position), candidates replace file names at that position, file names are offered at a
+  candidates were offered at every position), candidates replace file names at that position (not where a word could be an option value or a negative number), file names are offered at a
   positional parameter with a fixed index (not `0..*`) of a command with subcommands, and subcommand names are no longer suggested after
   the end-of-options delimiter (`--`). Positions are counted only where that cannot rule
   out a valid position. Known limitations are listed in docs/autocomplete.adoc. The bash and PowerShell

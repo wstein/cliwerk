@@ -630,6 +630,9 @@ public class AutoComplete {
      * With {@code values} = 1 the command has options that take a value, and a word that follows an option could be
      * that option's value: the index is then a range ({@code lo..hi}) and the function succeeds if it overlaps
      * {@code min..max}. So it never rules out a position that picocli would accept.</p>
+     * <p>With a sixth argument {@code exact}, the function succeeds only if the position is known exactly
+     * ({@code lo == hi}). Fish switches off file names with a {@code complete -f} line under that condition, so the
+     * candidates of a position replace the file names there, but not where a negative number made the position a range.</p>
      */
     private static final String FISH_POSITION_FUNCTION = "" +
             "function %1$s\n" +
@@ -662,7 +665,7 @@ public class AutoComplete {
             "    set lo (math $lo - $argv[1])\n" +
             "    set hi (math $hi - $argv[1])\n" +
             "    test $lo -lt 0; and set lo 0\n" +
-            "    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end\n" +
+            "    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end; and begin; test \"$argv[6]\" != exact; or test $lo -eq $hi; end\n" +
             "end\n";
 
     /**
@@ -849,10 +852,9 @@ public class AutoComplete {
             }
         }
         if (candidates != null) {
-            // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: -f only at an exactly known position,
-            // where the candidates are the values to offer, not if the position is a range because of options with a value; without a known position, fish has no notion of argument position
-            // and -f would also switch off file completion for sibling positionals
-            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : (position != null && exact ? " -f" : "")).append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
+            // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: file names are switched off by
+            // a separate line below, because they must stay available where the position is only a range
+            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
         } else if (fishOptionalValue(arg)) {
             // -F (force files): file names stay available after --option=, even if a subcommand line's -f switched them off
             out.append(" -F");
@@ -861,6 +863,13 @@ public class AutoComplete {
         }
         appendFishDescription(arg.plainDescription(), out);
         out.append('\n');
+        if (!isOption && candidates != null && position != null && exact) {
+            // The candidates are the values to offer, so no file names, but only where the position is known exactly: not if it
+            // is a range because of options with a value or a negative number (the word could then belong to a sibling positional that
+            // is a file). Without a known position, fish has no notion of argument position, and -f would switch off file names for siblings.
+            out.append("complete -c '").append(fishQuote(scriptName)).append('\'')
+                    .append(fishCondition(condition + " exact")).append(" -f\n"); // the position condition is the last in the chain
+        }
         if (candidates != null && fishOptionalValue(arg)) {
             appendFishSeparateOptionalValue(scriptName, condition, (CompletionModel.OptionNode) arg, candidates, out);
         }

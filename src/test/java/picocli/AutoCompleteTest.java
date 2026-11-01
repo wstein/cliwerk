@@ -419,7 +419,8 @@ public class AutoCompleteTest {
 
         // a parent with positionals of its own: the words before the subcommand name cannot be told apart from the subcommand's
         script = AutoComplete.fish("fishposparent", new CommandLine(new FishPositionalParent()));
-        assertThat(script, containsString("-n 'not __fish_seen_subcommand_from go; and __picocli_fishposparent_position 0 0 0 0 --' -f -a 'alpha beta'\n"));
+        assertThat(script, containsString("-n 'not __fish_seen_subcommand_from go; and __picocli_fishposparent_position 0 0 0 0 --' -a 'alpha beta'\n"));
+        assertThat(script, containsString("-n 'not __fish_seen_subcommand_from go; and __picocli_fishposparent_position 0 0 0 0 -- exact' -f\n"));
         assertThat(script, containsString("complete -c 'fishposparent' -n '__fish_seen_subcommand_from go' -a 'red green blue'\n"));
     }
 
@@ -437,6 +438,34 @@ public class AutoCompleteTest {
         assertThat(script, containsString("            set after_option 1\n"
                 + "            if string match -q -r -- '^-[0-9]'"));
         String expected = format(loadTextFromClasspath("/fish-calc.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    // a negative number makes the position a range, so candidates must not switch off the file names of a sibling positional in that range
+    @Command(name = "fishrange", subcommands = {FishRangeG1.class, FishRangeG2.class})
+    static class FishRange {
+    }
+    @Command(name = "g1")
+    static class FishRangeG1 {
+        @Parameters(index = "0", paramLabel = "N") int n;
+        @Parameters(index = "1", paramLabel = "MODE", completionCandidates = FishModes.class) String mode;
+        @Parameters(index = "2", paramLabel = "FILE") File file;
+    }
+    @Command(name = "g2")
+    static class FishRangeG2 {
+        @Parameters(index = "0", paramLabel = "MODE", completionCandidates = FishModes.class) String mode;
+        @Parameters(index = "1", paramLabel = "FILE") File file;
+    }
+
+    @Test
+    public void fishCandidatesSwitchOffFileNamesOnlyAtAnExactPosition() {
+        String script = AutoComplete.fish("fishrange", new CommandLine(new FishRange()));
+        // the candidates themselves leave file completion alone ...
+        assertThat(script, containsString("-n '__fish_seen_subcommand_from g2; and __picocli_fishrange_position 1 0 0 0 --' -a 'alpha beta'\n"));
+        // ... a separate line switches it off, and only if the position is known exactly (not a range because of a negative number)
+        assertThat(script, containsString("-n '__fish_seen_subcommand_from g2; and __picocli_fishrange_position 1 0 0 0 -- exact' -f\n"));
+        assertThat(script, containsString("-n '__fish_seen_subcommand_from g1; and __picocli_fishrange_position 1 1 1 0 -- exact' -f\n"));
+        String expected = format(loadTextFromClasspath("/fish-range.fish"), CommandLine.VERSION);
         assertEquals(expected, script);
     }
 

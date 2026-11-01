@@ -33,7 +33,7 @@ function __picocli_fishpos_position
     set lo (math $lo - $argv[1])
     set hi (math $hi - $argv[1])
     test $lo -lt 0; and set lo 0
-    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end
+    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end; and begin; test "$argv[6]" != exact; or test $lo -eq $hi; end
 end
 complete -c 'fishpos' -n 'not __fish_seen_subcommand_from run go' -l 'verbose'
 complete -c 'fishpos' -n 'not __fish_seen_subcommand_from run go' -l 'out' -r
