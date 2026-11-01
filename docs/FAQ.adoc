@@ -1,0 +1,51 @@
+= cliwerk FAQ
+:toc: preamble
+
+== Why is it called cliwerk and not picocli?
+
+cliwerk is an independent fork.
+It is not affiliated with or endorsed by the picocli project.
+The name "picocli" refers to the upstream project only, so cliwerk releases do not use it.
+The naming rules are in link:FORK.adoc#_naming_and_identity_rules[FORK.adoc].
+
+== Is cliwerk a drop-in replacement for picocli?
+
+Yes.
+The Java package is `picocli`, and cliwerk keeps the public API of upstream picocli.
+It only adds API.
+You change the dependency coordinates, not your code.
+The decision is recorded in link:FORK.adoc#_compatibility_with_upstream_picocli[FORK.adoc].
+See link:MIGRATION.adoc[Migration] for the steps.
+
+== Can I use cliwerk and info.picocli:picocli together?
+
+No.
+Both contain the classes of the package `picocli`.
+Two jars with the same classes on one classpath conflict.
+Use one of them.
+If another library depends on `info.picocli:picocli`, exclude that dependency and use cliwerk instead.
+
+== What do the version numbers mean?
+
+Versions are `<upstream x.y.z>.<fork revision>`.
+`4.7.7.1` is the first cliwerk revision on top of upstream picocli 4.7.7.
+The next one is `4.7.7.2`.
+When the base moves to a new upstream release, the revision starts at 1 again.
+Details: link:FORK.adoc#_versioning[FORK.adoc].
+
+== Where is the documentation?
+
+* Using the library: the upstream manual at https://picocli.info and the
+  https://picocli.info/quick-guide.html[Quick Guide].
+* What cliwerk adds: link:FEATURES.adoc[Features].
+* API reference: https://wstein.github.io/cliwerk/apidocs/cliwerk/[cliwerk Javadoc].
+
+== Where do I report a problem?
+
+Report problems with cliwerk at https://github.com/wstein/cliwerk[wstein/cliwerk].
+Report to the picocli project only what you can reproduce with an upstream picocli release.
+
+== Which Maven coordinates do I use?
+
+`io.github.wstein:cliwerk`, from the repository `https://wstein.github.io/cliwerk/maven`.
+See link:INSTALL.adoc[Install].
