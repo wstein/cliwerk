@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Javadoc, JSON Schema and Maven repository of cliwerk.">
+<title>Reference · cliwerk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230b5d63'/%3E%3Cpath d='M6 8l4 4-4 4M12 16h6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site"><div class="wrap">
+<a class="brand" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="21" height="21" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 8l4 4-4 4M12 16h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>cliwerk</a>
+<nav aria-label="Main"><ul><li><a href="../guide/">Guide</a></li><li><a href="../reference/" aria-current="page">Reference</a></li><li><a href="https://github.com/wstein/cliwerk">GitHub</a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
+<h1>Reference</h1>
+<p class="lead">Generated and machine-readable material, published with each release.</p>
+<h2>API documentation</h2>
+<dl class="refs">
+<dt><a href="../apidocs/cliwerk/">cliwerk</a></dt><dd>Javadoc for the core library (package <code>picocli</code>).</dd>
+<dt><a href="../apidocs/cliwerk-spec/">cliwerk-spec</a></dt><dd>Javadoc for the spec module (package <code>cliwerk.spec</code>).</dd>
+</dl>
+<h2>JSON Schema</h2>
+<dl class="refs">
+<dt><a href="../spec/schema/command-spec.schema.json">command-spec.schema.json</a></dt><dd>Schema of the cliwerk-spec JSON format. Only the latest schema is published; its <code>$id</code> is this URL.</dd>
+</dl>
+<h2>Maven repository</h2>
+<p>A flat repository holding jars and POMs.</p>
+<pre><code>repositories {
+    maven { url 'https://wstein.github.io/cliwerk/maven' }
+}
+dependencies {
+    implementation 'io.github.wstein:cliwerk:&lt;version&gt;'
+}</code></pre>
+<dl class="refs">
+<dt><a href="../maven/io/github/wstein/cliwerk/maven-metadata.xml">maven-metadata.xml</a></dt><dd>Lists published versions.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/releases">GitHub releases</a></dt><dd>Jars attached to each release.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/.github/workflows/release.yml">Release workflow</a></dt><dd>How the site and repository are assembled.</dd>
+</dl>
+<h2>Other modules</h2>
+<p>These come from upstream picocli. Only their READMEs are linked.</p>
+<ul>
+<li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-codegen">picocli-codegen</a>: annotation processor and GraalVM configuration generators</li>
+<li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-groovy/README.md">picocli-groovy</a></li>
+<li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline2/README.md">picocli-shell-jline2</a>, <a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline3/README.md">picocli-shell-jline3</a></li>
+<li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-spring-boot-starter/README.md">picocli-spring-boot-starter</a></li>
+<li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-examples/README.md">picocli-examples</a></li>
+</ul>
+</div></main>
+<footer class="site"><div class="wrap">
+<p>cliwerk is an independent fork of <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma, licensed under the Apache License 2.0. It is not affiliated with or endorsed by the picocli project, and its artifacts are not the official <code>info.picocli:picocli</code> releases.</p>
+<p><a href="https://github.com/wstein/cliwerk/blob/develop/LICENSE">LICENSE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE">NOTICE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE-DOCS">NOTICE-DOCS</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/docs/FORK.adoc">Fork policy</a></p>
+</div></footer>
+</body>
+</html>

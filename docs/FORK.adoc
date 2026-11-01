@@ -128,6 +128,12 @@ They have been withdrawn and deleted (tags, GitHub Releases and artifacts); they
 cliwerk's own versions always have four parts, so `4.7.8.1` cannot be confused with an upstream `4.7.8`,
 and the release workflow ignores three-part tags.
 
+== Documentation site
+
+The site at `https://wstein.github.io/cliwerk/` is hand-written static HTML and CSS in `gh-pages/` (no generator, no JavaScript, no external requests).
+The release workflow copies `gh-pages/` (except its `README.md`) onto the `gh-pages` branch next to `maven/`, `apidocs/` and `spec/schema/`.
+The user guide pages link to the AsciiDoc sources on GitHub; they are not rendered into the site.
+
 == Branch model
 
 `develop`::

@@ -2,71 +2,52 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>cliwerk — Maven repo (io.github.wstein:cliwerk)</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  body { font: 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 40rem; margin: 3rem auto; padding: 0 1rem; color: #1f2328; }
-  code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
-  pre { background: #f6f8fa; padding: 1rem; border-radius: 6px; overflow-x: auto; }
-  a { color: #0969da; }
-</style>
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="cliwerk: a Java command line parser with the picocli API, plus fish completion and command specs.">
+<title>cliwerk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230b5d63'/%3E%3Cpath d='M6 8l4 4-4 4M12 16h6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site"><div class="wrap">
+<a class="brand" href="./"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="21" height="21" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 8l4 4-4 4M12 16h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>cliwerk</a>
+<nav aria-label="Main"><ul><li><a href="guide/">Guide</a></li><li><a href="reference/">Reference</a></li><li><a href="https://github.com/wstein/cliwerk">GitHub</a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
 <h1>cliwerk</h1>
-<p>
-  This is a small self-hosted flat Maven repository for
-  <a href="https://github.com/wstein/cliwerk">cliwerk</a>, an independent fork of
-  <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma (Apache License 2.0)
-  that adds e.g. fish shell completion and the <code>cliwerk-spec</code> module below.
-</p>
-<p>cliwerk is <strong>not</strong> affiliated with or endorsed by the picocli project, and its artifacts are
-not the official <code>info.picocli:picocli</code> releases on Maven Central.
-Artifacts are published as <code>io.github.wstein:cliwerk</code>;
-the Java package is still <code>picocli</code> (drop-in replacement).</p>
+<p class="lead">A command line parser for Java that keeps the <code>picocli</code> API and adds fish completion, on-demand help sections, and command specs from JSON or a small DSL.</p>
+<p><a class="btn" href="guide/">Read the guide</a><a class="btn alt" href="reference/">API, schema, Maven</a></p>
 
-<h2>Usage</h2>
-<pre>repositories {
+<h2>Use it</h2>
+<pre><code>repositories {
     maven { url 'https://wstein.github.io/cliwerk/maven' }
 }
 dependencies {
     implementation 'io.github.wstein:cliwerk:&lt;version&gt;'
-}</pre>
+}</code></pre>
+<p>The artifact is <code>io.github.wstein:cliwerk</code>. The Java package is still <code>picocli</code>, so existing code compiles unchanged. The list of published versions is in <a href="maven/io/github/wstein/cliwerk/maven-metadata.xml">maven-metadata.xml</a>.</p>
 
-<h2>Documentation</h2>
-<ul>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/README.md">Project README</a> (cliwerk's README, with links to upstream picocli's documentation)</li>
-  <li><a href="apidocs/cliwerk/">Javadoc — cliwerk (core)</a></li>
-  <li><a href="apidocs/cliwerk-spec/">Javadoc — cliwerk-spec</a></li>
-  <li><a href="maven/io/github/wstein/cliwerk/maven-metadata.xml">maven-metadata.xml</a> (lists published versions)</li>
-  <li><a href="https://github.com/wstein/cliwerk/releases">GitHub Releases</a> (jars attached directly)</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/.github/workflows/release.yml">release workflow source</a></li>
+<h2>What cliwerk adds</h2>
+<ul class="grid">
+<li class="card"><h3>Fish completion</h3><p><code>AutoComplete.fish()</code> generates a completion script for the fish shell.</p></li>
+<li class="card"><h3>Command specs</h3><p><code>cliwerk-spec</code> builds a <code>CommandSpec</code> from JSON or a DSL, without annotated classes, and writes it back.</p></li>
+<li class="card"><h3>Help sections</h3><p><code>helpSection</code> on <code>@Option</code> and <code>@ArgGroup</code> prints targeted help, for example for <code>--Xhelp</code>.</p></li>
+<li class="card"><h3>Spec tool</h3><p><code>cliwerk-spec</code> command line tool: preview, validate, convert, completion, man pages.</p></li>
 </ul>
 
-<h2>cliwerk-spec</h2>
-<p>
-  Build a picocli <code>CommandSpec</code> from JSON or from a small DSL, export any
-  <code>CommandSpec</code> back to JSON, and merge one or more such specs into a host CLI as
-  subcommands — without an annotated Java class. Meant for giving a beautiful,
-  help-and-completion-enabled picocli front end to a third-party tool whose own CLI isn't
-  human-friendly.
-</p>
-<ul>
-  <li><a href="https://github.com/wstein/cliwerk/tree/develop/cliwerk-spec">Module README</a> (DSL grammar, JSON field reference, worked example)</li>
-  <li><a href="spec/schema/command-spec.schema.json">JSON Schema</a> for the JSON format (only the latest schema is published)</li>
-  <li><a href="apidocs/cliwerk-spec/">Javadoc</a></li>
+<h2>Where to go next</h2>
+<ul class="grid">
+<li class="card"><h3><a href="guide/">Guide</a></h3><p>User guide, quick guide, programmatic API, completion, and the cliwerk-spec module.</p></li>
+<li class="card"><h3><a href="reference/">Reference</a></h3><p>Javadoc for cliwerk and cliwerk-spec, the JSON Schema, and the Maven repository.</p></li>
+<li class="card"><h3><a href="guide/#migration">Migration</a></h3><p>Moving from picocli to cliwerk. The page is pending; the guide marks the open item.</p></li>
 </ul>
-
-<h2>Other modules in this repo</h2>
-<p>These are upstream picocli modules (not cliwerk-specific); only their READMEs are linked here — this
-site currently only hosts generated Javadoc for <code>picocli</code> and <code>cliwerk-spec</code>
-above.</p>
-<ul>
-  <li><a href="https://github.com/wstein/cliwerk/tree/develop/picocli-codegen">picocli-codegen</a> — annotation processor and GraalVM native-image config generators</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-groovy/README.md">picocli-groovy</a> — Groovy script support</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline2/README.md">picocli-shell-jline2</a> — JLine 2 shell completer</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-shell-jline3/README.md">picocli-shell-jline3</a> — JLine 3 shell completer</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-spring-boot-starter/README.md">picocli-spring-boot-starter</a> — Spring Boot auto-configuration</li>
-  <li><a href="https://github.com/wstein/cliwerk/blob/develop/picocli-examples/README.md">picocli-examples</a> — example code</li>
-</ul>
+<p class="notice">cliwerk is maintained by <a href="https://github.com/wstein">wstein</a> and is not affiliated with or endorsed by the picocli project. Jars are also attached to each <a href="https://github.com/wstein/cliwerk/releases">GitHub release</a>.</p>
+</div></main>
+<footer class="site"><div class="wrap">
+<p>cliwerk is an independent fork of <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma, licensed under the Apache License 2.0. It is not affiliated with or endorsed by the picocli project, and its artifacts are not the official <code>info.picocli:picocli</code> releases.</p>
+<p><a href="https://github.com/wstein/cliwerk/blob/develop/LICENSE">LICENSE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE">NOTICE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE-DOCS">NOTICE-DOCS</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/docs/FORK.adoc">Fork policy</a></p>
+</div></footer>
 </body>
 </html>

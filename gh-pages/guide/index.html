@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<meta name="description" content="Entry points to the cliwerk documentation sources.">
+<title>Guide · cliwerk</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230b5d63'/%3E%3Cpath d='M6 8l4 4-4 4M12 16h6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="../assets/site.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site"><div class="wrap">
+<a class="brand" href="../"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="1.5" y="1.5" width="21" height="21" rx="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M6 8l4 4-4 4M12 16h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>cliwerk</a>
+<nav aria-label="Main"><ul><li><a href="../guide/" aria-current="page">Guide</a></li><li><a href="../reference/">Reference</a></li><li><a href="https://github.com/wstein/cliwerk">GitHub</a></li></ul></nav>
+</div></header>
+<main id="main"><div class="wrap">
+<h1>Guide</h1>
+<p class="lead">Documentation lives as AsciiDoc and Markdown in the repository. These links open the sources, which GitHub renders.</p>
+
+<h2>Start here</h2>
+<dl class="refs">
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/README.md">README</a></dt><dd>What cliwerk is, how to depend on it, build instructions.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/docs/index.adoc">User manual</a></dt><dd>The full picocli user manual, which describes the API that cliwerk keeps.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/docs/quick-guide.adoc">Quick guide</a></dt><dd>A short path through the annotations and the parser.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/docs/picocli-programmatic-api.adoc">Programmatic API</a></dt><dd>Build commands without annotations.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/docs/autocomplete.adoc">Autocompletion</a></dt><dd>Shell completion scripts. The fish generator is a cliwerk addition; see the README for its usage.</dd>
+</dl>
+
+<h2>cliwerk-spec</h2>
+<dl class="refs">
+<dt><a href="https://github.com/wstein/cliwerk/tree/develop/cliwerk-spec">Module README</a></dt><dd>DSL grammar, JSON field reference, worked example.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/tree/develop/cliwerk-spec-tool">Spec tool README</a></dt><dd>The <code>cliwerk-spec</code> command: preview, validate, convert, completion, man pages.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/tree/develop/docs/adr">Design records</a></dt><dd>Why the JSON parser is embedded, why DSL and JSON coexist, why there are two modules.</dd>
+</dl>
+
+<h2>Project</h2>
+<dl class="refs">
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/docs/FORK.adoc">Fork policy</a></dt><dd>Naming rules, versioning, branch model, decision log.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/RELEASE-NOTES.md">Release notes</a></dt><dd>Upstream release notes carried by the fork.</dd>
+<dt><a href="https://github.com/wstein/cliwerk/blob/develop/CONTRIBUTING.md">Contributing</a></dt><dd>How to propose a change.</dd>
+</dl>
+
+<h2 id="migration">Migration from picocli</h2>
+<p class="todo"><strong>TODO (pending):</strong> the migration guide is being written as <code>docs/MIGRATION.adoc</code>. It is not linked from here yet because the release workflow cannot render AsciiDoc without a new build step. Until a rendering decision is made, read the source once it is merged at <code>https://github.com/wstein/cliwerk/blob/develop/docs/MIGRATION.adoc</code>.</p>
+
+<p class="notice">The user manual and quick guide are inherited from upstream picocli and are covered by the attribution in <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE">NOTICE</a>. Where they say <code>info.picocli:picocli</code> or picocli.info, the cliwerk coordinates are <code>io.github.wstein:cliwerk</code> and this site.</p>
+</div></main>
+<footer class="site"><div class="wrap">
+<p>cliwerk is an independent fork of <a href="https://github.com/remkop/picocli">picocli</a> by Remko Popma, licensed under the Apache License 2.0. It is not affiliated with or endorsed by the picocli project, and its artifacts are not the official <code>info.picocli:picocli</code> releases.</p>
+<p><a href="https://github.com/wstein/cliwerk/blob/develop/LICENSE">LICENSE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE">NOTICE</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/NOTICE-DOCS">NOTICE-DOCS</a> · <a href="https://github.com/wstein/cliwerk/blob/develop/docs/FORK.adoc">Fork policy</a></p>
+</div></footer>
+</body>
+</html>
