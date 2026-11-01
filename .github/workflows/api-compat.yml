@@ -2,8 +2,8 @@ name: API compatibility
 # Checks that the public API of package picocli stays compatible with the last merged upstream
 # picocli release (task apiCompat, gradle/api-compat.gradle; docs/FORK.adoc, "Upstream syncs").
 # The findings are written to the job summary, to check run annotations and to the uploaded report.
-# Report-only: findings never fail the job (failOnModification = false in gradle/api-compat.gradle);
-# the job fails only when the task itself cannot run. If it does, the Gradle error is turned into
+# Trial, blocking: binary-incompatible findings fail the job (apiCompatBlocking = true in gradle/api-compat.gradle);
+# the job also fails when the task itself cannot run. If it does, the Gradle error is turned into
 # check run annotations and the job summary (.github/scripts/gradle-failure-annotations.py).
 # The task is opt-in (-PapiCompat) and not part of `check`.
 on:

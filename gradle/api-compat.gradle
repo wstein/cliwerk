@@ -21,9 +21,9 @@ ext {
     // Pinned on purpose: never derived from this project's own group, name or version.
     upstreamBaseVersion = '4.7.7'
 
+    // true = blocking: binary-incompatible findings fail the build (trial, see the PR).
     // false = report-only: findings are reported, but do not fail the build.
-    // Switch to true once every finding is either fixed or accepted as an exception.
-    apiCompatBlocking = false
+    apiCompatBlocking = true
 }
 
 // The upstream reference jar cannot be requested as `info.picocli:picocli`: those are this project's
