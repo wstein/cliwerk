@@ -20,3 +20,5 @@ picocli.iml
 /picocli-tests-java567/gradle/wrapper/dists/**/*.ok
 .metals/
 .vscode/
+__pycache__/
+*.pyc
