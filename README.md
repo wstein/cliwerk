@@ -36,9 +36,8 @@ cliwerk contains the whole picocli API. If you build on picocli, you also get:
 
 ## Switching from picocli in 30 seconds
 
-> Change only the coordinates: `info.picocli:picocli` becomes `io.github.wstein:cliwerk`.
-> The Java package stays `picocli`, so your imports and annotations do not change.
-> Add the cliwerk repository (see [Install](#install)) and build.
+> Change the coordinates (`info.picocli:picocli` becomes `io.github.wstein:cliwerk`) and add the cliwerk repository (see [Install](#install)).
+> The Java package stays `picocli`, so imports and annotations do not change.
 > Details and edge cases: [Migration](docs/MIGRATION.adoc).
 
 ## Install
