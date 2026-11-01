@@ -584,8 +584,8 @@ public class AutoComplete {
 
     /**
      * Generates and returns the source code for a fish completion script for the specified picocli-based application.
-     * <p>Fish's {@code complete} builtin is declarative: unlike {@link #bash(String, CommandLine) bash}, this does not
-     * generate any shell functions. Each option, positional parameter and subcommand becomes its own
+     * <p>Fish's {@code complete} builtin is declarative: unlike {@link #bash(String, CommandLine) bash}, this generates
+     * a shell function only to tell the position of a positional parameter, and only if needed. Each option, positional parameter and subcommand becomes its own
      * {@code complete -c} line, scoped to the right place in the command hierarchy with {@code -n} conditions built
      * around fish's {@code __fish_seen_subcommand_from} helper function.</p>
      * @param scriptName the name of the command to generate a fish completion script for
@@ -602,9 +602,64 @@ public class AutoComplete {
         result.append(format(FISH_HEADER, scriptName, CommandLine.VERSION));
         // erase any completions registered earlier for this command, so re-sourcing the script is idempotent
         result.append("complete -c '").append(fishQuote(scriptName)).append("' -e\n");
-        generateFishCompletions(scriptName, "", CompletionModel.build(commandLine), result);
+        FishPositions positions = new FishPositions(fishFunctionName(scriptName));
+        StringBuilder completions = new StringBuilder();
+        CompletionModel.CommandNode root = CompletionModel.build(commandLine);
+        generateFishCompletions(scriptName, "", root, completions, positions, new FishChain(root.spec(), null, 0));
+        if (positions.used) { result.append(format(FISH_POSITION_FUNCTION, positions.function)); }
+        result.append(completions);
         return result.toString();
     }
+
+    /**
+     * The fish function that tells which positional parameter is being completed, see {@link #FISH_POSITION_FUNCTION}.
+     * Only the characters fish allows in an unquoted function name are kept.
+     */
+    private static String fishFunctionName(String scriptName) {
+        return "__picocli_" + scriptName.replaceAll("[^A-Za-z0-9_]", "_") + "_position";
+    }
+
+    /**
+     * Helper function for positional parameters, emitted only if the script uses it. Fish has no notion of argument
+     * position, so a {@code complete} line cannot say that it applies to the first positional parameter only.
+     * <p>{@code position <depth> <min> <max> <values> <delimiter>} succeeds if the index of the positional parameter
+     * being completed can be within {@code min..max} ({@code max} is -1 for "no upper limit"). {@code depth} is the
+     * number of subcommand names before the positional parameters. The words typed so far are counted: a word that
+     * starts with {@code -} is an option, and so is every word after the end-of-options {@code delimiter}.
+     * With {@code values} = 1 the command has options that take a value, and a word that follows an option could be
+     * that option's value: the index is then a range ({@code lo..hi}) and the function succeeds if it overlaps
+     * {@code min..max}. So it never rules out a position that picocli would accept.</p>
+     */
+    private static final String FISH_POSITION_FUNCTION = "" +
+            "function %1$s\n" +
+            "    set -l lo 0\n" +
+            "    set -l hi 0\n" +
+            "    set -l ended 0\n" +
+            "    set -l after_option 0\n" +
+            "    set -l first 1\n" +
+            "    for word in (commandline -opc)\n" +
+            "        if test $first -eq 1\n" +
+            "            set first 0 # the name of the command itself\n" +
+            "        else if test $ended -eq 1\n" +
+            "            set lo (math $lo + 1)\n" +
+            "            set hi (math $hi + 1)\n" +
+            "        else if test \"$word\" = \"$argv[5]\"\n" +
+            "            set ended 1\n" +
+            "        else if string match -q -- '-?*' $word\n" +
+            "            set after_option 1\n" +
+            "        else\n" +
+            "            set hi (math $hi + 1)\n" +
+            "            if test $argv[4] -eq 0; or test $after_option -eq 0\n" +
+            "                set lo (math $lo + 1)\n" +
+            "            end\n" +
+            "            set after_option 0\n" +
+            "        end\n" +
+            "    end\n" +
+            "    set lo (math $lo - $argv[1])\n" +
+            "    set hi (math $hi - $argv[1])\n" +
+            "    test $lo -lt 0; and set lo 0\n" +
+            "    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end\n" +
+            "end\n";
 
     /**
      * Generates source code for a fish completion script for the specified picocli-based application,
@@ -646,32 +701,99 @@ public class AutoComplete {
      * already-emitted ancestors' completions to this point in the command hierarchy; this method extends it with
      * a guard for {@code command} itself before recursing into its subcommands.
      */
-    private static void generateFishCompletions(String scriptName, String condition, CompletionModel.CommandNode command, StringBuilder out) {
+    private static void generateFishCompletions(String scriptName, String condition, CompletionModel.CommandNode command,
+                                                StringBuilder out, FishPositions positions, FishChain chain) {
         List<String> allChildNames = command.allSubcommandNames();
 
         // this command's own options/positionals stop being suggested once the user has drilled into a subcommand
         String notDrilledDown = allChildNames.isEmpty() ? "" :
                 "not __fish_seen_subcommand_from " + concat(" ", allChildNames);
         String ownCondition = fishAnd(condition, notDrilledDown);
+        String delimiter = command.spec().parser().endOfOptionsDelimiter();
 
         for (CompletionModel.OptionNode option : command.options()) {
-            appendFishArgCompletion(scriptName, ownCondition, option, out);
+            appendFishArgCompletion(scriptName, ownCondition, option, null, false, false, out);
             appendFishNegatedOption(scriptName, ownCondition, option, out);
         }
+        boolean countable = chain.safe && delimiter.length() > 0 && fishPositionsCountable(command.spec());
         for (CompletionModel.PositionalNode positional : command.positionals()) {
-            appendFishArgCompletion(scriptName, ownCondition, positional, out);
+            boolean needsLine = positional.candidates() != null || !allChildNames.isEmpty();
+            String position = countable && needsLine ? fishPositionCondition(positions, chain, positional, delimiter) : null;
+            appendFishArgCompletion(scriptName, ownCondition, positional, position, !chain.values, !allChildNames.isEmpty(), out);
         }
+        // after the end-of-options delimiter, picocli treats everything as positional parameters, even a subcommand name
+        String subcommandCondition = delimiter.length() == 0 ? ownCondition :
+                fishAnd(ownCondition, "not contains -- " + fishEscapeToken(delimiter) + " (commandline -opc)");
         for (CompletionModel.CommandNode child : command.subcommands()) {
             String namesJoined = concat(" ", child.names());
 
-            out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(ownCondition))
+            out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(subcommandCondition))
                     .append(" -f -a '").append(fishQuote(namesJoined)).append('\'');
             appendFishDescription(child.plainDescription(), out);
             out.append('\n');
 
             String childCondition = fishAnd(condition, "__fish_seen_subcommand_from " + namesJoined);
-            generateFishCompletions(scriptName, childCondition, child, out);
+            generateFishCompletions(scriptName, childCondition, child, out, positions, new FishChain(child.spec(), chain, chain.depth + 1));
         }
+    }
+
+    /** The name of the helper function for positional parameters, and whether the script uses it. */
+    private static final class FishPositions {
+        final String function;
+        boolean used;
+        FishPositions(String function) { this.function = function; }
+    }
+
+    /**
+     * What is known about the command line leading to a command: whether the words typed before a positional
+     * parameter can be counted ({@code safe}), and whether an option on the way takes a value ({@code values}).
+     * Counting is not possible if an option consumes several words (arity above 1; how many it takes is not known to
+     * fish), if a parent command has positional parameters of its own (they cannot be told apart from the words
+     * that belong to the subcommand), or if the subcommands are repeatable.
+     */
+    private static final class FishChain {
+        final int depth;
+        final boolean safe;
+        final boolean values;
+        final boolean hasPositionals;
+
+        FishChain(CommandSpec spec, FishChain parent, int depth) {
+            this.depth = depth;
+            boolean ownSafe = true;
+            boolean ownValues = false;
+            for (OptionSpec option : spec.options()) { // hidden options consume words too
+                if (option.arity().max() > 1) { ownSafe = false; }
+                if (option.arity().max() > 0) { ownValues = true; }
+            }
+            this.hasPositionals = !spec.positionalParameters().isEmpty();
+            this.safe = ownSafe && (parent == null || (parent.safe && !parent.hasPositionals && !spec.parent().subcommandsRepeatable()));
+            this.values = ownValues || (parent != null && parent.values);
+        }
+    }
+
+    /**
+     * Returns {@code true} if the position of each positional parameter of the command is a plain number or range of
+     * words: no relative or unresolved index, and no positional parameter that takes several words at a fixed index.
+     */
+    private static boolean fishPositionsCountable(CommandSpec spec) {
+        for (PositionalParamSpec positional : spec.positionalParameters()) {
+            CommandLine.Range index = positional.index();
+            if (index.isRelative() || index.isUnresolved() || positional.arity().max() == 0) { return false; }
+            if (positional.arity().max() > 1 && index.max() != Integer.MAX_VALUE) { return false; }
+        }
+        return true;
+    }
+
+    /**
+     * Returns the fish condition that restricts the specified positional parameter to the positions where picocli
+     * would assign a word to it, or {@code null} if it applies at every position (index {@code 0..*}).
+     */
+    private static String fishPositionCondition(FishPositions positions, FishChain chain, CompletionModel.PositionalNode positional, String delimiter) {
+        CommandLine.Range index = positional.index();
+        if (index.min() == 0 && index.max() == Integer.MAX_VALUE) { return null; }
+        positions.used = true;
+        return positions.function + " " + chain.depth + " " + index.min() + " " + (index.max() == Integer.MAX_VALUE ? -1 : index.max())
+                + " " + (chain.values ? 1 : 0) + " " + fishEscapeToken(delimiter);
     }
 
     /**
@@ -690,12 +812,23 @@ public class AutoComplete {
         return condition.length() == 0 ? "" : " -n '" + fishQuote(condition) + "'";
     }
 
-    private static void appendFishArgCompletion(String scriptName, String condition, CompletionModel.ArgNode arg, StringBuilder out) {
+    /**
+     * @param position for a positional parameter: the condition that restricts it to its position(s), or {@code null}
+     * @param exact whether the position is known exactly (no option takes a value): the candidates then replace file names
+     * @param hasSubcommands whether the command has subcommands, whose line switches off file completion
+     */
+    private static void appendFishArgCompletion(String scriptName, String condition, CompletionModel.ArgNode arg,
+                                                String position, boolean exact, boolean hasSubcommands, StringBuilder out) {
         boolean isOption = arg.isOption();
         CompletionModel.Candidates candidates = arg.candidates();
         if (!isOption && candidates == null) {
-            return; // no useful completion to add for this positional parameter; fall back to fish's default (file) completion
+            if (position != null && hasSubcommands) { // file names stay available at this position
+                out.append("complete -c '").append(fishQuote(scriptName)).append('\'')
+                        .append(fishCondition(fishAnd(condition, position))).append(" -F\n");
+            }
+            return; // otherwise, nothing to add for this positional parameter; fish's default (file) completion applies
         }
+        if (position != null) { condition = fishAnd(condition, position); }
 
         out.append("complete -c '").append(fishQuote(scriptName)).append('\'').append(fishCondition(condition));
         if (isOption) {
@@ -710,9 +843,10 @@ public class AutoComplete {
             }
         }
         if (candidates != null) {
-            // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: no -f, because fish has no
-            // notion of argument position and -f would also switch off file completion for sibling positionals
-            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : "").append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
+            // options with a value: -x (= -r -f), so fish offers only the candidates. Positionals: -f only at an exactly known position,
+            // where the candidates are the values to offer, not if the position is a range because of options with a value; without a known position, fish has no notion of argument position
+            // and -f would also switch off file completion for sibling positionals
+            out.append(isOption ? (fishOptionalValue(arg) ? " -f" : " -x") : (position != null && exact ? " -f" : "")).append(" -a '").append(fishQuote(fishCandidateList(candidates))).append('\'');
         } else if (fishOptionalValue(arg)) {
             // -F (force files): file names stay available after --option=, even if a subcommand line's -f switched them off
             out.append(" -F");

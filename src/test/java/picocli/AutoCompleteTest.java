@@ -351,6 +351,89 @@ public class AutoCompleteTest {
         assertEquals(expected, script);
     }
 
+    enum FishColor { red, green, blue }
+
+    static class FishModes extends ArrayList<String> {
+        FishModes() { super(Arrays.asList("alpha", "beta")); }
+    }
+
+    // positional parameters of a command that also has a subcommand; the subcommand's positionals are not restricted,
+    // because the words before its name include the root's positional parameters
+    @Command(name = "fishposroot", subcommands = FishPositionalsGo.class)
+    static class FishPositionalsRoot {
+        @Option(names = "--verbose") boolean verbose;
+        @Parameters(index = "0", paramLabel = "MODE", completionCandidates = FishModes.class, description = "the mode") String mode;
+        @Parameters(index = "1", paramLabel = "FILE") File file;
+        @Parameters(index = "2..*", arity = "0..*", paramLabel = "COLOR") FishColor[] colors;
+    }
+
+    // positional parameters of subcommands; the root has none, so the words before the subcommand name can be counted
+    @Command(name = "fishpos", subcommands = {FishPositionalsRun.class, FishPositionalsGo.class})
+    static class FishPositionals {
+        @Option(names = "--verbose", scope = CommandLine.ScopeType.INHERIT) boolean verbose;
+        @Option(names = "--out", scope = CommandLine.ScopeType.INHERIT) String out;
+    }
+    @Command(name = "run")
+    static class FishPositionalsRun {
+        @Parameters(index = "0", paramLabel = "MODE", completionCandidates = FishModes.class) String mode;
+        @Parameters(index = "1", paramLabel = "FILE") File file;
+        @Parameters(index = "2..*", arity = "0..*", paramLabel = "COLOR") FishColor[] colors;
+    }
+    @Command(name = "go")
+    static class FishPositionalsGo {
+        @Option(names = "--force") boolean force;
+        @Parameters(index = "0", paramLabel = "COLOR") FishColor color;
+        @Parameters(index = "1", paramLabel = "FILE") File file;
+    }
+
+    @Test
+    public void fishPositionalsGolden() {
+        String script = AutoComplete.fish("fishpos", new CommandLine(new FishPositionals()));
+        String expected = format(loadTextFromClasspath("/fish-positionals.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Test
+    public void fishPositionalsOfRootCommandGolden() {
+        String script = AutoComplete.fish("fishposroot", new CommandLine(new FishPositionalsRoot()));
+        String expected = format(loadTextFromClasspath("/fish-positionals-root.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
+    @Command(name = "fishposlimits", subcommands = FishPositionalsGo.class)
+    static class FishPositionalLimits {
+        @Option(names = "--pair", arity = "2") String[] pair;
+        @Parameters(index = "0", completionCandidates = FishModes.class) String mode;
+    }
+    @Command(name = "fishposparent", subcommands = FishPositionalsGo.class)
+    static class FishPositionalParent {
+        @Parameters(index = "0", completionCandidates = FishModes.class) String mode;
+    }
+
+    @Test
+    public void fishDoesNotRestrictPositionalsWhenTheirIndexCannotBeCounted() {
+        // an option with arity 2: how many words it consumes is not known to fish, so no positional gets a position condition
+        String script = AutoComplete.fish("fishposlimits", new CommandLine(new FishPositionalLimits()));
+        assertThat(script, containsString("complete -c 'fishposlimits' -n 'not __fish_seen_subcommand_from go' -a 'alpha beta'\n"));
+        assertThat(script, not(containsString("_position")));
+
+        // a parent with positionals of its own: the words before the subcommand name cannot be told apart from the subcommand's
+        script = AutoComplete.fish("fishposparent", new CommandLine(new FishPositionalParent()));
+        assertThat(script, containsString("-n 'not __fish_seen_subcommand_from go; and __picocli_fishposparent_position 0 0 0 0 --' -f -a 'alpha beta'\n"));
+        assertThat(script, containsString("complete -c 'fishposparent' -n '__fish_seen_subcommand_from go' -a 'red green blue'\n"));
+    }
+
+    @Test
+    public void fishDoesNotSuggestSubcommandsAfterEndOfOptionsDelimiter() {
+        String script = AutoComplete.fish("fishpos", new CommandLine(new FishPositionals()));
+        assertThat(script, containsString("-n 'not __fish_seen_subcommand_from run go; and not contains -- -- (commandline -opc)' -f -a 'run'\n"));
+
+        CommandLine cmd = new CommandLine(new FishPositionals());
+        cmd.setEndOfOptionsDelimiter("++");
+        script = AutoComplete.fish("fishpos", cmd);
+        assertThat(script, containsString("and not contains -- ++ (commandline -opc)' -f -a 'run'\n"));
+    }
+
     @Command(name = "fishcand")
     static class FishCandidates {
         static class Candidates extends ArrayList<String> {
