@@ -4,6 +4,15 @@
 [![GitHub Release](https://img.shields.io/github/release/wstein/cliwerk.svg)](https://github.com/wstein/cliwerk/releases)
 [![License](https://img.shields.io/github/license/wstein/cliwerk.svg)](LICENSE)
 
+[Website](https://wstein.github.io/cliwerk/) ·
+[Install](#install) ·
+[Quickstart](#hello-cliwerk) ·
+[Docs](#documentation) ·
+[Javadoc](https://wstein.github.io/cliwerk/apidocs/cliwerk/) ·
+[Migration](docs/MIGRATION.adoc) ·
+[FAQ](docs/FAQ.adoc) ·
+[Changelog](CHANGELOG.md)
+
 > **cliwerk is not affiliated with or endorsed by the picocli project.**
 > "picocli" refers to the upstream project. cliwerk releases are not picocli releases.
 > cliwerk is an independent fork of [picocli](https://github.com/remkop/picocli) by Remko Popma,
@@ -12,13 +21,20 @@
 ## What is cliwerk?
 
 cliwerk is a Java library for building command line applications with options, subcommands,
-usage help and shell completion. It is a fork of picocli and a drop-in replacement for it:
-the Java package is still `picocli`, so your imports and annotations stay the same.
-Only the Maven coordinates differ: `io.github.wstein:cliwerk` instead of `info.picocli:picocli`.
+usage help and shell completion.
 
-Why use it? You get the picocli API plus fish and PowerShell completion,
-command specs built from a DSL or JSON, and on-demand help sections.
-See [Features](docs/FEATURES.adoc).
+## Why use it?
+
+Use cliwerk if you build on picocli and want more than upstream offers:
+
+- fish and PowerShell completion scripts
+- command specs built from a small DSL or from JSON, without annotated classes
+- on-demand help sections for targeted help such as `--Xhelp`
+
+cliwerk is a drop-in replacement for picocli. The Java package stays `picocli`,
+so your imports and annotations do not change.
+Only the Maven coordinates differ: `io.github.wstein:cliwerk` instead of `info.picocli:picocli`.
+Details: [Features](docs/FEATURES.adoc).
 
 ## Install
 
@@ -49,7 +65,10 @@ dependencies {
 </dependency>
 ```
 
-More options (plain jars, requirements): [docs/INSTALL.adoc](docs/INSTALL.adoc).
+cliwerk is published to a Maven repository on GitHub Pages and as jars on
+[GitHub Releases](https://github.com/wstein/cliwerk/releases), not to Maven Central.
+The core classes are Java 8 bytecode; the `cliwerk-spec` classes need Java 11 or later.
+More options and requirements: [docs/INSTALL.adoc](docs/INSTALL.adoc).
 
 ## Hello cliwerk
 
@@ -100,10 +119,20 @@ Prints a greeting.
   -V, --version         Print version information and exit.
 ```
 
+## Next steps
+
+- [Features](docs/FEATURES.adoc): what cliwerk adds on top of picocli
+- [Migration](docs/MIGRATION.adoc): switch an existing picocli project
+- [FAQ](docs/FAQ.adoc)
+- [Javadoc](https://wstein.github.io/cliwerk/apidocs/cliwerk/) and
+  [cliwerk-spec Javadoc](https://wstein.github.io/cliwerk/apidocs/cliwerk-spec/)
+- [JSON Schema](https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json) for spec files
+
 ## Documentation
 
 | Topic | Where |
 | --- | --- |
+| Website | [wstein.github.io/cliwerk](https://wstein.github.io/cliwerk/) |
 | Install | [docs/INSTALL.adoc](docs/INSTALL.adoc) |
 | Quickstart | [Hello cliwerk](#hello-cliwerk) (above) |
 | Features | [docs/FEATURES.adoc](docs/FEATURES.adoc) |
@@ -115,3 +144,10 @@ Prints a greeting.
 | Upstream manual | [picocli.info](https://picocli.info) (applies to everything cliwerk has not changed) |
 | Fork rules and decisions | [docs/FORK.adoc](docs/FORK.adoc) |
 | Changelog | [CHANGELOG.md](CHANGELOG.md) |
+
+## Project
+
+- License: [Apache License 2.0](LICENSE), see [NOTICE](NOTICE).
+- Upstream: [remkop/picocli](https://github.com/remkop/picocli). cliwerk keeps the picocli API; the API only grows.
+- Status: current version `4.7.7.1`, based on upstream picocli 4.7.7.
+- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
