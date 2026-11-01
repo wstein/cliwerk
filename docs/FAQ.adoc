@@ -1,6 +1,8 @@
 = cliwerk FAQ
 :toc: preamble
 
+Answers to common questions about cliwerk and its relation to picocli.
+
 == Why is it called cliwerk and not picocli?
 
 cliwerk is an independent fork.
