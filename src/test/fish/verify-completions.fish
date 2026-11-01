@@ -9,6 +9,8 @@ set -g failures 0
 source $dir/basic.fish
 source $dir/picocompletion-demo_completion.fish
 source $dir/fish-features.fish
+source $dir/fish-positionals.fish
+source $dir/fish-positionals-root.fish
 
 # fail "<message>"   reports a failed check; on GitHub Actions also as an annotation, so it is visible without the log
 function fail
@@ -95,6 +97,47 @@ expect_lacks "fishfeatures --mode plain " plain "with space"
 # an optional value without candidates still completes file names after --optional=, although the command has
 # subcommands (whose -f line switches off file completion)
 expect_has   "fishfeatures --optional=" --optional=picocli-fish-file.txt
+
+# positional parameters are offered at their own position only
+# - root command: index 0 has candidates (and no file names), index 1 is a file, index 2.. are enum constants
+expect_has   "fishposroot " alpha beta go
+expect_lacks "fishposroot " red green blue picocli-fish-file.txt
+expect_has   "fishposroot al" alpha
+expect_has   "fishposroot alpha " picocli-fish-file.txt go
+expect_lacks "fishposroot alpha " alpha beta red green blue
+expect_has   "fishposroot alpha picocli-fish-file.txt " red green blue go
+expect_lacks "fishposroot alpha picocli-fish-file.txt " alpha beta picocli-fish-file.txt
+expect_has   "fishposroot alpha picocli-fish-file.txt red " red green blue
+expect_lacks "fishposroot alpha picocli-fish-file.txt red " alpha beta
+# options without a value are not positional parameters: they do not move the position
+expect_has   "fishposroot --verbose " alpha beta
+expect_lacks "fishposroot --verbose alpha " alpha beta
+expect_has   "fishposroot --verbose alpha " picocli-fish-file.txt
+# after the end-of-options delimiter, everything is a positional parameter, and a subcommand name is not recognized
+expect_lacks "fishposroot -- " go
+expect_has   "fishposroot -- " alpha beta
+expect_lacks "fishposroot -- alpha " alpha beta
+expect_has   "fishposroot -- alpha picocli-fish-file.txt " red green blue
+expect_has   "fishposroot --verbose " go
+# - subcommands: the position counts from the subcommand name; options of the root command in front do not count
+expect_has   "fishpos " run go
+expect_has   "fishpos run " alpha beta
+expect_lacks "fishpos run " red green blue
+expect_lacks "fishpos run alpha " alpha beta
+expect_has   "fishpos run alpha picocli-fish-file.txt " red green blue
+expect_has   "fishpos --verbose run " alpha beta
+# a word after an option that takes a value could be that value, so both positions are possible,
+# and file names stay available next to the candidates
+expect_has   "fishpos --out x run " alpha beta
+expect_has   "fishpos run --out x " alpha beta picocli-fish-file.txt
+expect_has   "fishpos run --out x alpha " picocli-fish-file.txt red green blue
+expect_lacks "fishpos run --out x alpha picocli-fish-file.txt red " alpha beta
+expect_has   "fishpos go " red green blue
+expect_has   "fishpos go red " picocli-fish-file.txt
+expect_lacks "fishpos go red " red green blue
+expect_lacks "fishpos go --force red picocli-fish-file.txt " red green blue
+expect_lacks "fishpos -- " run go
+
 cd $olddir
 rm -rf $workdir
 
