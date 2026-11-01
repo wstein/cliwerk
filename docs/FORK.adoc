@@ -134,7 +134,7 @@ The site at `https://wstein.github.io/cliwerk/` is hand-written static HTML and 
 The release workflow copies `gh-pages/` (except its `README.md`) onto the `gh-pages` branch next to `maven/`, `apidocs/` and `spec/schema/`.
 The user guide pages link to the AsciiDoc sources on GitHub; they are not rendered into the site.
 
-Generator decision (Hugo considered, no Hugo binary was available to try it):
+Generator decision:
 
 * Hand-written static pages, rating 4 of 5: no download at release time, three pages, nothing to maintain but the HTML.
 * Hugo with Markdown content only, rating 3: needs a pinned, checksummed binary downloaded in the release job and a template layer; little to template for three pages.

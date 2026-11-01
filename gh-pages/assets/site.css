@@ -49,8 +49,6 @@ pre code { overflow-wrap: normal; background: none; padding: 0; }
 .btn:hover { color: var(--accent-ink); filter: brightness(1.12); }
 .btn.alt { background: transparent; color: var(--accent); border: 1px solid var(--accent); }
 .btn.alt:hover { color: var(--mark); border-color: var(--mark); }
-.todo { border: 1px dashed var(--mark); border-radius: 6px; padding: .75rem 1rem; background: var(--surface); }
-.todo strong { color: var(--mark); }
 .notice { border-left: 4px solid var(--mark); background: var(--surface); padding: .75rem 1rem; border-radius: 0 6px 6px 0; margin: 1.5rem 0; font-size: .98rem; }
 dl.refs { display: grid; grid-template-columns: max-content 1fr; gap: .5rem 1.5rem; }
 dl.refs dt { font-weight: 600; } dl.refs dd { margin: 0; }
