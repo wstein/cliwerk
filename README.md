@@ -84,12 +84,14 @@ public class Hello implements Callable<Integer> {
 }
 ```
 
+Save this as `Hello.java` and run it with the Java 11+ source launcher, with the cliwerk jar on the class path:
+
 ```
-$ java Hello --name cliwerk --count 2
+$ java -cp cliwerk-4.7.7.1.jar Hello.java --name cliwerk --count 2
 Hello, cliwerk!
 Hello, cliwerk!
 
-$ java Hello --help
+$ java -cp cliwerk-4.7.7.1.jar Hello.java --help
 Usage: hello [-hV] [-c=<count>] [-n=<name>]
 Prints a greeting.
   -c, --count=<count>   How many times to greet.

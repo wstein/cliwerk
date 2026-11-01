@@ -16,13 +16,12 @@ The `generate-completion` subcommand and `picocli.AutoComplete` accept `--shell=
 The fish work was proposed upstream as https://github.com/remkop/picocli/pull/2463[remkop/picocli#2463].
 Whether upstream accepts it does not change its availability in cliwerk
 (see link:FORK.adoc[FORK.adoc]).
-The current state of that pull request was not checked for this page.
 
 == On-demand help sections
 
 `helpSection` on `@Option`, `@Parameters`, `@ArgGroup` and `@Command` tags an element with a section name.
 Tagged elements are left out of the normal `--help` output.
-They are shown when the matching section is requested, for example with `--Xhelp` for experimental options.
+They are shown when the matching section is requested, for example with an option you declare yourself, such as `--Xhelp` for experimental options (`--Xhelp` is an example name, not a built-in option).
 
 == cliwerk-spec
 
