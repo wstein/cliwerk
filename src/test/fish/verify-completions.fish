@@ -11,6 +11,7 @@ source $dir/picocompletion-demo_completion.fish
 source $dir/fish-features.fish
 source $dir/fish-positionals.fish
 source $dir/fish-positionals-root.fish
+source $dir/fish-calc.fish
 
 # fail "<message>"   reports a failed check; on GitHub Actions also as an annotation, so it is visible without the log
 function fail
@@ -138,6 +139,12 @@ expect_has   "fishpos go red " picocli-fish-file.txt
 expect_lacks "fishpos go red " red green blue
 expect_lacks "fishpos go --force red picocli-fish-file.txt " red green blue
 expect_lacks "fishpos -- " run go
+
+# a negative number is a positional parameter, so it moves the position (the candidates of index 1 stay available)
+expect_lacks "fishcalc " alpha beta
+expect_has   "fishcalc 5 " alpha beta
+expect_has   "fishcalc -5 " alpha beta
+expect_lacks "fishcalc 5 alpha " alpha beta
 
 cd $olddir
 rm -rf $workdir
