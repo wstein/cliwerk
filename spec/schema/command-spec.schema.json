@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wstein.github.io/picocli/spec/schema/command-spec.schema.json",
-  "title": "picocli-spec command spec",
-  "description": "The JSON format read and written by picocli.spec.CommandSpecJson: describes a picocli CommandSpec (a command's options and positional parameters, plus any nested subcommands) without an annotated Java class. Compiling picocli.spec.CommandSpecDsl's DSL produces a CommandSpec that serializes to exactly this shape. Note: this schema is intentionally a little stricter than CommandSpecJson.read() itself, to help editors/validators catch likely mistakes -- see the two 'Stricter than the reader' notes below. Versioning: this $id is the unversioned URL and always reflects the latest release; each release also publishes an exact, permanently-kept copy at .../spec/schema/<picocli-spec version>/command-spec.schema.json (pin to that one for reproducibility).",
+  "$id": "https://wstein.github.io/cliwerk/spec/schema/command-spec.schema.json",
+  "title": "cliwerk-spec command spec",
+  "description": "The JSON format read and written by cliwerk.spec.CommandSpecJson: describes a picocli CommandSpec (a command's options and positional parameters, plus any nested subcommands) without an annotated Java class. Compiling cliwerk.spec.CommandSpecDsl's DSL produces a CommandSpec that serializes to exactly this shape. Note: this schema is intentionally a little stricter than CommandSpecJson.read() itself, to help editors/validators catch likely mistakes -- see the two 'Stricter than the reader' notes below. Versioning: this $id is the unversioned URL and always reflects the latest release; no versioned copies are published (to pin a schema, use the copy checked into the release's source tag).",
   "$ref": "#/$defs/command",
   "$defs": {
     "command": {
@@ -260,7 +260,7 @@
       "type": "string",
       "pattern": "^(String|boolean|int|long|double|File|Path|URI|URL|BigDecimal|BigInteger)(\\[\\])?$",
       "examples": ["String", "boolean", "File[]", "String[]", "Path", "URI"],
-      "description": "See picocli.spec.ArgTypes. One of the scalar type names, optionally suffixed with \"[]\" for a multi-value array type -- required whenever arity allows more than one value: picocli can only bind multiple matches to an array or Collection type (Collection/Map types, which need an explicit auxiliary type due to generics erasure, are not yet supported; arrays cover the same need)."
+      "description": "See cliwerk.spec.ArgTypes. One of the scalar type names, optionally suffixed with \"[]\" for a multi-value array type -- required whenever arity allows more than one value: picocli can only bind multiple matches to an array or Collection type (Collection/Map types, which need an explicit auxiliary type due to generics erasure, are not yet supported; arrays cover the same need)."
     },
     "defaultValue": {
       "type": "string",

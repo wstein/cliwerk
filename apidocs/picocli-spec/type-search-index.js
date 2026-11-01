@@ -1,1 +1,0 @@
-typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"picocli.spec","l":"CommandSpecDsl"},{"p":"picocli.spec","l":"CommandSpecJson"},{"p":"picocli.spec","l":"CommandSpecMerger"},{"p":"picocli.spec","l":"DslParseException"},{"p":"picocli.spec.json","l":"Json"},{"p":"picocli.spec.json","l":"JsonParseException"}];updateSearchResults();
