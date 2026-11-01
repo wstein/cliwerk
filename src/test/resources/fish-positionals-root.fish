@@ -17,7 +17,7 @@ function __picocli_fishposroot_position
             set hi (math $hi + 1)
         else if test "$word" = "$argv[5]"
             set ended 1
-        else if string match -q -- '-?*' $word
+        else if string match -q -r -- '^-.' $word
             set after_option 1
         else
             set hi (math $hi + 1)

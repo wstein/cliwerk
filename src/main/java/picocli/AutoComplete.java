@@ -645,7 +645,7 @@ public class AutoComplete {
             "            set hi (math $hi + 1)\n" +
             "        else if test \"$word\" = \"$argv[5]\"\n" +
             "            set ended 1\n" +
-            "        else if string match -q -- '-?*' $word\n" +
+            "        else if string match -q -r -- '^-.' $word\n" +
             "            set after_option 1\n" +
             "        else\n" +
             "            set hi (math $hi + 1)\n" +
