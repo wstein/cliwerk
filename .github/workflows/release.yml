@@ -126,11 +126,14 @@ jobs:
           mkdir -p gh-pages-site/spec/schema
           cp "$SCHEMA_SRC" gh-pages-site/spec/schema/command-spec.schema.json
 
-          cp gh-pages/index.html gh-pages-site/index.html
+          # Static site (pages and assets); README.md documents the source directory only.
+          rm -rf gh-pages-site/guide gh-pages-site/reference gh-pages-site/assets
+          cp -r gh-pages/. gh-pages-site/
+          rm -f gh-pages-site/README.md
 
           cd gh-pages-site
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add maven apidocs spec index.html
+          git add maven apidocs spec index.html guide reference assets
           git commit -m "Publish io.github.wstein:cliwerk:${{ steps.vars.outputs.version }} (maven, javadoc, spec schema, site)" || echo "Nothing to commit"
           git push origin HEAD:gh-pages
