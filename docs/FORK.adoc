@@ -157,7 +157,10 @@ The `plan` job (`.github/scripts/ci_plan.py`) selects the build matrix:
 Adding `ci-full` to a pull request starts a new run with the full tier.
 macOS jobs are non-blocking (`continue-on-error`).
 
-A change that touches only `docs/**`, `gh-pages/**`, `LICENSE`, `*.md` or `*.adoc` files runs no matrix jobs.
+A change that touches only `+docs/**+`, `+gh-pages/**+`, `LICENSE`, `+*.md+` or `+*.adoc+` files runs no matrix jobs.
+Files below a `src/` directory at any depth never count as documentation, so a change to an expected-output file such as
+`+picocli-codegen/src/test/resources/**/*.adoc+` still runs the build.
+A rename is checked by both its old and its new path.
 The `ci-gate` job always runs and succeeds if the build jobs succeeded or were skipped because the change is docs-only.
 It fails if a build job failed or was cancelled.
 Branch protection should require `ci-gate` instead of the individual matrix jobs.
