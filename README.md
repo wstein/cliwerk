@@ -25,16 +25,21 @@ usage help and shell completion.
 
 ## Why use it?
 
-Use cliwerk if you build on picocli and want more than upstream offers:
+cliwerk contains the whole picocli API. If you build on picocli, you also get:
 
-- fish and PowerShell completion scripts
-- command specs built from a small DSL or from JSON, without annotated classes
-- on-demand help sections for targeted help such as `--Xhelp`
+| What cliwerk adds | Details |
+| --- | --- |
+| fish completion | `AutoComplete.fish()`, [Features](docs/FEATURES.adoc#_fish_and_powershell_completion) |
+| PowerShell completion | `AutoComplete.powershell()`, [Features](docs/FEATURES.adoc#_fish_and_powershell_completion) |
+| Command specs from a DSL or JSON | `cliwerk-spec`, no annotated classes, [Features](docs/FEATURES.adoc#_cliwerk_spec) |
+| On-demand help sections | `helpSection` on `@Option`, `@Parameters`, `@ArgGroup`, `@Command`, [Features](docs/FEATURES.adoc#_on_demand_help_sections) |
 
-cliwerk is a drop-in replacement for picocli. The Java package stays `picocli`,
-so your imports and annotations do not change.
-Only the Maven coordinates differ: `io.github.wstein:cliwerk` instead of `info.picocli:picocli`.
-Details: [Features](docs/FEATURES.adoc).
+## Switching from picocli in 30 seconds
+
+> Change only the coordinates: `info.picocli:picocli` becomes `io.github.wstein:cliwerk`.
+> The Java package stays `picocli`, so your imports and annotations do not change.
+> Add the cliwerk repository (see [Install](#install)) and build.
+> Details and edge cases: [Migration](docs/MIGRATION.adoc).
 
 ## Install
 
@@ -149,5 +154,12 @@ Prints a greeting.
 
 - License: [Apache License 2.0](LICENSE), see [NOTICE](NOTICE).
 - Upstream: [remkop/picocli](https://github.com/remkop/picocli). cliwerk keeps the picocli API; the API only grows.
-- Status: current version `4.7.7.1`, based on upstream picocli 4.7.7.
-- Contributing: [CONTRIBUTING.md](CONTRIBUTING.md). Security: [SECURITY.md](SECURITY.md).
+- Version: `4.7.7.1`, based on upstream picocli 4.7.7.
+
+## Status and contact
+
+cliwerk is an independently maintained personal fork. It is maintained on a best-effort basis,
+with no support guarantee.
+
+Changes and fixes are welcome as [pull requests](https://github.com/wstein/cliwerk/pulls);
+see [CONTRIBUTING.md](CONTRIBUTING.md). Security reports: [SECURITY.md](SECURITY.md).
