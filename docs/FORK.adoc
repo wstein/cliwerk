@@ -151,6 +151,30 @@ Generator decision:
   which has been brought into `develop`. The owner plans to reset `main` to upstream;
   after that, `develop` is the only line carrying fork changes.
 
+== Continuous integration
+
+The `Build` workflow (`.github/workflows/ci.yml`) runs on pushes to `develop`, on pull requests, nightly (02:23 UTC) and on manual dispatch.
+Pushes to other branches do not start it; the pull request run covers them, and a newer commit cancels the superseded run.
+The `plan` job (`.github/scripts/ci_plan.py`) selects the build matrix:
+
+[cols="1,3",options="header"]
+|===
+| Tier | When and what
+
+| PR tier
+| Default for pull requests: Ubuntu with JDK 8, 17 and 21; Windows and macOS with JDK 21.
+| Full tier
+| Push to `develop`, the nightly run, manual dispatch, and pull requests that carry the label `ci-full`: JDK 8, 11, 17 and 21 on Ubuntu, macOS and Windows (12 jobs).
+|===
+
+Adding `ci-full` to a pull request starts a new run with the full tier.
+macOS jobs are non-blocking (`continue-on-error`).
+
+A change that touches only `docs/**`, `gh-pages/**`, `LICENSE`, `*.md` or `*.adoc` files runs no matrix jobs.
+The `ci-gate` job always runs and succeeds if the build jobs succeeded or were skipped because the change is docs-only.
+It fails if a build job failed or was cancelled.
+Branch protection should require `ci-gate` instead of the individual matrix jobs.
+
 == Upstream syncs
 
 Decided 2026-10-24: upstream is synced *release by release*.
