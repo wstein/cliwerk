@@ -33,12 +33,14 @@ function __picocli_fishposroot_position
     set lo (math $lo - $argv[1])
     set hi (math $hi - $argv[1])
     test $lo -lt 0; and set lo 0
-    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end
+    test $hi -ge $argv[2]; and begin; test $argv[3] -lt 0; or test $lo -le $argv[3]; end; and begin; test "$argv[6]" != exact; or test $lo -eq $hi; end
 end
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go' -l 'verbose'
-complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 0 0 0 --' -f -a 'alpha beta' -d 'the mode'
+complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 0 0 0 --' -a 'alpha beta' -d 'the mode'
+complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 0 0 0 -- exact' -f
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 1 1 0 --' -a '(__fish_complete_path (commandline -ct))'
-complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 2 -1 0 --' -f -a 'red green blue'
+complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 2 -1 0 --' -a 'red green blue'
+complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 2 -1 0 -- exact' -f
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and not contains -- -- (commandline -opc)' -f -a 'go'
 complete -c 'fishposroot' -n '__fish_seen_subcommand_from go' -l 'force'
 complete -c 'fishposroot' -n '__fish_seen_subcommand_from go' -a 'red green blue'

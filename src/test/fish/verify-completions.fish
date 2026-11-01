@@ -12,6 +12,7 @@ source $dir/fish-features.fish
 source $dir/fish-positionals.fish
 source $dir/fish-positionals-root.fish
 source $dir/fish-calc.fish
+source $dir/fish-range.fish
 
 # fail "<message>"   reports a failed check; on GitHub Actions also as an annotation, so it is visible without the log
 function fail
@@ -145,6 +146,17 @@ expect_lacks "fishcalc " alpha beta
 expect_has   "fishcalc 5 " alpha beta
 expect_has   "fishcalc -5 " alpha beta
 expect_lacks "fishcalc 5 alpha " alpha beta
+
+# a negative number turns the position into a range: candidates and the file names of a sibling positional in that
+# range are both offered, while the candidates replace the file names at an exactly known position
+expect_has   "fishrange g2 " alpha beta
+expect_lacks "fishrange g2 " picocli-fish-file.txt
+expect_has   "fishrange g2 -5 " alpha beta picocli-fish-file.txt
+expect_has   "fishrange g2 alpha " picocli-fish-file.txt
+expect_lacks "fishrange g2 alpha " alpha beta
+expect_has   "fishrange g1 -5 alpha " alpha beta picocli-fish-file.txt
+expect_has   "fishrange g1 5 " alpha beta
+expect_lacks "fishrange g1 5 " picocli-fish-file.txt
 
 cd $olddir
 rm -rf $workdir
