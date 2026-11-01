@@ -171,7 +171,8 @@ jar {
 // consistent with the Maven artifactId cliwerk (docs/FORK.adoc, decision D5). Only the file base name of the
 // root project's jars changes. rootProject.name stays 'picocli' on purpose: it is part of the Gradle capability
 // info.picocli:picocli that the upstream drop-in modules (picocli-codegen, ...) and the api-compat setup rely on.
-// The manifest (Implementation-Title: picocli) and the Maven coordinates are not derived from the file name.
+// The manifest (Implementation-Title: picocli) and the Maven coordinates are not derived from the file name
+// (the bundle name is pinned in bnd.bnd).
 tasks.withType(Jar).configureEach {
     archiveBaseName = 'cliwerk'
 }
