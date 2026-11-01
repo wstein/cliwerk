@@ -13,7 +13,6 @@ The coordinates and download links in this guide work once `4.7.7.1` is publishe
 * No source changes are needed for code that uses `picocli.*`: the Java package and the public API stay as in upstream picocli
   (the API only grows).
 * Only cliwerk-owned names changed: the spec classes, the spec file extension and the spec tool (see <<Spec renames>>).
-  They matter only if you used an earlier cliwerk build of `picocli-spec` or `picospec`.
 
 == Coordinates
 
@@ -120,7 +119,7 @@ Details are in `CHANGELOG.md`, `README.md` and the module READMEs.
 
 == Spec renames
 
-Relevant only if you used the cliwerk spec modules before `4.7.7.1`.
+Relevant only if you use the spec modules.
 
 [cols="1,1",options="header"]
 |===
