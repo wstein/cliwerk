@@ -105,6 +105,7 @@ expect_lacks "fishposroot " red green blue picocli-fish-file.txt
 expect_has   "fishposroot al" alpha
 expect_has   "fishposroot alpha " picocli-fish-file.txt go
 expect_lacks "fishposroot alpha " alpha beta red green blue
+expect_has   "fishposroot alpha picocli-f" picocli-fish-file.txt
 expect_has   "fishposroot alpha picocli-fish-file.txt " red green blue go
 expect_lacks "fishposroot alpha picocli-fish-file.txt " alpha beta picocli-fish-file.txt
 expect_has   "fishposroot alpha picocli-fish-file.txt red " red green blue
