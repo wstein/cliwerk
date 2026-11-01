@@ -822,9 +822,11 @@ public class AutoComplete {
         boolean isOption = arg.isOption();
         CompletionModel.Candidates candidates = arg.candidates();
         if (!isOption && candidates == null) {
-            if (position != null && hasSubcommands) { // file names stay available at this position
+            // File names stay available at this position, although the subcommand line's -f switched them off. Offered with
+            // -a instead of -F: in fish 3.1, -F also acts as -r, and then fish offers nothing but the subcommands.
+            if (position != null && hasSubcommands) {
                 out.append("complete -c '").append(fishQuote(scriptName)).append('\'')
-                        .append(fishCondition(fishAnd(condition, position))).append(" -F\n");
+                        .append(fishCondition(fishAnd(condition, position))).append(" -a '(__fish_complete_path (commandline -ct))'\n");
             }
             return; // otherwise, nothing to add for this positional parameter; fish's default (file) completion applies
         }

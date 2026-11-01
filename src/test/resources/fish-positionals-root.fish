@@ -34,7 +34,7 @@ function __picocli_fishposroot_position
 end
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go' -l 'verbose'
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 0 0 0 --' -f -a 'alpha beta' -d 'the mode'
-complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 1 1 0 --' -F
+complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 1 1 0 --' -a '(__fish_complete_path (commandline -ct))'
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and __picocli_fishposroot_position 0 2 -1 0 --' -f -a 'red green blue'
 complete -c 'fishposroot' -n 'not __fish_seen_subcommand_from go; and not contains -- -- (commandline -opc)' -f -a 'go'
 complete -c 'fishposroot' -n '__fish_seen_subcommand_from go' -l 'force'
