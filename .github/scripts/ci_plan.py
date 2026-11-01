@@ -79,12 +79,14 @@ def changed_files(base, head):
     """Files changed between base and head (three-dot), or None if git cannot tell."""
     if not base or not head or set(base) == {"0"}:
         return None
-    r = subprocess.run(["git", "diff", "--name-only", "%s...%s" % (base, head)],
-                       capture_output=True, text=True)
+    # --no-renames lists both the old and the new path of a move (a move from src/ into docs/ is a code change);
+    # -z gives NUL-separated, unquoted paths.
+    r = subprocess.run(["git", "diff", "--name-only", "--no-renames", "-z", "%s...%s" % (base, head)],
+                       capture_output=True, text=True, encoding="utf-8", errors="surrogateescape")
     if r.returncode != 0:
         print("git diff failed, assuming code changes: %s" % r.stderr.strip(), file=sys.stderr)
         return None
-    return [line for line in r.stdout.splitlines() if line]
+    return [path for path in r.stdout.split("\0") if path]
 
 
 def write_outputs(values):
