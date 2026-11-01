@@ -626,6 +626,7 @@ public class AutoComplete {
      * being completed can be within {@code min..max} ({@code max} is -1 for "no upper limit"). {@code depth} is the
      * number of subcommand names before the positional parameters. The words typed so far are counted: a word that
      * starts with {@code -} is an option, and so is every word after the end-of-options {@code delimiter}.
+     * A word like {@code -5} may also be a negative number, which is a positional parameter, so it raises the upper bound.
      * With {@code values} = 1 the command has options that take a value, and a word that follows an option could be
      * that option's value: the index is then a range ({@code lo..hi}) and the function succeeds if it overlaps
      * {@code min..max}. So it never rules out a position that picocli would accept.</p>
@@ -647,6 +648,9 @@ public class AutoComplete {
             "            set ended 1\n" +
             "        else if string match -q -r -- '^-.' $word\n" +
             "            set after_option 1\n" +
+            "            if string match -q -r -- '^-[0-9]' $word # a negative number is a positional parameter, unless an option has that name\n" +
+            "                set hi (math $hi + 1)\n" +
+            "            end\n" +
             "        else\n" +
             "            set hi (math $hi + 1)\n" +
             "            if test $argv[4] -eq 0; or test $after_option -eq 0\n" +

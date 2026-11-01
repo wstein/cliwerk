@@ -19,6 +19,9 @@ function __picocli_fishposroot_position
             set ended 1
         else if string match -q -r -- '^-.' $word
             set after_option 1
+            if string match -q -r -- '^-[0-9]' $word # a negative number is a positional parameter, unless an option has that name
+                set hi (math $hi + 1)
+            end
         else
             set hi (math $hi + 1)
             if test $argv[4] -eq 0; or test $after_option -eq 0

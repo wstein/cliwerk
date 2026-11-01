@@ -423,6 +423,23 @@ public class AutoCompleteTest {
         assertThat(script, containsString("complete -c 'fishposparent' -n '__fish_seen_subcommand_from go' -a 'red green blue'\n"));
     }
 
+    // a negative number is parsed as a positional parameter, unless an option has that name
+    @Command(name = "fishcalc")
+    static class FishCalc {
+        @Parameters(index = "0", paramLabel = "N") int n;
+        @Parameters(index = "1", paramLabel = "MODE", completionCandidates = FishModes.class) String mode;
+    }
+
+    @Test
+    public void fishPositionHelperCountsNegativeNumbersAsPossiblePositionals() {
+        String script = AutoComplete.fish("fishcalc", new CommandLine(new FishCalc()));
+        // a word like -5 raises the upper bound of the index, so that the candidates of index 1 stay available after it
+        assertThat(script, containsString("            set after_option 1\n"
+                + "            if string match -q -r -- '^-[0-9]'"));
+        String expected = format(loadTextFromClasspath("/fish-calc.fish"), CommandLine.VERSION);
+        assertEquals(expected, script);
+    }
+
     @Test
     public void fishDoesNotSuggestSubcommandsAfterEndOfOptionsDelimiter() {
         String script = AutoComplete.fish("fishpos", new CommandLine(new FishPositionals()));
