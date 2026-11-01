@@ -46,6 +46,16 @@ class DocsOnlyTest(unittest.TestCase):
         self.assertFalse(ci_plan.is_docs_only(["docsx/a.java"]))
         self.assertFalse(ci_plan.is_docs_only(["src/readme.mdx"]))
 
+    def test_files_under_src_are_never_docs(self):
+        # expected-output files below src/ are test inputs, whatever their extension
+        self.assertFalse(ci_plan.is_docs_only(["picocli-codegen/src/test/resources/picocli/codegen/docgen/manpage/Expected.adoc"]))
+        self.assertFalse(ci_plan.is_docs_only(["src/main/docs/notes.md"]))
+        self.assertFalse(ci_plan.is_docs_only(["docs/index.adoc", "a/b/src/c/README.md"]))
+        self.assertFalse(ci_plan.is_docs_only(["src/docs/x.adoc"]))
+
+    def test_src_lookalikes_are_docs(self):
+        self.assertTrue(ci_plan.is_docs_only(["docs/src.adoc", "srcs/README.md", "docs/resrc/a.adoc"]))
+
     def test_empty_list_is_not_docs_only(self):
         self.assertFalse(ci_plan.is_docs_only([]))
         self.assertFalse(ci_plan.is_docs_only(None))

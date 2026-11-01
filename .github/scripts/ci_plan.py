@@ -29,6 +29,10 @@ DOCS_FILES = ("LICENSE",)
 
 
 def is_docs_path(path):
+    # Files below a src/ directory at any depth (for example expected-output files in test resources) are test
+    # inputs, whatever their extension.
+    if "/src/" in "/" + path:
+        return False
     return path.startswith(DOCS_PREFIXES) or path.endswith(DOCS_SUFFIXES) or path in DOCS_FILES
 
 
