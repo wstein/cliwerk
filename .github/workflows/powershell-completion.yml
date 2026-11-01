@@ -5,6 +5,7 @@ name: PowerShell completion
 # Windows PowerShell 5.1 ('powershell') exists on Windows only; PowerShell 7 ('pwsh') runs everywhere.
 on:
   push:
+    branches: [ develop ]
     paths:
       - 'src/main/java/picocli/AutoComplete.java'
       - 'src/main/java/picocli/CompletionModel.java'
@@ -21,6 +22,11 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+
+concurrency:
+  # cancel a superseded run for the same PR or ref
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
 
 jobs:
   powershell:
