@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="light dark">
-<meta name="description" content="cliwerk: a Java command line parser with the picocli API, plus fish completion and command specs.">
+<meta name="description" content="cliwerk: a Java command line parser with the picocli API, plus fish and PowerShell completion and command specs.">
 <title>cliwerk</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%230b5d63'/%3E%3Cpath d='M6 8l4 4-4 4M12 16h6' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/site.css">
@@ -17,7 +17,7 @@
 </div></header>
 <main id="main"><div class="wrap">
 <h1>cliwerk</h1>
-<p class="lead">A command line parser for Java that keeps the <code>picocli</code> API and adds fish completion, on-demand help sections, and command specs from JSON or a small DSL.</p>
+<p class="lead">A command line parser for Java that keeps the <code>picocli</code> API and adds fish and PowerShell completion, on-demand help sections, and command specs from JSON or a small DSL.</p>
 <p><a class="btn" href="guide/">Read the guide</a><a class="btn alt" href="reference/">API, schema, Maven</a></p>
 
 <h2>Use it</h2>
@@ -31,7 +31,7 @@ dependencies {
 
 <h2>What cliwerk adds</h2>
 <ul class="grid">
-<li class="card"><h3>Fish completion</h3><p><code>AutoComplete.fish()</code> generates a completion script for the fish shell.</p></li>
+<li class="card"><h3>Fish and PowerShell completion</h3><p>Generated completion scripts for the fish shell (<code>AutoComplete.fish()</code>) and for PowerShell (<code>--shell=powershell</code> of <code>generate-completion</code>).</p></li>
 <li class="card"><h3>Command specs</h3><p><code>cliwerk-spec</code> builds a <code>CommandSpec</code> from JSON or a DSL, without annotated classes, and writes it back.</p></li>
 <li class="card"><h3>Help sections</h3><p><code>helpSection</code> on <code>@Option</code> and <code>@ArgGroup</code> prints targeted help, for example for <code>--Xhelp</code>.</p></li>
 <li class="card"><h3>Spec tool</h3><p><code>cliwerk-spec</code> command line tool: preview, validate, convert, completion, man pages.</p></li>
