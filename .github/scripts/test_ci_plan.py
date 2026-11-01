@@ -188,6 +188,67 @@ class CliTest(unittest.TestCase):
             self.assertEqual(o["tier"], "full")
             self.assertEqual(len(json.loads(o["matrix"])["include"]), 12)
 
+    def commit_all(self, tmp, msg):
+        git(tmp, "add", "-A")
+        git(tmp, "commit", "-q", "-m", msg)
+
+    def write(self, tmp, name, text):
+        full = os.path.join(tmp, name)
+        os.makedirs(os.path.dirname(full), exist_ok=True)
+        with open(full, "w", encoding="utf-8") as f:
+            f.write(text)
+
+    def plan_head(self, tmp):
+        return self.run_cli(["plan", "--event", "pull_request", "--labels", "[]",
+                             "--base", "HEAD~1", "--head", "HEAD"], tmp)
+
+    def test_plan_rename_from_src_into_docs_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            git(tmp, "init", "-q")
+            self.write(tmp, "src/A.java", "class A { int x = 1; }\n" * 20)
+            self.commit_all(tmp, "one")
+            os.makedirs(os.path.join(tmp, "docs"))
+            git(tmp, "mv", "src/A.java", "docs/A.java")
+            self.commit_all(tmp, "move")
+            r, o = self.plan_head(tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("changed files: 2", r.stdout)
+            self.assertEqual(o["run"], "true")
+
+    def test_plan_non_ascii_path_is_read_unquoted(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            git(tmp, "init", "-q")
+            self.write(tmp, "a.txt", "a")
+            self.commit_all(tmp, "one")
+            self.write(tmp, "docs/\u00fcber.adoc", "b")
+            self.commit_all(tmp, "two")
+            r, o = self.plan_head(tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertEqual(o["run"], "false")
+
+    def test_plan_path_with_spaces(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            git(tmp, "init", "-q")
+            self.write(tmp, "a.txt", "a")
+            self.commit_all(tmp, "one")
+            self.write(tmp, "docs/my file.adoc", "b")
+            self.write(tmp, "src/my class.java", "b")
+            self.commit_all(tmp, "two")
+            r, o = self.plan_head(tmp)
+            self.assertIn("changed files: 2", r.stdout)
+            self.assertEqual(o["run"], "true")
+
+    def test_plan_empty_diff_runs(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            git(tmp, "init", "-q")
+            self.write(tmp, "a.txt", "a")
+            self.commit_all(tmp, "one")
+            git(tmp, "commit", "-q", "--allow-empty", "-m", "two")
+            r, o = self.plan_head(tmp)
+            self.assertEqual(r.returncode, 0, r.stderr)
+            self.assertIn("changed files: 0", r.stdout)
+            self.assertEqual(o["run"], "true")
+
     def test_plan_unresolvable_base_runs(self):
         with tempfile.TemporaryDirectory() as tmp:
             self.make_repo(tmp, ["README.md"])
